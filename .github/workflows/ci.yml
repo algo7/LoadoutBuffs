@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+    outputs:
+      version:
+        description: The project version (LoadoutBuffs.csproj)
+        value: ${{ jobs.build.outputs.version }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, test, package
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    env:
+      MANAGED_DIR: ${{ github.workspace }}/.valheim-managed
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          # 8: the tests; 10: the ILRepack tool
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Valheim server build id
+        id: valheim
+        run: echo "buildid=$(.github/scripts/valheim-managed.sh buildid)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the game DLLs
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .valheim-managed
+          key: valheim-managed-${{ steps.valheim.outputs.buildid }}
+
+      - name: Download the game DLLs (dedicated server, anonymous)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: .github/scripts/valheim-managed.sh fetch "$MANAGED_DIR"
+
+      - name: Version
+        id: version
+        run: echo "version=$(dotnet msbuild LoadoutBuffs.csproj -getProperty:Version)" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: make test DOTNET=dotnet MANAGED_DIR="$MANAGED_DIR"
+
+      - name: Package
+        run: make package DOTNET=dotnet MANAGED_DIR="$MANAGED_DIR"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: Algo7-LoadoutBuffs-${{ steps.version.outputs.version }}.zip
+          if-no-files-found: error

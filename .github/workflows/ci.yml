@@ -39,7 +39,7 @@ jobs:
 
       - name: Cache the game DLLs
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .valheim-managed
           key: valheim-managed-${{ steps.valheim.outputs.buildid }}

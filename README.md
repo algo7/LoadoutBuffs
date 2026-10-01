@@ -25,7 +25,8 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
 ## CI / CD
 
 - **CI** (`.github/workflows/ci.yml`, every push and pull request): build, unit tests and the zip as an artifact. The
-  game DLLs come from Valheim's free dedicated server (Steam app 896660, anonymous SteamCMD), cached per server build;
+  game DLLs come from Valheim's free dedicated server (Steam app 896660, anonymous login): only its `Managed` DLLs, fetched
+  with [DepotDownloader](https://github.com/SteamRE/DepotDownloader) (pinned, checksum-verified) in a few seconds;
   nothing from the game is committed.
 - **Release** (`.github/workflows/release.yml`): pushing a tag `vX.Y.Z` that matches the project version (and a released
   `## X.Y.Z` section in CHANGELOG.md) builds and tests again, then, after approval in the `thunderstore` environment,

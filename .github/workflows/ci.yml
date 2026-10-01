@@ -33,20 +33,8 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: Valheim server build id
-        id: valheim
-        run: echo "buildid=$(.github/scripts/valheim-managed.sh buildid)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache the game DLLs
-        id: cache
-        uses: actions/cache@v6
-        with:
-          path: .valheim-managed
-          key: valheim-managed-${{ steps.valheim.outputs.buildid }}
-
       - name: Download the game DLLs (dedicated server, anonymous)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: .github/scripts/valheim-managed.sh fetch "$MANAGED_DIR"
+        run: .github/scripts/valheim-managed.sh "$MANAGED_DIR"
 
       - name: Version
         id: version

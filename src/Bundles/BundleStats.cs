@@ -98,7 +98,7 @@ namespace LoadoutBuffs
             Def(Catalog.HealAlliesOnParry, "Heal allies", OnParry, null, StatKind.Parry, 10, 0, 300),
             Def(Catalog.StaminaAlliesOnParry, "Stamina to allies", OnParry, null, StatKind.Parry, 10, 0, 300),
             Def(Catalog.HealTamedOnParry, "Heal tamed", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.ShieldOnParry, "Bubble", OnParry, null, StatKind.Parry, 100, 0, 3000),
+            Def(Catalog.ShieldOnParry, "Bubble health", OnParry, null, StatKind.Parry, 100, 0, 3000),
             new StatDef
             {
                 Key = Catalog.ShieldMinutes, Label = "Bubble time", Group = OnParry, Kind = StatKind.Parry, Step = 1, Min = 1, Max = 10,
@@ -502,6 +502,21 @@ namespace LoadoutBuffs
             }
             error = $"'{text}' is not a number";
             return false;
+        }
+
+        /// <summary>A weapon's typed damage (lowercase type → amount, non-zero only, catalog order; not the untyped m_damage).</summary>
+        public static Dictionary<string, float> DamageByType(HitData.DamageTypes damages)
+        {
+            var values = new Dictionary<string, float>
+            {
+                ["blunt"] = damages.m_blunt, ["slash"] = damages.m_slash, ["pierce"] = damages.m_pierce, ["chop"] = damages.m_chop,
+                ["pickaxe"] = damages.m_pickaxe, ["fire"] = damages.m_fire, ["frost"] = damages.m_frost,
+                ["lightning"] = damages.m_lightning, ["poison"] = damages.m_poison, ["spirit"] = damages.m_spirit,
+            };
+            var result = new Dictionary<string, float>(StringComparer.Ordinal);
+            foreach (var type in BundleStatCatalog.DamageTypes.Select(t => t.ToLowerInvariant()))
+                if (values.TryGetValue(type, out var v) && v > 0f) result[type] = v;
+            return result;
         }
 
         /// <summary>The added-damage types this block holds, lowercase, in the catalog's order.</summary>

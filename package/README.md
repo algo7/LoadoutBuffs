@@ -23,19 +23,21 @@ One bundle is active at a time, for every character in the profile.
 
 - General: movement speed, carry weight, armor, **block armor** and **block force** (added to whatever you block with:
   your shield, else your weapon), fall damage.
-- Regen (health / stamina / eitr), stamina costs (run, jump, attack, block, dodge), resistances, damage % per type.
+- Regen (health / stamina / eitr), stamina costs (run, jump, attack, block, dodge), resistances, damage % per type
+  (the list shows the types your weapon deals: a % of a type it doesn't deal would multiply zero).
 - **Added damage** per type (e.g. +30 spirit on the weapon you attack with, scaled like the weapon's own damage).
   Fire, poison and spirit arrive as damage over time after the hit, like the game's own.
 - Skill levels.
 - **On parry**: heal / stamina for you, heal / stamina for other players, heal for tamed creatures, a **bubble** (the
-  Staff of Protection's Magic barrier: absorb amount and its time in minutes) for all of you, and their reach (default
+  Staff of Protection's Magic barrier: its health, i.e. the damage it absorbs, and its time in minutes) for all of you, and their reach (default
   10 m). Other players don't need the mod. Anyone who already has a bubble keeps theirs; a broken or expired one is
   replaced on your next parry.
 - **Class**: *Woodcutter* lets your melee weapon fell any tree (and logs and stumps), *Miner* lets it break any rock or
   ore deposit (black marble included; digging the ground stays a pickaxe thing).
 
 The stats of the slots you're wearing add up and show as one buff named after the bundle (with "N stats" under it);
-the Compendium's Active effects page lists them, and the window shows the total at the bottom.
+the Compendium's Active effects page lists them. The bottom of the window shows the bundle's effects and custom stats
+for what you wear now.
 
 Bundles live in `BepInEx/config/LoadoutBuffs.bundles.yaml`, which you can also edit by hand (code or in-game
 effect names) and reload with `lb_reload`:

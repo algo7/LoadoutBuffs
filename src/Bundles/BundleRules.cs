@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace LoadoutBuffs
@@ -233,6 +234,42 @@ namespace LoadoutBuffs
                 result[entry.Slot] = code;
             }
             return result;
+        }
+    }
+
+    /// <summary>What the Bundles window shows for the gear in hand (kept Unity-free for the tests).</summary>
+    internal static class BundleWindowRules
+    {
+        /// <summary>
+        /// Damage % rows for the weapon in hand: the types it deals (its own damage plus what bundles add) and any type
+        /// that already has a % set, since stats belong to the slot, not to one weapon. A % of a type the weapon doesn't
+        /// deal multiplies 0. No weapon known (null): every type.
+        /// </summary>
+        public static List<string> DamagePercentRows(IReadOnlyDictionary<string, float> dealt, IReadOnlyDictionary<string, float> set)
+        {
+            if (dealt == null) return BundleStatCatalog.DamageTypes.ToList();
+            return BundleStatCatalog.DamageTypes
+                .Where(t =>
+                {
+                    var key = t.ToLowerInvariant();
+                    return (dealt.TryGetValue(key, out var d) && d > 0f) || (set != null && set.ContainsKey(key));
+                })
+                .ToList();
+        }
+
+        /// <summary>"has 90": the note on an added-damage row, what the weapon in hand already deals of that type (null: none).</summary>
+        public static string AddedDamageNote(float own) =>
+            own > 0f ? "has " + own.ToString("0.##", CultureInfo.InvariantCulture) : null;
+
+        /// <summary>In-game names of the bundle's slot effects whose slot is filled now, in slot order (unresolvable ones left out).</summary>
+        public static List<string> WornEffectNames(BundleDef bundle, IEffectCatalog catalog, Func<BundleSlot, bool> isWorn)
+        {
+            if (bundle == null || catalog == null) return new List<string>();
+            return BundleRules.ResolveBundle(bundle, catalog, null)
+                .Where(p => isWorn(p.Key))
+                .OrderBy(p => p.Key)
+                .Select(p => catalog.Allowed.FirstOrDefault(e => e.Code == p.Value)?.DisplayName ?? p.Value)
+                .ToList();
         }
     }
 }

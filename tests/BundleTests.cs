@@ -216,4 +216,44 @@ internal static partial class Tests
     }
 
     private static void False(bool condition, string what) => True(!condition, what);
+
+    // ---- window: what the rows and lines show -------------------------------------------------
+
+    private static void Test_Window_DamagePercentRowsFollowTheWeapon()
+    {
+        var club = new Dictionary<string, float> { ["blunt"] = 90 };
+        var none = new Dictionary<string, float>();
+        Eq("Blunt", string.Join(",", BundleWindowRules.DamagePercentRows(club, none)), "a club deals blunt only (no chop row: the class chop doesn't use it)");
+
+        var clubWithSpirit = new Dictionary<string, float> { ["blunt"] = 90, ["spirit"] = 30 };
+        Eq("Blunt,Spirit", string.Join(",", BundleWindowRules.DamagePercentRows(clubWithSpirit, none)), "an added type shows up");
+
+        var slashSet = new Dictionary<string, float> { ["slash"] = 10 };
+        Eq("Blunt,Slash", string.Join(",", BundleWindowRules.DamagePercentRows(club, slashSet)), "a row with a value never hides, in catalog order");
+
+        Eq(string.Join(",", BundleStatCatalog.DamageTypes), string.Join(",", BundleWindowRules.DamagePercentRows(null, none)), "no weapon known: every type");
+    }
+
+    private static void Test_Window_AddedDamageNoteShowsWhatTheWeaponHas()
+    {
+        Eq("has 90", BundleWindowRules.AddedDamageNote(90f), "own damage");
+        Eq("has 12.5", BundleWindowRules.AddedDamageNote(12.5f), "decimals");
+        Eq(null, BundleWindowRules.AddedDamageNote(0f), "none of it: no note");
+    }
+
+    private static void Test_Window_DamageByTypeReadsTheWeapon()
+    {
+        var damages = new HitData.DamageTypes { m_damage = 5, m_blunt = 90, m_chop = 20, m_spirit = 0 };
+        var map = StatBlock.DamageByType(damages);
+        Eq("blunt=90,chop=20", string.Join(",", map.Select(p => $"{p.Key}={p.Value}")), "non-zero typed damage, lowercase, catalog order (not the untyped m_damage)");
+    }
+
+    private static void Test_Window_WornEffectNames()
+    {
+        var file = BundleFile.Parse("bundles:\n  E:\n    cape: SlowFall\n    helmet: Demister\n    chest: BeltStrength\n    legs: NotAnEffect\n");
+        var worn = new HashSet<BundleSlot> { BundleSlot.Chest, BundleSlot.Helmet, BundleSlot.Legs };
+        var names = BundleWindowRules.WornEffectNames(file.Find("E"), new FakeCatalog(), worn.Contains);
+        Eq("Wisplight,Megingjord", string.Join(",", names), "worn slots only, in slot order, in-game names; an unknown effect is left out");
+        Eq(0, BundleWindowRules.WornEffectNames(null, new FakeCatalog(), worn.Contains).Count, "no bundle");
+    }
 }

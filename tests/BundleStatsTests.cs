@@ -286,14 +286,14 @@ internal static partial class Tests
         Eq(500f, assist.Shield, "bubble");
         Eq(15f, assist.Radius, "reach");
         Eq(15f, assist.TamedRadius, "tamed share the reach");
-        Eq("on parry: bubble +500, reach 15 m", total.Summary(), "summary");
+        Eq("on parry: bubble health +500, reach 15 m", total.Summary(), "summary");
 
         var again = BundleFile.Parse(file.Serialize(_ => null));
         Eq(0, again.Warnings.Count, "round trip warnings: " + string.Join(" | ", again.Warnings));
         Eq(300f, again.Find("T").GetStats(BundleSlot.Shield).Scalars["shieldOnParry"], "round trip keeps the bubble");
 
         var def = BundleStatCatalog.Find("shieldOnParry");
-        Eq("Bubble", def.Label, "window label");
+        Eq("Bubble health", def.Label, "window label");
         Eq(100f, def.Step, "step");
         Eq(3000f, def.Max, "window max");
     }
@@ -308,7 +308,7 @@ internal static partial class Tests
         var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Chest) });
         Eq(3f, total.Scalars["shieldMinutes"], "the longest time, not the sum");
         Eq(3f, total.ToParryAssist().ShieldMinutes, "assist");
-        Eq("on parry: bubble +300, bubble time 3 min", total.Summary(), "summary");
+        Eq("on parry: bubble health +300, bubble time 3 min", total.Summary(), "summary");
         Eq(null, bundle.GetStats(BundleSlot.Chest).ToParryAssist(), "a time without a bubble does nothing");
 
         var noTime = new StatBlock();

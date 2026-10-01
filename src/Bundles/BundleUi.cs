@@ -98,6 +98,7 @@ namespace LoadoutBuffs
             try
             {
                 InventoryButton.Layout(__instance);
+                BundleWindow.RefreshIfGearChanged();
             }
             catch (Exception e)
             {

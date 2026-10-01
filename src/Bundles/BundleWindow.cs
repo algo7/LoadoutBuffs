@@ -233,9 +233,24 @@ namespace LoadoutBuffs
 
         // ---- showing ------------------------------------------------------------------------
 
+        private static ItemDrop.ItemData[] s_gear = new ItemDrop.ItemData[0];
+
+        /// <summary>
+        /// Every inventory frame: refresh when the item in a slot or the weapon in hand changed, so the slot rows, the
+        /// lines at the bottom and the damage rows (which follow the weapon) never show stale gear. Window open only.
+        /// </summary>
+        public static void RefreshIfGearChanged()
+        {
+            if (!IsOpen) return;
+            var gear = BundleEffects.GearSnapshot(Player.m_localPlayer);
+            if (gear.Length == s_gear.Length && gear.Zip(s_gear, ReferenceEquals).All(same => same)) return;
+            Refresh();
+        }
+
         private static void Refresh()
         {
             if (s_panel == null) return;
+            s_gear = BundleEffects.GearSnapshot(Player.m_localPlayer);
             var file = BundleEffects.File;
             var state = BundleEffects.State;
             var bundle = file.Find(s_selectedBundle);
@@ -375,8 +390,11 @@ namespace LoadoutBuffs
             var totals = BundleEffects.WornTotals(Player.m_localPlayer, bundle);
             var note = !BundleEffects.State.Enabled ? "  <color=#ff8a70>(bundles are off)</color>"
                 : !isActive ? "  <color=#bbbbbb>(not in use)</color>" : "";
-            s_totals.text = $"<color=orange>Stats of {Escape(bundle.Name)}</color> with what you wear now: " +
-                            (totals.IsEmpty ? "<color=#bbbbbb>none</color>" : Escape(totals.Summary())) + note;
+            var player = Player.m_localPlayer;
+            var effects = BundleWindowRules.WornEffectNames(bundle, BundleEffects.Catalog, slot => player != null && BundleEffects.Worn(player, slot) != null);
+            s_totals.text = $"<color=orange>Effects of {Escape(bundle.Name)}</color> with what you wear now: " +
+                            (effects.Count == 0 ? "<color=#bbbbbb>none</color>" : Escape(string.Join(", ", effects))) + note +
+                            "\n<color=orange>Custom stats:</color> " + (totals.IsEmpty ? "<color=#bbbbbb>none</color>" : Escape(totals.Summary()));
         }
 
         private static void RefreshStats(BundleDef bundle)
@@ -427,8 +445,26 @@ namespace LoadoutBuffs
                         () => CycleResist(t, -1), () => CycleResist(t, 1), "<", ">", 110);
                 }
 
+            // Damage rows follow the weapon in hand: a % multiplies what it deals, so a % of a type it lacks does nothing.
+            var weapon = BundleEffects.CurrentWeapon();
+            var own = weapon != null ? BundleEffects.OwnDamage(weapon) : null;
+            var weaponName = weapon == null ? null
+                : weapon.m_shared.m_skillType == Skills.SkillType.Unarmed ? "fists"
+                : Escape(EffectText.DisplayName(weapon.m_shared.m_name));
+            Dictionary<string, float> dealt = null;
+            if (own != null)
+            {
+                dealt = new Dictionary<string, float>(own);
+                var worn = BundleEffects.WornTotals(Player.m_localPlayer, bundle);
+                foreach (var p in worn.AddDamage.Concat(stats.AddDamage))
+                    dealt[p.Key] = (dealt.TryGetValue(p.Key, out var x) ? x : 0f) + p.Value;
+            }
+
             if (GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count, false))
-                foreach (var type in BundleStatCatalog.DamageTypes)
+            {
+                if (weaponName != null)
+                    Row(s_statsList, $"<size=13><color=#bbbbbb>Damage types of your {weaponName}; others appear once added below.</color></size>", 28, () => { }, false);
+                foreach (var type in BundleWindowRules.DamagePercentRows(dealt, stats.Damage))
                 {
                     var key = type.ToLowerInvariant();
                     var has = stats.Damage.TryGetValue(key, out var v);
@@ -436,16 +472,23 @@ namespace LoadoutBuffs
                         () => ChangeNumber(b => b.Damage, key, -BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax),
                         () => ChangeNumber(b => b.Damage, key, BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax));
                 }
+            }
 
             if (GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count, false))
+            {
+                if (weaponName != null)
+                    Row(s_statsList, $"<size=13><color=#bbbbbb>Added on top of your {weaponName}{(weaponName == "fists" ? "'" : "'s")} own damage.</color></size>", 28, () => { }, false);
                 foreach (var type in BundleStatCatalog.AddDamageTypes)
                 {
                     var key = type.ToLowerInvariant();
                     var has = stats.AddDamage.TryGetValue(key, out var v);
+                    var ownValue = own != null && own.TryGetValue(key, out var o) ? o : 0f;
                     StatRow(type + " damage", has ? StatBlock.Number(v) : "0", has, true,
                         () => ChangeNumber(b => b.AddDamage, key, -BundleStatCatalog.AddDamageStep, BundleStatCatalog.AddDamageMin, BundleStatCatalog.AddDamageMax),
-                        () => ChangeNumber(b => b.AddDamage, key, BundleStatCatalog.AddDamageStep, BundleStatCatalog.AddDamageMin, BundleStatCatalog.AddDamageMax));
+                        () => ChangeNumber(b => b.AddDamage, key, BundleStatCatalog.AddDamageStep, BundleStatCatalog.AddDamageMin, BundleStatCatalog.AddDamageMax),
+                        note: BundleWindowRules.AddedDamageNote(ownValue));
                 }
+            }
 
             if (GroupHeader(BundleStatCatalog.Skills, stats.Skills.Count, false))
                 foreach (var skill in BundleStatCatalog.WindowSkills.Concat(stats.Skills.Keys.Where(k => !BundleStatCatalog.WindowSkills.Contains(k))))
@@ -479,7 +522,7 @@ namespace LoadoutBuffs
 
         /// <summary><c>label   value  [-] [+]</c>; a changed value is green when it helps you, red when it hurts.</summary>
         private static void StatRow(string label, string value, bool changed, bool helps, UnityAction down, UnityAction up,
-            string downText = "-", string upText = "+", float valueWidth = 70f)
+            string downText = "-", string upText = "+", float valueWidth = 70f, string note = null)
         {
             var width = s_statsList.rect.width - 4f;
             var row = new GameObject("StatRow", typeof(RectTransform));
@@ -490,7 +533,8 @@ namespace LoadoutBuffs
             element.preferredWidth = width;
             var labelColor = changed ? GUIManager.Instance.ValheimOrange : Color.white;
             var valueColor = !changed ? Color.white : helps ? s_good : s_bad;
-            Label(row.transform, Escape(label), 15, labelColor, 8, 2, width - valueWidth - 100, 24, TextAnchor.MiddleLeft);
+            var text = Escape(label) + (note != null ? $"  <size=12><color=#bbbbbb>{Escape(note)}</color></size>" : "");
+            Label(row.transform, text, 15, labelColor, 8, 2, width - valueWidth - 100, 24, TextAnchor.MiddleLeft);
             Label(row.transform, value, 15, valueColor, width - valueWidth - 94, 2, valueWidth, 24, TextAnchor.MiddleRight);
             MakeButton(row.transform, downText, width - 88, 1, 40, 26, down);
             MakeButton(row.transform, upText, width - 44, 1, 40, 26, up);

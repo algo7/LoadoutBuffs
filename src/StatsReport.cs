@@ -118,7 +118,7 @@ namespace LoadoutBuffs
             if (players != null) parts.Add($"players within {F(a.Radius)} m {players}");
             if (a.HealTamed > 0f) parts.Add($"tamed within {F(a.TamedRadius)} m +{F(a.HealTamed)} health");
             if (a.Shield > 0f)
-                parts.Add($"bubble {F(a.Shield)} ({ShieldMath.ItemLevelFor(a.ShieldMinutes)} min) for you, players within {F(a.Radius)} m and tamed within {F(a.TamedRadius)} m");
+                parts.Add($"bubble health {F(a.Shield)} ({ShieldMath.ItemLevelFor(a.ShieldMinutes)} min) for you, players within {F(a.Radius)} m and tamed within {F(a.TamedRadius)} m");
             return parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         }
 

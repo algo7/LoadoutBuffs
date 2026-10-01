@@ -290,6 +290,36 @@ namespace LoadoutBuffs
             }
         }
 
+        /// <summary>The weapon the local player attacks with (fists when the hands are empty), or null without a player.</summary>
+        public static ItemData CurrentWeapon()
+        {
+            var player = Player.m_localPlayer;
+            return player == null ? null : player.GetCurrentWeapon();
+        }
+
+        /// <summary>A weapon's own damage per type, without what the active bundle adds to it (for the window).</summary>
+        public static Dictionary<string, float> OwnDamage(ItemData weapon)
+        {
+            var result = StatBlock.DamageByType(weapon.GetDamage());
+            if (!ReferenceEquals(CurrentWeapon(), weapon)) return result;
+            foreach (var p in s_addDamage)
+            {
+                if (!result.TryGetValue(p.Key, out var v)) continue;
+                if (v - p.Value > 0.001f) result[p.Key] = v - p.Value;
+                else result.Remove(p.Key);
+            }
+            return result;
+        }
+
+        /// <summary>What the window's gear-dependent parts depend on: the item in every slot and the weapon in hand.</summary>
+        public static ItemData[] GearSnapshot(Humanoid h)
+        {
+            if (h == null) return new ItemData[0];
+            var items = BundleSlots.All.Select(s => Worn(h, s)).ToList();
+            items.Add(h.GetCurrentWeapon());
+            return items.ToArray();
+        }
+
         /// <summary>A bundle's stats summed over the slots the player fills now (window totals line, lb_stats).</summary>
         public static StatBlock WornTotals(Humanoid h, BundleDef bundle)
         {

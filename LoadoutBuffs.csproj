@@ -1,0 +1,141 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>LoadoutBuffs</AssemblyName>
+    <RootNamespace>LoadoutBuffs</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- Thunderstore namespace / r2modman author; the package's manifest.json is generated from these (Package target). -->
+    <ModAuthor>Algo7</ModAuthor>
+    <ModDescription>Bundles: extra gear effects and stats per equipment slot (damage, block, parry heals and bubbles for allies), picked in an in-game window. Client-side.</ModDescription>
+    <ModWebsite>https://github.com/algo7/LoadoutBuffs</ModWebsite>
+    <!-- Runtime dependency (Thunderstore). Jötunn's comes from the JotunnLib PackageReference version below. -->
+    <BepInExPackDependency>denikson-BepInExPack_Valheim-5.4.2351</BepInExPackDependency>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Copy YamlDotNet.dll next to our DLL so ILRepack can merge it. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!--
+    Game DLLs (compile-time only): the client locally, the dedicated server's valheim_server_Data/Managed in CI.
+    Override with -p:ManagedDir=... (or -p:ValheimDir=...).
+  -->
+  <PropertyGroup>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">$(HOME)/.local/share/Steam/steamapps/common/Valheim</ValheimDir>
+    <ManagedDir Condition="'$(ManagedDir)' == ''">$(ValheimDir)/valheim_Data/Managed</ManagedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src/**/*.cs" />
+    <EmbeddedResource Include="example/LoadoutBuffs.bundles.yaml" LogicalName="LoadoutBuffs.bundles.example.yaml" />
+    <EmbeddedResource Include="package/icon.png" LogicalName="LoadoutBuffs.icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <!-- Compile-time only: BepInEx / HarmonyX and Jötunn come from the player's install at runtime. -->
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="assembly_valheim">
+      <HintPath>$(ManagedDir)/assembly_valheim.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ManagedDir)/assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_guiutils">
+      <HintPath>$(ManagedDir)/assembly_guiutils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ManagedDir)/UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ManagedDir)/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ManagedDir)/Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Merge YamlDotNet into the plugin DLL and internalize it, so we never clash with the
+    YamlDotNet another mod ships. Output: bin/<Configuration>/merged/LoadoutBuffs.dll
+  -->
+  <Target Name="MergeYamlDotNet" AfterTargets="Build">
+    <PropertyGroup>
+      <MergedPath>$(TargetDir)merged/$(TargetFileName)</MergedPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_MergeInput Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)%(Extension)' == 'YamlDotNet.dll'" />
+    </ItemGroup>
+    <Error Condition="'@(_MergeInput)' == ''" Text="YamlDotNet.dll was not copied to the output; cannot merge it." />
+    <MakeDir Directories="$(TargetDir)merged" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="&quot;$(DOTNET_HOST_PATH)&quot; tool restore" StandardOutputImportance="low" />
+    <ItemGroup>
+      <!-- Every reference's folder (game, NuGet), so ILRepack can resolve them; "." avoids a trailing separator. -->
+      <_ReferenceDirs Include="@(ReferencePath->'%(RootDir)%(Directory).')" />
+    </ItemGroup>
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="&quot;$(DOTNET_HOST_PATH)&quot; tool run ilrepack /internalize @(_ReferenceDirs->Distinct()->'/lib:&quot;%(Identity)&quot;', ' ') /out:&quot;$(MergedPath)&quot; &quot;$(TargetPath)&quot; &quot;@(_MergeInput)&quot;" />
+  </Target>
+
+  <!--
+    r2modman / Thunderstore package: manifest.json (generated here, so name, version and the Jötunn dependency can't
+    drift), README.md, CHANGELOG.md, icon.png and the merged DLL, zipped into <project>/<ModAuthor>-<AssemblyName>-<Version>.zip.
+  -->
+  <Target Name="Package" DependsOnTargets="Build">
+    <PropertyGroup>
+      <_PackageDir>$(MSBuildProjectDirectory)/bin/package</_PackageDir>
+      <PackagePath>$(MSBuildProjectDirectory)/$(ModAuthor)-$(AssemblyName)-$(Version).zip</PackagePath>
+      <_JotunnVersion>@(PackageReference->WithMetadataValue('Identity', 'JotunnLib')->'%(Version)')</_JotunnVersion>
+      <_PluginSource>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/src/Plugin.cs'))</_PluginSource>
+    </PropertyGroup>
+    <Error Condition="'$(_JotunnVersion)' == ''" Text="No JotunnLib PackageReference: can't write the Jötunn dependency." />
+    <Error Condition="!$(_PluginSource.Contains('PluginVersion = &quot;$(Version)&quot;'))" Text="src/Plugin.cs PluginVersion doesn't match the project Version $(Version)." />
+    <ItemGroup>
+      <_ManifestLine Include="{" />
+      <_ManifestLine Include="    &quot;name&quot;: &quot;$(AssemblyName)&quot;," />
+      <_ManifestLine Include="    &quot;author&quot;: &quot;$(ModAuthor)&quot;," />
+      <_ManifestLine Include="    &quot;version_number&quot;: &quot;$(Version)&quot;," />
+      <_ManifestLine Include="    &quot;website_url&quot;: &quot;$(ModWebsite)&quot;," />
+      <_ManifestLine Include="    &quot;description&quot;: &quot;$(ModDescription)&quot;," />
+      <_ManifestLine Include="    &quot;dependencies&quot;: [ &quot;$(BepInExPackDependency)&quot;, &quot;ValheimModding-Jotunn-$(_JotunnVersion)&quot; ]" />
+      <_ManifestLine Include="}" />
+    </ItemGroup>
+    <RemoveDir Directories="$(_PackageDir)" />
+    <MakeDir Directories="$(_PackageDir)" />
+    <WriteLinesToFile File="$(_PackageDir)/manifest.json" Lines="@(_ManifestLine)" Overwrite="true" />
+    <Copy SourceFiles="$(TargetDir)merged/$(TargetFileName);package/README.md;CHANGELOG.md;package/icon.png" DestinationFolder="$(_PackageDir)" />
+    <ZipDirectory SourceDirectory="$(_PackageDir)" DestinationFile="$(PackagePath)" Overwrite="true" />
+    <Message Importance="high" Text="Package: $(PackagePath)" />
+  </Target>
+
+</Project>

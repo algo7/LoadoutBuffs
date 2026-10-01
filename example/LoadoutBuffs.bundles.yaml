@@ -1,0 +1,48 @@
+# LoadoutBuffs: extra "while worn" effects and stats, per equipment slot.
+#
+# Pick and edit bundles in game: inventory -> Bundles (or the console command lb_bundles).
+# Or edit this file and run lb_reload in the F5 console. The Bundles window rewrites this
+# file, so comments you add here are not kept.
+#
+# active: the bundle in use for every character in this profile, or none.
+# Slots: helmet, chest, legs, cape, melee (swords, knives, clubs, atgeirs, spears, axes, fists),
+# ranged (bows, crossbows, magic staffs), shield. A slot counts while something is equipped there
+# (weapons: in your hands); your gear keeps its own effects. Pickaxes, the fishing rod, torches and
+# tools fill no slot. Effect: code name or in-game name of an effect gear has in the game (the
+# Bundles window lists them).
+# A slot can also have custom stats (long form):
+#   chest:
+#     effect: SetEffect_DeepNorthMediumArmor
+#     stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, damage: { slash: 10 }, skills: { Bows: 15 } }
+# Stats: movementSpeed, carryWeight, armor, blockArmor, blockForce (what you block with), fallDamage,
+# healthRegen, staminaRegen, eitrRegen, runStamina, jumpStamina, attackStamina, blockStamina,
+# dodgeStamina (percent stats in percent: 10 = +10 %), resist, damage (%), addDamage (flat, on the
+# weapon you attack with, e.g. { spirit: 30 }), skills, fields (raw SE_Stats fields). On every parry:
+# healOnParry, staminaOnParry (you), healAlliesOnParry, staminaAlliesOnParry (other players),
+# healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of you), shieldMinutes
+# (its time, default 1), parryRadius (reach in metres, default 10). Classes: woodcutter: true (melee
+# hits fell any tree), miner: true (melee hits break any rock or ore). The stats of all filled slots
+# add up (reach and bubble time take the largest) and show as one buff named after the bundle.
+
+active: none
+
+bundles:
+  Warrior:
+    helmet: SetEffect_FenringArmor          # Fenris blessing: fire resistant, fists +15
+    chest: SetEffect_DeepNorthMediumArmor   # Vanguard: regen +10 %, dodge stamina -20 %, run stamina -10 %, pierce +10 %
+    legs: SetEffect_AshlandsMediumArmor     # Ask's Endurance: attack stamina -20 %, run/jump stamina -10 %, pierce +10 %
+  Hunter:
+    helmet: SetEffect_RootArmor             # Improved archery: bows +15
+    chest: SetEffect_LoxArmor               # Boon of the Lox: sneak +30, bows +15
+    legs: SetEffect_TrollArmor              # Sneaky: sneak +15
+    cape: WindRun                           # Wind Run
+  Explorer:
+    helmet: Demister                        # Wisplight: a wisp clears the Mistlands mist
+    chest: BeltStrength                     # Megingjord: carry weight +150
+    legs: WindRun                           # Wind Run
+    cape: SlowFall                          # Feather fall: no fall damage, jump stamina -20 %
+  Homesteader:
+    helmet: SetEffect_HarvesterArmor        # Harvester: farming +25
+    chest: SetEffect_FishingHat             # Fishing Hat: fishing +20, swim +20
+    legs: BeltStrength                      # Megingjord: carry weight +150
+    cape: Wishbone                          # Wishbone: finds hidden things

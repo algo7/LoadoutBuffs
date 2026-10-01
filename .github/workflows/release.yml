@@ -1,0 +1,84 @@
+name: Release
+
+# Push a tag vX.Y.Z (= the csproj Version, with a CHANGELOG.md section for it). After the build and checks, the
+# publish job waits for approval (environment "thunderstore"), then creates the GitHub Release and uploads the same
+# zip to Thunderstore.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  check:
+    name: Tag, version and changelog
+    needs: ci
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.ci.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Thunderstore config matches the project
+        run: |
+          author=$(dotnet msbuild LoadoutBuffs.csproj -getProperty:ModAuthor)
+          name=$(dotnet msbuild LoadoutBuffs.csproj -getProperty:AssemblyName)
+          grep -qx "namespace = \"$author\"" thunderstore.toml || { echo "::error::thunderstore.toml namespace isn't $author"; exit 1; }
+          grep -qx "name = \"$name\"" thunderstore.toml || { echo "::error::thunderstore.toml name isn't $name"; exit 1; }
+
+      - name: Tag matches the project version
+        run: |
+          if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match the project version $VERSION"; exit 1
+          fi
+
+      - name: CHANGELOG.md has a released section for it
+        run: |
+          header=$(grep -m1 "^## $VERSION\b" CHANGELOG.md || true)
+          if [ -z "$header" ]; then echo "::error::CHANGELOG.md has no '## $VERSION' section"; exit 1; fi
+          if echo "$header" | grep -qi unreleased; then echo "::error::CHANGELOG.md still says $VERSION is unreleased"; exit 1; fi
+
+  publish:
+    name: GitHub Release + Thunderstore
+    needs: [ci, check]
+    runs-on: ubuntu-latest
+    environment: thunderstore
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.ci.outputs.version }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: package
+
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          awk -v v="$VERSION" '/^## /{p=($2==v); next} p' CHANGELOG.md > release-notes.md
+          gh release create "$GITHUB_REF_NAME" "Algo7-LoadoutBuffs-$VERSION.zip" \
+            --title "LoadoutBuffs $VERSION" --notes-file release-notes.md
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Thunderstore
+        env:
+          TCLI_AUTH_TOKEN: ${{ secrets.TCLI_AUTH_TOKEN }}
+        run: |
+          dotnet tool restore
+          dotnet tcli publish --config-path thunderstore.toml --file "Algo7-LoadoutBuffs-$VERSION.zip"

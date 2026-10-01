@@ -1,0 +1,23 @@
+# Thunderstore publishing settings for `tcli publish --file <zip>` (the release workflow, .github/workflows/release.yml).
+# The zip is built by `make package`; its manifest.json (generated from LoadoutBuffs.csproj) decides name and version.
+# namespace = the Thunderstore team; CI checks namespace and name against the csproj (ModAuthor, AssemblyName).
+# versionNumber isn't used with --file, but tcli requires a valid one.
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "Algo7"
+name = "LoadoutBuffs"
+versionNumber = "1.0.0"
+
+[build]
+outdir = "./bin/thunderstore"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["valheim"]
+
+[publish.categories]
+# deep-north-update: the game update it is built and tested for (Valheim 1.0). ai-generated: made with AI assistance.
+valheim = ["mods", "client-side", "tweaks", "gear", "deep-north-update", "ai-generated"]
+

@@ -1,0 +1,18 @@
+version: 2
+
+registries:
+  bepinex:
+    type: nuget-feed
+    url: https://nuget.bepinex.dev/v3/index.json
+
+updates:
+  - package-ecosystem: nuget
+    directories: ["/", "/tests"]
+    registries: [bepinex]
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -26,6 +26,9 @@ namespace LoadoutBuffs
 
         /// <summary>A flat amount for whatever you block with (no SE_Stats field): added by the block hook, see <see cref="BundleStatCatalog.WithBlockArmor"/>.</summary>
         Blocker,
+
+        /// <summary>Percent of every eitr cost (no SE_Stats field has one): applied by the eitr hook, see <see cref="BundleStatCatalog.WithEitrCost"/>.</summary>
+        EitrCost,
     }
 
     /// <summary>A scalar stat of the curated set: file key, window label and step, and the SE_Stats field it sets.</summary>
@@ -63,7 +66,7 @@ namespace LoadoutBuffs
         /// <summary>Whether a value helps the player (the window shows it green) or hurts (red).</summary>
         public bool Helps(float value) => LowerIsBetter ? value < 0f : value > 0f;
 
-        public bool IsPercent => Kind == StatKind.Percent || Kind == StatKind.RegenPercent;
+        public bool IsPercent => Kind == StatKind.Percent || Kind == StatKind.RegenPercent || Kind == StatKind.EitrCost;
     }
 
     /// <summary>The curated stats and the names the nested groups accept.</summary>
@@ -71,7 +74,7 @@ namespace LoadoutBuffs
     {
         public const string General = "General";
         public const string Regen = "Regen";
-        public const string Stamina = "Stamina costs";
+        public const string Costs = "Costs";
         public const string OnParry = "On parry";
         public const string Class = "Class";
         public const string WoodcutterKey = "woodcutter";
@@ -96,11 +99,16 @@ namespace LoadoutBuffs
             Def("healthRegen", "Health regen", Regen, "m_healthRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
             Def("staminaRegen", "Stamina regen", Regen, "m_staminaRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
             Def("eitrRegen", "Eitr regen", Regen, "m_eitrRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
-            Cost("runStamina", "Run stamina cost", Stamina, "m_runStaminaDrainModifier", 5, -100, 100),
-            Cost("jumpStamina", "Jump stamina cost", Stamina, "m_jumpStaminaUseModifier", 5, -100, 100),
-            Cost("attackStamina", "Attack stamina cost", Stamina, "m_attackStaminaUseModifier", 5, -100, 100),
-            Cost("blockStamina", "Block stamina cost", Stamina, "m_blockStaminaUseModifier", 5, -100, 100),
-            Cost("dodgeStamina", "Dodge stamina cost", Stamina, "m_dodgeStaminaUseModifier", 5, -100, 100),
+            Cost("runStamina", "Run stamina cost", Costs, "m_runStaminaDrainModifier", 5, -100, 100),
+            Cost("jumpStamina", "Jump stamina cost", Costs, "m_jumpStaminaUseModifier", 5, -100, 100),
+            Cost("attackStamina", "Attack stamina cost", Costs, "m_attackStaminaUseModifier", 5, -100, 100),
+            Cost("blockStamina", "Block stamina cost", Costs, "m_blockStaminaUseModifier", 5, -100, 100),
+            Cost("dodgeStamina", "Dodge stamina cost", Costs, "m_dodgeStaminaUseModifier", 5, -100, 100),
+            new StatDef
+            {
+                Key = EitrCostKey, Label = "Eitr cost", Group = Costs, Kind = StatKind.EitrCost, Step = 5, Min = -100, Max = 100,
+                LowerIsBetter = true,
+            },
             Def(Catalog.HealOnParry, "Heal you", OnParry, null, StatKind.Parry, 10, 0, 300),
             Def(Catalog.StaminaOnParry, "Stamina to you", OnParry, null, StatKind.Parry, 10, 0, 300),
             Def(Catalog.HealAlliesOnParry, "Heal allies", OnParry, null, StatKind.Parry, 10, 0, 300),
@@ -120,9 +128,26 @@ namespace LoadoutBuffs
         };
 
         public const string ParryRadiusKey = "parryRadius";
+        public const string EitrCostKey = "eitrCost";
 
-        /// <summary>Where classes may be set: the slots of weapons that land hits.</summary>
-        private static readonly BundleSlot[] ClassSlots = { BundleSlot.Melee, BundleSlot.Ranged };
+        /// <summary>An eitr cost with the buff's percent (−20 = 20 % cheaper); never below 0. No SE_Stats field: see the eitr hook.</summary>
+        public static float WithEitrCost(float cost, float percent) => cost * Math.Max(0f, 1f + percent / 100f);
+
+        /// <summary>The slots of weapons that land hits: the only ones for classes and damage stats.</summary>
+        private static readonly BundleSlot[] WeaponSlots = { BundleSlot.Melee, BundleSlot.Ranged };
+
+        public static bool IsWeaponSlot(BundleSlot slot) => Array.IndexOf(WeaponSlots, slot) >= 0;
+
+        /// <summary>Nested stats only weapon slots take: file key and window group.</summary>
+        private static readonly (string Key, string Group)[] s_weaponOnlyNested = { (DamageKey, Damage), (AddDamageKey, AddedDamage) };
+
+        /// <summary>The file key and window group of a weapon-only nested stat (<c>damage</c>, <c>addDamage</c>), or null.</summary>
+        public static (string Key, string Group)? WeaponOnlyNested(string key)
+        {
+            foreach (var n in s_weaponOnlyNested)
+                if (string.Equals(n.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase)) return n;
+            return null;
+        }
         public const string BlockArmorKey = "blockArmor";
         public const string BlockForceKey = "blockForce";
 
@@ -145,12 +170,12 @@ namespace LoadoutBuffs
             new StatDef
             {
                 Key = WoodcutterKey, Label = "Woodcutter", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true,
-                OnlyOn = ClassSlots,
+                OnlyOn = WeaponSlots,
             },
             new StatDef
             {
                 Key = MinerKey, Label = "Miner", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true,
-                OnlyOn = ClassSlots,
+                OnlyOn = WeaponSlots,
             },
         };
 
@@ -263,6 +288,9 @@ namespace LoadoutBuffs
         /// <summary>The block force bonus (0 when not set).</summary>
         public float BlockForce => Scalars.TryGetValue(BundleStatCatalog.BlockForceKey, out var v) ? v : 0f;
 
+        /// <summary>Eitr cost percent (negative = cheaper), read by the eitr hook.</summary>
+        public float EitrCost => Scalars.TryGetValue(BundleStatCatalog.EitrCostKey, out var v) ? v : 0f;
+
         public int Count => Scalars.Count + Resist.Count + Damage.Count + AddDamage.Count + Skills.Count + Fields.Select(f => f.Key).Distinct().Count();
         public bool IsEmpty => Count == 0;
 
@@ -351,9 +379,10 @@ namespace LoadoutBuffs
                 def.TakesLargest ? $"{Plain(v)}{def.Unit}" : $"{Number(v)}{(def.IsPercent ? "%" : "")}";
 
             var scalars = BundleStatCatalog.Scalars.Where(d => Scalars.ContainsKey(d.Key)).ToList();
-            Group(null, scalars.Where(d => d.Group == BundleStatCatalog.General || d.Group == BundleStatCatalog.Regen)
+            Group(null, scalars.Where(d => d.Group == BundleStatCatalog.General || d.Group == BundleStatCatalog.Regen ||
+                                           d.Key == BundleStatCatalog.EitrCostKey)
                 .Select(d => $"{Value(d, Scalars[d.Key])} {d.Label.ToLowerInvariant()}"));
-            Group("stamina cost", scalars.Where(d => d.Group == BundleStatCatalog.Stamina)
+            Group("stamina cost", scalars.Where(d => d.Group == BundleStatCatalog.Costs && d.Key != BundleStatCatalog.EitrCostKey)
                 .Select(d => $"{d.Label.Split(' ')[0].ToLowerInvariant()} {Value(d, Scalars[d.Key])}"));
             Group("on parry", scalars.Where(d => d.Group == BundleStatCatalog.OnParry)
                 .Select(d => $"{d.Label.ToLowerInvariant()} {Value(d, Scalars[d.Key])}"));
@@ -396,7 +425,7 @@ namespace LoadoutBuffs
         /// and listed in <paramref name="misplaced"/>.
         /// </summary>
         public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings, BundleSlot? slot = null,
-            List<StatDef> misplaced = null)
+            List<string> misplaced = null)
         {
             var block = new StatBlock();
             foreach (var pair in map.Children)
@@ -407,7 +436,14 @@ namespace LoadoutBuffs
                 if (def != null && slot.HasValue && !def.Allows(slot.Value))
                 {
                     warnings.Add($"{label}.{def.Key}: only works on the {def.WhereAllowed}; skipped (line {line}).");
-                    misplaced?.Add(def);
+                    misplaced?.Add(def.Label);
+                    continue;
+                }
+                var nested = BundleStatCatalog.WeaponOnlyNested(key);
+                if (nested.HasValue && slot.HasValue && !BundleStatCatalog.IsWeaponSlot(slot.Value))
+                {
+                    warnings.Add($"{label}.{nested.Value.Key}: only works on the melee or ranged slot; skipped (line {line}).");
+                    misplaced?.Add(nested.Value.Group);
                     continue;
                 }
                 if (def != null && def.Kind == StatKind.Toggle)

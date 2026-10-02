@@ -2,10 +2,12 @@
 
 ## 1.1.0
 
+- New stat: Eitr cost, a percent of every spell and staff charge (−50 = half the eitr). It's in the window's Costs
+  group (formerly Stamina costs).
 - Classes on the ranged slot now work: with Woodcutter or Miner there, your arrows, bolts and staff spells (their blasts
   too) fell any tree or break any rock or ore.
-- Clearer slots: Woodcutter / Miner are offered only on Melee and Ranged, the weapons they act on, not on armor or the
-  shield.
+- Clearer slots: Damage %, Added damage and Woodcutter / Miner are offered only on Melee and Ranged, the weapons they
+  act on, not on armor or the shield.
 
 ## 1.0.0
 

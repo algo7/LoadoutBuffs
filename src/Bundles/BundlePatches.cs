@@ -126,6 +126,22 @@ namespace LoadoutBuffs
             BundleEffects.WithAddedDamage(__instance, ref __result);
     }
 
+    /// <summary>
+    /// Bundle eitr cost: prefixes on Player.UseEitr and Player.HaveEitr (virtual overrides, so callers never inline them),
+    /// which every eitr cost of the player goes through (Attack, Character.TryUseEitr, reload and draw drains).
+    /// </summary>
+    [HarmonyPatch]
+    internal static class BundleEitrPatches
+    {
+        [HarmonyPatch(typeof(Player), nameof(Player.UseEitr), typeof(float))]
+        [HarmonyPrefix]
+        private static void Use(Player __instance, ref float v) => v = BundleEffects.WithEitrCost(__instance, v);
+
+        [HarmonyPatch(typeof(Player), nameof(Player.HaveEitr), typeof(float))]
+        [HarmonyPrefix]
+        private static void Have(Player __instance, ref float amount) => amount = BundleEffects.WithEitrCost(__instance, amount);
+    }
+
     /// <summary>Item classes (Woodcutter / Miner): prefixes on the attacker-side Damage(HitData) of trees, logs, rocks and destructibles.</summary>
     [HarmonyPatch]
     internal static class BundleClassPatches

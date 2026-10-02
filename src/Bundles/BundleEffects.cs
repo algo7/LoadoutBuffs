@@ -26,6 +26,9 @@ namespace LoadoutBuffs
         public static bool BlockHookInstalled;
         public static bool DamageHookInstalled;
 
+        /// <summary>Set by Plugin when the eitr cost prefixes (Player.UseEitr / HaveEitr) were patched in.</summary>
+        public static bool EitrHookInstalled;
+
         public static BundleFile File { get; private set; } = new BundleFile();
         public static BundleState State { get; private set; } = new BundleState();
         public static GameEffectCatalog Catalog { get; private set; }
@@ -44,6 +47,8 @@ namespace LoadoutBuffs
         private static bool s_blockErrorLogged;
         private static readonly Dictionary<string, float> s_addDamage = new Dictionary<string, float>(StringComparer.Ordinal);
         private static bool s_damageErrorLogged;
+        private static float s_eitrCost;
+        private static bool s_eitrErrorLogged;
 
         /// <summary>A tool tier above anything the game asks for (hits carry it as a 16-bit number).</summary>
         public const short ClassToolTier = 1000;
@@ -79,12 +84,13 @@ namespace LoadoutBuffs
             s_stats.Clear();
             s_parry = null;
             s_woodcutter = s_miner = false;
-            s_blockArmor = s_blockForce = 0f;
+            s_blockArmor = s_blockForce = s_eitrCost = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
-                State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled));
+                State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
+                    EitrHookInstalled));
             if (State.Enabled)
             {
                 foreach (var pair in State.Effects)
@@ -97,7 +103,7 @@ namespace LoadoutBuffs
         }
 
         /// <summary>
-        /// 1.0.0 allowed classes on armor and the shield; now they're skipped. When those are the file's only problems,
+        /// 1.0.0 allowed classes and damage stats on armor and the shield; now they're skipped. When those are the file's only problems,
         /// save it once without them, as the window would, so the dead lines and their warnings don't stay forever.
         /// </summary>
         private static void RemoveMisplaced()
@@ -107,12 +113,12 @@ namespace LoadoutBuffs
                 var text = File.Serialize(code => Catalog?.DisplayName(code));
                 System.IO.File.WriteAllText(Plugin.BundlesPath, text);
                 foreach (var note in File.Misplaced)
-                    Plugin.Log.LogInfo($"{BundleFile.FileName}: removed {note}; classes only go on the melee or ranged slot now.");
+                    Plugin.Log.LogInfo($"{BundleFile.FileName}: removed {note}; it only goes on the melee or ranged slot now.");
                 File = BundleFile.Parse(text);
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning($"Could not remove the misplaced classes from {BundleFile.FileName}: {e.Message}");
+                Plugin.Log.LogWarning($"Could not remove the stats on the wrong slots from {BundleFile.FileName}: {e.Message}");
             }
         }
 
@@ -163,6 +169,7 @@ namespace LoadoutBuffs
                 s_miner = total.Scalars.ContainsKey(BundleStatCatalog.MinerKey);
                 s_blockArmor = total.BlockArmor;
                 s_blockForce = total.BlockForce;
+                s_eitrCost = total.EitrCost;
                 s_addDamage.Clear();
                 foreach (var p in total.AddDamage) s_addDamage[p.Key] = p.Value;
                 if (!s_showHudBuff) return;
@@ -318,6 +325,29 @@ namespace LoadoutBuffs
                 if (s_damageErrorLogged) return;
                 s_damageErrorLogged = true;
                 Plugin.Log.LogError($"Buff added damage failed (logged once): {e}");
+            }
+        }
+
+        /// <summary>
+        /// Prefix of Player.UseEitr(v) and Player.HaveEitr(amount): every eitr cost the local player pays (spells, the
+        /// lightning staff's charge, draw / reload drains) and its check, with the buff's eitr cost percent, so both agree.
+        /// Other players are untouched. Must never throw.
+        /// </summary>
+        public static float WithEitrCost(Player player, float eitr)
+        {
+            try
+            {
+                if (s_eitrCost == 0f || player == null || !ReferenceEquals(player, Player.m_localPlayer)) return eitr;
+                return BundleStatCatalog.WithEitrCost(eitr, s_eitrCost);
+            }
+            catch (Exception e)
+            {
+                if (!s_eitrErrorLogged)
+                {
+                    s_eitrErrorLogged = true;
+                    Plugin.Log.LogError($"Buff eitr cost failed (logged once): {e}");
+                }
+                return eitr;
             }
         }
 

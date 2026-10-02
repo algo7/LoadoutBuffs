@@ -143,7 +143,8 @@ namespace LoadoutBuffs
         /// Warnings for stats whose game hook isn't installed (game update, another mod): the window and the log say why
         /// they do nothing instead of the stat silently not working.
         /// </summary>
-        public static List<string> MissingHookWarnings(IEnumerable<StatBlock> stats, bool parryHook, bool blockHook, bool damageHook)
+        public static List<string> MissingHookWarnings(IEnumerable<StatBlock> stats, bool parryHook, bool blockHook, bool damageHook,
+            bool eitrHook)
         {
             var list = stats.Where(b => b != null).ToList();
             var warnings = new List<string>();
@@ -153,6 +154,8 @@ namespace LoadoutBuffs
                 warnings.Add("The buff's block armor / force can't work (the block hook isn't installed, see LogOutput.log).");
             if (!damageHook && list.Any(b => b.AddDamage.Count > 0))
                 warnings.Add("The buff's added damage can't work (the added damage hook isn't installed, see LogOutput.log).");
+            if (!eitrHook && list.Any(b => b.EitrCost != 0f))
+                warnings.Add("The buff's eitr cost can't work (the eitr hook isn't installed, see LogOutput.log).");
             return warnings;
         }
 

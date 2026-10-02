@@ -37,6 +37,9 @@ namespace LoadoutBuffs
         /// <summary>Block force bonus (for the tooltip); the block hook reads BundleEffects' copy.</summary>
         internal float m_blockForce;
 
+        /// <summary>Eitr cost percent (for the tooltip); the eitr hook reads BundleEffects' copy.</summary>
+        internal float m_eitrCost;
+
         /// <summary>Added damage (for the tooltip); the damage hook reads BundleEffects' copy.</summary>
         internal Dictionary<string, float> m_addDamage = new Dictionary<string, float>();
 
@@ -92,6 +95,8 @@ namespace LoadoutBuffs
                 sb.AppendFormat("Block armor: <color=orange>{0}</color> (what you block with)\n", StatBlock.Number(m_blockArmor));
             if (m_blockForce != 0f)
                 sb.AppendFormat("Block force: <color=orange>{0}</color> (what you block with)\n", StatBlock.Number(m_blockForce));
+            if (m_eitrCost != 0f)
+                sb.AppendFormat("Eitr cost: <color=orange>{0}%</color>\n", StatBlock.Number(m_eitrCost));
             if (!string.IsNullOrEmpty(m_classes))
                 sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
             return sb.ToString();
@@ -107,6 +112,7 @@ namespace LoadoutBuffs
             m_parry = total.ToParryAssist();
             m_blockArmor = total.BlockArmor;
             m_blockForce = total.BlockForce;
+            m_eitrCost = total.EitrCost;
             m_addDamage = new Dictionary<string, float>(total.AddDamage);
             m_classes = string.Join(", ", BundleStatCatalog.Toggles.Where(d => total.Scalars.ContainsKey(d.Key)).Select(d => d.Label));
             foreach (var def in BundleStatCatalog.Scalars)

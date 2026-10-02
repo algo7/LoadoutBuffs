@@ -404,7 +404,7 @@ namespace LoadoutBuffs
             var stats = bundle.GetStats(s_selectedSlot) ?? new StatBlock();
             if (!stats.IsEmpty) Row(s_statsList, "<color=#ffcf70>Reset this slot's stats</color>", 28, ResetStats);
 
-            foreach (var group in new[] { BundleStatCatalog.General, BundleStatCatalog.Regen, BundleStatCatalog.Stamina, BundleStatCatalog.OnParry })
+            foreach (var group in new[] { BundleStatCatalog.General, BundleStatCatalog.Regen, BundleStatCatalog.Costs, BundleStatCatalog.OnParry })
             {
                 var defs = BundleStatCatalog.Scalars.Where(d => d.Group == group).ToList();
                 var used = defs.Count(d => stats.Scalars.ContainsKey(d.Key));
@@ -461,7 +461,9 @@ namespace LoadoutBuffs
                     dealt[p.Key] = (dealt.TryGetValue(p.Key, out var x) ? x : 0f) + p.Value;
             }
 
-            if (GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count, false))
+            // Damage stats only on weapon slots: on armor they'd change whatever weapon you hold.
+            var weaponSlot = BundleStatCatalog.IsWeaponSlot(s_selectedSlot);
+            if (weaponSlot && GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count, false))
             {
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Damage types of your {weaponName}; others appear once added below.</color></size>", 28, () => { }, false);
@@ -475,7 +477,7 @@ namespace LoadoutBuffs
                 }
             }
 
-            if (GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count, false))
+            if (weaponSlot && GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count, false))
             {
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Added on top of your {weaponName}{(weaponName == "fists" ? "'" : "'s")} own damage.</color></size>", 28, () => { }, false);

@@ -22,13 +22,13 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   including other mods' gear). Point at one in the window to read what it does.
 - **General:** movement speed, carry weight, armor, **block armor** and **block force** (added to what you block with:
   your shield, else your weapon), fall damage.
-- **Regen and stamina:** health / stamina / eitr regen, run / jump / attack / block / dodge stamina cost.
+- **Regen and costs:** health / stamina / eitr regen; run / jump / attack / block / dodge stamina cost; **eitr cost**
+  (every spell and staff charge, e.g. −50 % for half the eitr; at −100 % spells are free, but you still need some eitr).
 - **Resistances** per damage type.
-- **Damage:**
+- **Damage** (melee and ranged slots):
   - **Damage %** multiplies what your weapon deals; it scales with your weapon and covers the whole shot of a bow.
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
-  - Both work from any slot: on armor or the shield they count for every weapon you hold (see below).
 - **Skills:** + or − levels for any skill.
 - **On parry:** heal and stamina, set separately for you and for other players; heal for tamed creatures; and a
   **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its health and time (1–10
@@ -60,13 +60,11 @@ shows them for what you wear now.
   a bubble to everyone in reach who has none. A bubble that is still up (yours or from a real Staff of Protection) isn't
   refreshed: it stays until it breaks or runs out, and the next parry after that gives a new one. When a bubble breaks,
   the player in it gains a little Blood Magic skill, as with the staff.
-- **Damage on armor counts for every weapon.** All filled slots add up into one buff, so Damage % or Added damage on
-  your chest counts for whatever weapon you hold while you wear it, like Vanguard's +10 % pierce. On Melee or Ranged it
-  counts only while that weapon is in your hands.
-- **Damage % follows your weapon:** it lists the types the weapon in your hand deals, on every slot (edit your chest
-  with a bow in hand and you see pierce). Add a new type under *Added damage* and its % row appears.
-- **Classes are for weapons.** Woodcutter and Miner can only be set on Melee or Ranged, the slots of what lands the
-  hit. A staff blast with Miner breaks every chunk of a deposit it reaches.
+- **Damage and classes are for weapons.** Damage %, Added damage, Woodcutter and Miner can only be set on Melee or
+  Ranged, and count only while that weapon is in your hands. A staff blast with Miner breaks every chunk of a deposit
+  it reaches.
+- **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
+  damage* and its % row appears.
 
 ## Multiplayer and Fair Play
 
@@ -101,11 +99,11 @@ buffs:
 |---|---|
 | `movementSpeed`, `fallDamage` | percent (`10` = +10 %) |
 | `healthRegen`, `staminaRegen`, `eitrRegen` | percent |
-| `runStamina`, `jumpStamina`, `attackStamina`, `blockStamina`, `dodgeStamina` | percent of the cost (negative = cheaper) |
+| `runStamina`, `jumpStamina`, `attackStamina`, `blockStamina`, `dodgeStamina`, `eitrCost` | percent of the cost (negative = cheaper) |
 | `carryWeight`, `armor`, `blockArmor`, `blockForce` | flat amount |
 | `resist` | `{ Fire: Resistant }`: Normal, SlightlyResistant, Resistant, VeryResistant, Immune, SlightlyWeak, Weak, VeryWeak |
-| `damage` | percent per type: `{ slash: 10 }` |
-| `addDamage` | flat per type: `{ spirit: 30 }` (blunt, slash, pierce, fire, frost, lightning, poison, spirit) |
+| `damage` | percent per type: `{ slash: 10 }` (melee or ranged slot only) |
+| `addDamage` | flat per type: `{ spirit: 30 }` (blunt, slash, pierce, fire, frost, lightning, poison, spirit; melee or ranged slot only) |
 | `skills` | levels per skill: `{ Bows: 15 }` |
 | `healOnParry`, `staminaOnParry` | for you, on every parry |
 | `healAlliesOnParry`, `staminaAlliesOnParry`, `healTamedOnParry` | for other players / tamed creatures in reach |
@@ -136,8 +134,9 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
 - **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
   lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
-- **My Woodcutter / Miner is gone after updating.** Since 1.1.0 classes go on Melee or Ranged only; one on armor or
-  the shield is skipped with a warning. Set it on a weapon slot again.
+- **A class or damage stat is gone from my armor or shield after updating.** Since 1.1.0 Woodcutter, Miner, Damage %
+  and Added damage go on Melee or Ranged only. On other slots they're skipped with a warning, and when that's the only
+  problem in your buffs file, the mod removes them from it (the log says which). Set them on a weapon slot again.
 
 ## Compatibility
 

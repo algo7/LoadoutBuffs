@@ -71,7 +71,7 @@ namespace LoadoutBuffs
         /// <summary>The file isn't valid YAML: nothing in it is used.</summary>
         public bool Invalid;
 
-        /// <summary>Stats skipped for their slot (classes on armor or the shield, allowed in 1.0.0): "Woodcutter from Bro's chest".</summary>
+        /// <summary>Stats skipped for their slot (classes or damage on armor or the shield, allowed in 1.0.0): "Woodcutter from Bro's chest".</summary>
         public readonly List<string> Misplaced = new List<string>();
 
         /// <summary>
@@ -220,9 +220,9 @@ namespace LoadoutBuffs
                         if (IsNull(pair.Value)) break;
                         if (pair.Value is YamlMappingNode stats)
                         {
-                            var misplaced = new List<StatDef>();
+                            var misplaced = new List<string>();
                             entry.Stats = StatBlock.Parse(stats, label, Warnings, slot, misplaced);
-                            foreach (var def in misplaced) Misplaced.Add($"{def.Label} from {bundle.Name}'s {BundleSlots.Key(slot)}");
+                            foreach (var what in misplaced) Misplaced.Add($"{what} from {bundle.Name}'s {BundleSlots.Key(slot)}");
                         }
                         else Warnings.Add($"{label}.stats: expected stats like {{ armor: 15 }}; skipped (line {pair.Key.Start.Line}).");
                         break;
@@ -300,17 +300,17 @@ namespace LoadoutBuffs
             "# A slot can also have custom stats (long form):",
             "#   chest:",
             "#     effect: SetEffect_DeepNorthMediumArmor",
-            "#     stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, damage: { slash: 10 }, skills: { Bows: 15 } }",
+            "#     stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, skills: { Bows: 15 } }",
             "# Stats: movementSpeed, carryWeight, armor, blockArmor, blockForce (what you block with), fallDamage,",
             "# healthRegen, staminaRegen, eitrRegen, runStamina, jumpStamina, attackStamina, blockStamina,",
-            "# dodgeStamina (percent stats in percent: 10 = +10 %), resist, damage (%), addDamage (flat, on the",
-            "# weapon you attack with, e.g. { spirit: 30 }), skills, fields (raw SE_Stats fields). On every parry:",
-            "# healOnParry, staminaOnParry (you), healAlliesOnParry, staminaAlliesOnParry (other players),",
-            "# healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of you), shieldMinutes",
-            "# (its time, default 1), parryRadius (reach in metres, default 10). Classes (melee or ranged slot only):",
-            "# woodcutter: true (that weapon's hits fell any tree), miner: true (they break any rock or ore). The",
-            "# stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD as one",
-            "# buff named after it.",
+            "# dodgeStamina, eitrCost (percent stats in percent: 10 = +10 %), resist, skills, fields (raw SE_Stats",
+            "# fields). On every parry: healOnParry, staminaOnParry (you), healAlliesOnParry, staminaAlliesOnParry",
+            "# (other players), healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of",
+            "# you), shieldMinutes (its time, default 1), parryRadius (reach in metres, default 10).",
+            "# Melee or ranged slot only: damage (%), addDamage (flat, e.g. { spirit: 30 }), and the classes",
+            "# woodcutter: true (that weapon's hits fell any tree) and miner: true (they break any rock or ore).",
+            "# The stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD",
+            "# as one buff named after it.",
         };
 
         private static string Scalar(YamlNode node) => (node as YamlScalarNode)?.Value;

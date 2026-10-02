@@ -37,6 +37,7 @@ namespace LoadoutBuffs
             TryPatch(harmony, typeof(BundleClassPatches), "buff class hooks");
             BundleEffects.BlockHookInstalled = TryPatch(harmony, typeof(BundleBlockPatches), "buff block armor / force hooks");
             BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
+            BundleEffects.EitrHookInstalled = TryPatch(harmony, typeof(BundleEitrPatches), "buff eitr cost hooks");
             TryPatch(harmony, typeof(BundleUiPatches), "buff window");
 
             Commands.Register();

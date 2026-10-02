@@ -60,7 +60,7 @@ namespace LoadoutBuffs
     /// </summary>
     internal sealed class BundleFile
     {
-        public const string FileName = "LoadoutBuffs.bundles.yaml";
+        public const string FileName = "LoadoutBuffs.buffs.yaml";
 
         /// <summary>Name of the active bundle as written; null for none.</summary>
         public string Active;
@@ -89,7 +89,7 @@ namespace LoadoutBuffs
             {
                 file.Invalid = true;
                 file.Warnings.Add($"{FileName} is not valid YAML (around line {e.Start.Line}, column {e.Start.Column}), " +
-                                  $"so no bundle is used: {e.Message}");
+                                  $"so no buff is used: {e.Message}");
                 return file;
             }
 
@@ -98,7 +98,7 @@ namespace LoadoutBuffs
             if (IsNull(root)) return file;
             if (!(root is YamlMappingNode map))
             {
-                file.Warnings.Add($"{FileName}: expected 'active:' and 'bundles:' (line {root.Start.Line}).");
+                file.Warnings.Add($"{FileName}: expected 'active:' and 'buffs:' (line {root.Start.Line}).");
                 return file;
             }
 
@@ -110,18 +110,18 @@ namespace LoadoutBuffs
                     case "active":
                         file.ParseActive(pair.Value);
                         break;
-                    case "bundles":
+                    case "buffs":
                         file.ParseBundles(pair.Value);
                         break;
                     default:
-                        file.Warnings.Add($"{FileName}: unknown key '{key}', skipped (line {pair.Key.Start.Line}). Use 'active' and 'bundles'.");
+                        file.Warnings.Add($"{FileName}: unknown key '{key}', skipped (line {pair.Key.Start.Line}). Use 'active' and 'buffs'.");
                         break;
                 }
             }
 
             if (file.Active != null && file.Find(file.Active) == null)
-                file.Warnings.Add($"{FileName}: active bundle '{file.Active}' doesn't exist, so no bundle is used. " +
-                                  $"Bundles: {(file.Bundles.Count == 0 ? "none" : string.Join(", ", file.Bundles.Select(b => b.Name)))}.");
+                file.Warnings.Add($"{FileName}: active buff '{file.Active}' doesn't exist, so no buff is used. " +
+                                  $"Buffs: {(file.Bundles.Count == 0 ? "none" : string.Join(", ", file.Bundles.Select(b => b.Name)))}.");
             return file;
         }
 
@@ -133,7 +133,7 @@ namespace LoadoutBuffs
                 Active = scalar.Value.Trim();
                 return;
             }
-            Warnings.Add($"{FileName}: 'active' must be a bundle name or none (line {node.Start.Line}).");
+            Warnings.Add($"{FileName}: 'active' must be a buff name or none (line {node.Start.Line}).");
         }
 
         private void ParseBundles(YamlNode node)
@@ -141,7 +141,7 @@ namespace LoadoutBuffs
             if (IsNull(node)) return;
             if (!(node is YamlMappingNode map))
             {
-                Warnings.Add($"{FileName}: 'bundles' must be a list of named bundles like 'Warrior: {{ chest: Vanguard }}' (line {node.Start.Line}).");
+                Warnings.Add($"{FileName}: 'buffs' must be a list of named buffs like 'Warrior: {{ chest: Vanguard }}' (line {node.Start.Line}).");
                 return;
             }
             foreach (var pair in map.Children)
@@ -150,12 +150,12 @@ namespace LoadoutBuffs
                 var line = pair.Key.Start.Line;
                 if (string.IsNullOrEmpty(name))
                 {
-                    Warnings.Add($"{FileName}: expected a bundle name (line {line}).");
+                    Warnings.Add($"{FileName}: expected a buff name (line {line}).");
                     continue;
                 }
                 if (Find(name) != null)
                 {
-                    Warnings.Add($"{FileName}: bundle '{name}' appears twice (names ignore upper/lower case); the second one is skipped (line {line}).");
+                    Warnings.Add($"{FileName}: buff '{name}' appears twice (names ignore upper/lower case); the second one is skipped (line {line}).");
                     continue;
                 }
                 var bundle = new BundleDef { Name = name, Line = line };
@@ -234,10 +234,10 @@ namespace LoadoutBuffs
             sb.Append('\n');
             if (Bundles.Count == 0)
             {
-                sb.Append("bundles: {}\n");
+                sb.Append("buffs: {}\n");
                 return sb.ToString();
             }
-            sb.Append("bundles:\n");
+            sb.Append("buffs:\n");
             foreach (var bundle in Bundles)
             {
                 if (bundle.Entries.Count == 0)
@@ -273,16 +273,16 @@ namespace LoadoutBuffs
         {
             "# LoadoutBuffs: extra \"while worn\" effects and stats, per equipment slot.",
             "#",
-            "# Pick and edit bundles in game: inventory -> Bundles (or the console command lb_bundles).",
-            "# Or edit this file and run lb_reload in the F5 console. The Bundles window rewrites this",
+            "# Pick and edit buffs in game: inventory -> Buffs (or the console command lb_buffs).",
+            "# Or edit this file and run lb_reload in the F5 console. The Buffs window rewrites this",
             "# file, so comments you add here are not kept.",
             "#",
-            "# active: the bundle in use for every character in this profile, or none.",
+            "# active: the buff in use for every character in this profile, or none.",
             "# Slots: helmet, chest, legs, cape, melee (swords, knives, clubs, atgeirs, spears, axes, fists),",
             "# ranged (bows, crossbows, magic staffs), shield. A slot counts while something is equipped there",
             "# (weapons: in your hands); your gear keeps its own effects. Pickaxes, the fishing rod, torches and",
             "# tools fill no slot. Effect: code name or in-game name of an effect gear has in the game (the",
-            "# Bundles window lists them).",
+            "# Buffs window lists them).",
             "# A slot can also have custom stats (long form):",
             "#   chest:",
             "#     effect: SetEffect_DeepNorthMediumArmor",
@@ -295,7 +295,7 @@ namespace LoadoutBuffs
             "# healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of you), shieldMinutes",
             "# (its time, default 1), parryRadius (reach in metres, default 10). Classes: woodcutter: true (melee",
             "# hits fell any tree), miner: true (melee hits break any rock or ore). The stats of all filled slots",
-            "# add up (reach and bubble time take the largest) and show as one buff named after the bundle.",
+            "# add up (reach and bubble time take the largest) and show on your HUD as one buff named after it.",
         };
 
         private static string Scalar(YamlNode node) => (node as YamlScalarNode)?.Value;

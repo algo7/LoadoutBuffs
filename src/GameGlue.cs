@@ -44,7 +44,7 @@ namespace LoadoutBuffs
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError($"Bundles failed to load: {e}");
+                Plugin.Log.LogError($"Buffs failed to load: {e}");
                 state = new BundleState { Enabled = false, OffReason = "error while loading them (see LogOutput.log)." };
             }
             if (logAllWarnings) s_loggedWarnings.Clear();

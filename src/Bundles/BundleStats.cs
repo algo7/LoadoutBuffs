@@ -198,12 +198,12 @@ namespace LoadoutBuffs
             }
             if (field.DeclaringType != typeof(SE_Stats))
             {
-                error = $"{field.Name} can't be set from a bundle (only SE_Stats' own stat fields can)";
+                error = $"{field.Name} can't be set from a buff (only SE_Stats' own stat fields can)";
                 return null;
             }
             var t = field.FieldType;
             if (t == typeof(float) || t == typeof(int) || t == typeof(bool) || t.IsEnum) return field;
-            error = $"{name} ({t.Name}) can't be set from a bundle";
+            error = $"{name} ({t.Name}) can't be set from a buff";
             return null;
         }
 

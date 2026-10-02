@@ -10,7 +10,7 @@ internal static partial class Tests
     private static void Test_Stats_EveryKindParses()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    chest:\n      effect: Vanguard\n" +
+            "active: T\nbuffs:\n  T:\n    chest:\n      effect: Vanguard\n" +
             "      stats: { movementSpeed: 10, CarryWeight: +50, armor: 15%, fallDamage: -100, healthRegen: 20, dodgeStamina: -15,\n" +
             "               resist: { fire: resistant, POISON: very resistant }, damage: { Slash: 10 }, skills: { bows: 15 },\n" +
             "               fields: { m_swimSpeedModifier: 0.2, m_staggerModifier: -0.5 } }\n");
@@ -34,18 +34,18 @@ internal static partial class Tests
 
     private static void Test_Stats_StatsOnlySlotAndShortFormTogether()
     {
-        var state = Evaluate("active: T\nbundles:\n  T:\n    helmet: Vanguard\n    legs:\n      stats: { movementSpeed: 10 }\n");
+        var state = Evaluate("active: T\nbuffs:\n  T:\n    helmet: Vanguard\n    legs:\n      stats: { movementSpeed: 10 }\n");
         Eq(0, state.Warnings.Count, "warnings: " + string.Join(" | ", state.Warnings));
         Eq("SetEffect_DeepNorthMediumArmor", state.Effects[BundleSlot.Helmet], "short form effect");
         False(state.Effects.ContainsKey(BundleSlot.Legs), "no effect on the stats-only slot");
         Eq(10f, state.Stats[BundleSlot.Legs].Scalars["movementSpeed"], "legs stats");
-        Eq("Bundle 'T' active: 1 effect, 1 stat", state.StatusLine(), "status");
+        Eq("Buff 'T' active: 1 effect, 1 stat", state.StatusLine(), "status");
     }
 
     private static void Test_Stats_BadEntriesWarnAndTheRestApplies()
     {
         var file = BundleFile.Parse(
-            "bundles:\n  T:\n    chest:\n      stats: { speed: 5, armor: lots, resist: { Wet: Resistant, Fire: Tough }, damage: { magic: 5 },\n" +
+            "buffs:\n  T:\n    chest:\n      stats: { speed: 5, armor: lots, resist: { Wet: Resistant, Fire: Tough }, damage: { magic: 5 },\n" +
             "               skills: { Juggling: 5 }, fields: { m_nope: 1, m_icon: x, m_speedModifier: fast }, movementSpeed: 10 }\n      colour: red\n");
         Eq(10, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings[0].StartsWith("T.chest.speed: unknown stat") && file.Warnings[0].Contains("movementSpeed"), file.Warnings[0]);
@@ -65,7 +65,7 @@ internal static partial class Tests
 
     private static void Test_Stats_UnknownSlotKeyWarns()
     {
-        var file = BundleFile.Parse("bundles:\n  T:\n    chest:\n      colour: red\n      stats: { armor: 5 }\n");
+        var file = BundleFile.Parse("buffs:\n  T:\n    chest:\n      colour: red\n      stats: { armor: 5 }\n");
         Eq(1, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings[0].StartsWith("T.chest.colour: unknown key"), file.Warnings[0]);
         Eq(5f, file.Find("T").GetStats(BundleSlot.Chest).Scalars["armor"], "armor");
@@ -91,7 +91,7 @@ internal static partial class Tests
         var total = StatBlock.Sum(new[] { legs, chest, null });
         Eq(15f, total.Scalars["movementSpeed"], "movement adds");
         Eq(15f, total.Scalars["armor"], "armor");
-        Eq(20f, total.Damage["slash"], "damage adds within a bundle");
+        Eq(20f, total.Damage["slash"], "damage adds within a buff");
         Eq(15f, total.Skills["Bows"], "skills add");
         Eq("Resistant", total.Resist["Fire"], "resistant beats weak");
         Eq("Resistant", total.Resist["Frost"], "resistant beats slightly resistant");
@@ -122,7 +122,7 @@ internal static partial class Tests
     private static void Test_Stats_SerializeRoundTrips()
     {
         var text =
-            "active: T\nbundles:\n  T:\n    helmet: SlowFall\n    chest:\n      effect: SetEffect_DeepNorthMediumArmor\n" +
+            "active: T\nbuffs:\n  T:\n    helmet: SlowFall\n    chest:\n      effect: SetEffect_DeepNorthMediumArmor\n" +
             "      stats: { armor: 15, movementSpeed: 12.5, resist: { Poison: VeryResistant, Fire: Resistant }, damage: { slash: 10 }, skills: { Bows: 15 }, fields: { m_staggerModifier: -0.5 } }\n" +
             "    legs:\n      stats: { runStamina: -20 }\n";
         var file = BundleFile.Parse(text);
@@ -210,7 +210,7 @@ internal static partial class Tests
 
     private static void Test_Slots_RemovedSlotsWarnWithAHint()
     {
-        var file = BundleFile.Parse("bundles:\n  T:\n    weapon: SlowFall\n    Utility: Wishbone\n    trinket: Demister\n    ranged: SetEffect_RootArmor\n");
+        var file = BundleFile.Parse("buffs:\n  T:\n    weapon: SlowFall\n    Utility: Wishbone\n    trinket: Demister\n    ranged: SetEffect_RootArmor\n");
         Eq(3, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings[0].StartsWith("T.weapon: the weapon slot was split: use melee or ranged"), file.Warnings[0]);
         True(file.Warnings[1].StartsWith("T.Utility: the utility slot was removed"), file.Warnings[1]);
@@ -227,7 +227,7 @@ internal static partial class Tests
     private static void Test_ParryStats_ParseSumAndAssist()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    shield:\n      stats: { healAlliesOnParry: 40, staminaAlliesOnParry: 30, parryRadius: 15 }\n" +
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { healAlliesOnParry: 40, staminaAlliesOnParry: 30, parryRadius: 15 }\n" +
             "    melee:\n      stats: { HealOnParry: 50, healAlliesOnParry: 10, healTamedOnParry: 20, parryradius: 25 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -266,15 +266,15 @@ internal static partial class Tests
 
     private static void Test_ParryStats_CountAndStatusLine()
     {
-        var state = Evaluate("active: T\nbundles:\n  T:\n    shield:\n      stats: { healAlliesOnParry: 40, parryRadius: 15 }\n");
+        var state = Evaluate("active: T\nbuffs:\n  T:\n    shield:\n      stats: { healAlliesOnParry: 40, parryRadius: 15 }\n");
         Eq(0, state.Warnings.Count, "warnings: " + string.Join(" | ", state.Warnings));
-        Eq("Bundle 'T' active: 0 effects, 2 stats", state.StatusLine(), "status");
+        Eq("Buff 'T' active: 0 effects, 2 stats", state.StatusLine(), "status");
     }
 
     private static void Test_ParryStats_Bubble()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, parryRadius: 15 }\n" +
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, parryRadius: 15 }\n" +
             "    chest:\n      stats: { ShieldOnParry: 200 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -301,7 +301,7 @@ internal static partial class Tests
     private static void Test_ParryStats_BubbleTime()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, shieldMinutes: 3 }\n" +
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, shieldMinutes: 3 }\n" +
             "    chest:\n      stats: { ShieldMinutes: 2 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -330,7 +330,7 @@ internal static partial class Tests
     private static void Test_ParryStats_ZeroOrNegativeWarn()
     {
         var file = BundleFile.Parse(
-            "bundles:\n  T:\n    shield:\n      stats: { shieldOnParry: -500, healAlliesOnParry: 0, parryRadius: -5, healOnParry: 20 }\n");
+            "buffs:\n  T:\n    shield:\n      stats: { shieldOnParry: -500, healAlliesOnParry: 0, parryRadius: -5, healOnParry: 20 }\n");
         Eq(3, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings.Any(w => w.StartsWith("T.shield.shieldOnParry: '-500' must be more than 0")), "negative bubble");
         True(file.Warnings.Any(w => w.StartsWith("T.shield.healAlliesOnParry: '0' must be more than 0")), "zero heal");
@@ -348,7 +348,7 @@ internal static partial class Tests
     private static void Test_Classes_ParseSumSerialize()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    melee:\n      stats: { Woodcutter: true, miner: yes, armor: 5 }\n" +
+            "active: T\nbuffs:\n  T:\n    melee:\n      stats: { Woodcutter: true, miner: yes, armor: 5 }\n" +
             "    chest:\n      stats: { woodcutter: on }\n    legs:\n      stats: { miner: false }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -369,7 +369,7 @@ internal static partial class Tests
 
     private static void Test_Classes_BadValueWarns()
     {
-        var file = BundleFile.Parse("bundles:\n  T:\n    melee:\n      stats: { woodcutter: maybe }\n");
+        var file = BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { woodcutter: maybe }\n");
         Eq(1, file.Warnings.Count, "warnings");
         True(file.Warnings[0].StartsWith("T.melee.woodcutter: 'maybe' is not true or false"), file.Warnings[0]);
     }
@@ -379,7 +379,7 @@ internal static partial class Tests
     private static void Test_BlockArmor_ParseSumAndSummary()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    shield:\n      stats: { blockArmor: 20 }\n" +
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { blockArmor: 20 }\n" +
             "    chest:\n      stats: { BlockArmor: 15, movementSpeed: 10 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -414,7 +414,7 @@ internal static partial class Tests
     private static void Test_BlockForce_ParseSumAndSummary()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    shield:\n      stats: { blockForce: 20 }\n    chest:\n      stats: { BlockForce: 15 }\n");
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { blockForce: 20 }\n    chest:\n      stats: { BlockForce: 15 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
         var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Chest) });
@@ -444,7 +444,7 @@ internal static partial class Tests
     private static void Test_AddDamage_ParseSumSummarySerialize()
     {
         var file = BundleFile.Parse(
-            "active: T\nbundles:\n  T:\n    melee:\n      stats: { addDamage: { Spirit: 30, fire: 10 } }\n" +
+            "active: T\nbuffs:\n  T:\n    melee:\n      stats: { addDamage: { Spirit: 30, fire: 10 } }\n" +
             "    chest:\n      stats: { AddDamage: { spirit: 5 } }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
@@ -465,7 +465,7 @@ internal static partial class Tests
     private static void Test_AddDamage_Warnings()
     {
         var file = BundleFile.Parse(
-            "bundles:\n  T:\n    melee:\n      stats: { addDamage: { spirit: 0, chop: 20, frost: abc, holy: 5, fire: -5, poison: 15 } }\n");
+            "buffs:\n  T:\n    melee:\n      stats: { addDamage: { spirit: 0, chop: 20, frost: abc, holy: 5, fire: -5, poison: 15 } }\n");
         Eq(5, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings.Any(w => w.StartsWith("T.melee.addDamage.spirit: '0' must be more than 0")), "zero");
         True(file.Warnings.Any(w => w.StartsWith("T.melee.addDamage.chop: unknown or unsupported damage type")), "chop");
@@ -511,13 +511,13 @@ internal static partial class Tests
         Eq(0, BundleRules.MissingHookWarnings(all, true, true, true).Count, "all hooks installed");
         var w = BundleRules.MissingHookWarnings(all, false, false, false);
         Eq(3, w.Count, "warnings: " + string.Join(" | ", w));
-        True(w[0].StartsWith("The bundle's on-parry stats can't work"), w[0]);
-        True(w[1].StartsWith("The bundle's block armor / force can't work"), w[1]);
-        True(w[2].StartsWith("The bundle's added damage can't work"), w[2]);
+        True(w[0].StartsWith("The buff's on-parry stats can't work"), w[0]);
+        True(w[1].StartsWith("The buff's block armor / force can't work"), w[1]);
+        True(w[2].StartsWith("The buff's added damage can't work"), w[2]);
         Eq(0, BundleRules.MissingHookWarnings(new[] { new StatBlock() }, false, false, false).Count, "no stats that need a hook");
         var force = new StatBlock();
         force.Scalars["blockForce"] = 20;
         var forceOnly = BundleRules.MissingHookWarnings(new[] { force }, true, false, true);
-        True(forceOnly.Count == 1 && forceOnly[0].StartsWith("The bundle's block armor / force can't work"), string.Join(" | ", forceOnly));
+        True(forceOnly.Count == 1 && forceOnly[0].StartsWith("The buff's block armor / force can't work"), string.Join(" | ", forceOnly));
     }
 }

@@ -42,7 +42,7 @@ internal static partial class Tests
 
     private static string StarterBundles()
     {
-        using (var stream = typeof(Tests).Assembly.GetManifestResourceStream("LoadoutBuffs.bundles.example.yaml"))
+        using (var stream = typeof(Tests).Assembly.GetManifestResourceStream("LoadoutBuffs.buffs.example.yaml"))
         using (var reader = new StreamReader(stream))
             return reader.ReadToEnd();
     }
@@ -54,12 +54,12 @@ internal static partial class Tests
         var file = BundleFile.Parse(StarterBundles());
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         Eq(null, file.Active, "active");
-        True(file.Bundles.Count >= 3, "starter bundles");
+        True(file.Bundles.Count >= 3, "starter buffs");
 
         var state = BundleRules.Evaluate(file, new FakeCatalog());
         Eq(0, state.Warnings.Count, "every starter effect resolves: " + string.Join(" | ", state.Warnings));
         True(state.Enabled && state.Active == null && state.Effects.Count == 0, "installing activates nothing");
-        Eq("No bundle active", state.StatusLine(), "status");
+        Eq("No buff active", state.StatusLine(), "status");
     }
 
     private static void Test_Bundles_HeaderHasNoYamlOrDump()
@@ -69,7 +69,7 @@ internal static partial class Tests
             False(text.Contains("ItemStatOverrides.yaml"), $"{what}: no rule (i) / YAML line");
             False(text.Contains("dump"), $"{what}: no dump reference");
             True(text.StartsWith("# LoadoutBuffs"), $"{what}: named after the mod");
-            True(text.Contains("lb_bundles") && text.Contains("lb_reload") && !text.Contains("iso_"), $"{what}: lb_ commands");
+            True(text.Contains("lb_buffs") && text.Contains("lb_reload") && !text.Contains("iso_"), $"{what}: lb_ commands");
             foreach (var key in new[] { "blockArmor", "blockForce", "addDamage", "shieldOnParry", "shieldMinutes" })
                 True(text.Contains(key), $"{what} lists {key}");
         }
@@ -77,10 +77,10 @@ internal static partial class Tests
 
     private static void Test_Bundles_OldHeaderStillLoads()
     {
-        var old = "# Bundles are off while ItemStatOverrides.yaml sets equipStatusEffect, setStatusEffect,\n" +
+        var old = "# Buffs are off while ItemStatOverrides.yaml sets equipStatusEffect, setStatusEffect,\n" +
                   "# setName or setSize on any item.\n" +
                   "# (the ones marked \"(equip)\" or \"(set ...)\" at the end of ItemStatOverrides.dump.yaml).\n\n" +
-                  "active: none\n\nbundles:\n  T:\n    melee:\n      stats: { addDamage: { spirit: 30 } }\n";
+                  "active: none\n\nbuffs:\n  T:\n    melee:\n      stats: { addDamage: { spirit: 30 } }\n";
         var file = BundleFile.Parse(old);
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         Eq(30f, file.Find("T").GetStats(BundleSlot.Melee).AddDamage["spirit"], "a 0.8.0 file loads as is");
@@ -88,18 +88,18 @@ internal static partial class Tests
 
     private static void Test_Bundles_ActiveBundleResolvesPerSlot()
     {
-        var state = Evaluate("active: Tank\nbundles:\n  Tank:\n    chest: SetEffect_DeepNorthMediumArmor\n    cape: SlowFall\n");
+        var state = Evaluate("active: Tank\nbuffs:\n  Tank:\n    chest: SetEffect_DeepNorthMediumArmor\n    cape: SlowFall\n");
         Eq(0, state.Warnings.Count, "warnings: " + string.Join(" | ", state.Warnings));
         Eq("Tank", state.Active?.Name, "active");
         Eq("SetEffect_DeepNorthMediumArmor", state.Effects[BundleSlot.Chest], "chest");
         Eq("SlowFall", state.Effects[BundleSlot.Cape], "cape");
         Eq(2, state.Effects.Count, "effects");
-        Eq("Bundle 'Tank' active: 2 effects", state.StatusLine(), "status");
+        Eq("Buff 'Tank' active: 2 effects", state.StatusLine(), "status");
     }
 
     private static void Test_Bundles_InGameNamesAndCaseAreAccepted()
     {
-        var state = Evaluate("active: tank\nbundles:\n  Tank:\n    CHEST: vanguard\n    legs: \"ask's endurance\"\n    helmet: slowfall\n");
+        var state = Evaluate("active: tank\nbuffs:\n  Tank:\n    CHEST: vanguard\n    legs: \"ask's endurance\"\n    helmet: slowfall\n");
         Eq(0, state.Warnings.Count, "warnings: " + string.Join(" | ", state.Warnings));
         Eq("SetEffect_DeepNorthMediumArmor", state.Effects[BundleSlot.Chest], "in-game name");
         Eq("SetEffect_AshlandsMediumArmor", state.Effects[BundleSlot.Legs], "quoted in-game name with apostrophe");
@@ -110,7 +110,7 @@ internal static partial class Tests
     {
         var catalog = new FakeCatalog();
         catalog.AddAllowed("SetEffect_OtherVanguard", "Vanguard");
-        var state = BundleRules.Evaluate(BundleFile.Parse("active: T\nbundles:\n  T:\n    chest: Vanguard\n"), catalog);
+        var state = BundleRules.Evaluate(BundleFile.Parse("active: T\nbuffs:\n  T:\n    chest: Vanguard\n"), catalog);
         Eq(1, state.Warnings.Count, "warnings");
         True(state.Warnings[0].Contains("several effects") && state.Warnings[0].Contains("SetEffect_OtherVanguard"), state.Warnings[0]);
         Eq(0, state.Effects.Count, "nothing resolved");
@@ -119,18 +119,18 @@ internal static partial class Tests
     private static void Test_Bundles_BadEntriesWarnAndTheRestApplies()
     {
         var state = Evaluate(
-            "active: T\nbundles:\n  T:\n    chest: Vanguard\n    boots: SlowFall\n    legs: Nope\n    helmet: Potion_health_major\n    cape: [a, b]\n");
+            "active: T\nbuffs:\n  T:\n    chest: Vanguard\n    boots: SlowFall\n    legs: Nope\n    helmet: Potion_health_major\n    cape: [a, b]\n");
         Eq(4, state.Warnings.Count, "warnings: " + string.Join(" | ", state.Warnings));
         True(state.Warnings.Any(w => w.StartsWith("T.boots: unknown slot") && w.Contains("line 5")), "unknown slot");
         True(state.Warnings.Any(w => w.StartsWith("T.cape: expected an effect name")), "list value");
         True(state.Warnings.Any(w => w.StartsWith("T.legs: unknown effect 'Nope'")), "unknown effect");
-        True(state.Warnings.Any(w => w.StartsWith("T.helmet: 'Potion_health_major' can't be used in a bundle")), "not a gear effect");
+        True(state.Warnings.Any(w => w.StartsWith("T.helmet: 'Potion_health_major' can't be used in a buff")), "not a gear effect");
         Eq(1, state.Effects.Count, "chest still applies");
     }
 
     private static void Test_Bundles_SameEffectTwiceKeepsTheFirstSlot()
     {
-        var state = Evaluate("active: T\nbundles:\n  T:\n    legs: SlowFall\n    cape: Feather fall\n");
+        var state = Evaluate("active: T\nbuffs:\n  T:\n    legs: SlowFall\n    cape: Feather fall\n");
         Eq(1, state.Warnings.Count, "warnings");
         True(state.Warnings[0].StartsWith("T.cape: SlowFall is already in the legs slot"), state.Warnings[0]);
         Eq("SlowFall", state.Effects[BundleSlot.Legs], "first slot kept");
@@ -139,40 +139,40 @@ internal static partial class Tests
 
     private static void Test_Bundles_InactiveBundlesAreCheckedToo()
     {
-        var state = Evaluate("active: none\nbundles:\n  A:\n    chest: Nope\n");
+        var state = Evaluate("active: none\nbuffs:\n  A:\n    chest: Nope\n");
         Eq(1, state.Warnings.Count, "warnings");
         True(state.Warnings[0].StartsWith("A.chest: unknown effect"), state.Warnings[0]);
     }
 
     private static void Test_Bundles_MissingActiveBundleWarnsAndUsesNone()
     {
-        var state = Evaluate("active: Tank\nbundles:\n  Warrior: {}\n");
+        var state = Evaluate("active: Tank\nbuffs:\n  Warrior: {}\n");
         Eq(1, state.Warnings.Count, "warnings");
-        True(state.Warnings[0].Contains("active bundle 'Tank' doesn't exist") && state.Warnings[0].Contains("Warrior"), state.Warnings[0]);
+        True(state.Warnings[0].Contains("active buff 'Tank' doesn't exist") && state.Warnings[0].Contains("Warrior"), state.Warnings[0]);
         Eq(null, state.Active, "active");
         True(state.Enabled, "still enabled");
     }
 
     private static void Test_Bundles_DuplicateNamesAndUnknownKeysWarn()
     {
-        var file = BundleFile.Parse("active: none\nbundle: x\nbundles:\n  Tank: {}\n  tank: {}\n");
+        var file = BundleFile.Parse("active: none\nbuff: x\nbuffs:\n  Tank: {}\n  tank: {}\n");
         Eq(2, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
-        True(file.Warnings[0].Contains("unknown key 'bundle'"), file.Warnings[0]);
-        True(file.Warnings[1].Contains("bundle 'tank' appears twice"), file.Warnings[1]);
-        Eq(1, file.Bundles.Count, "bundles");
+        True(file.Warnings[0].Contains("unknown key 'buff'"), file.Warnings[0]);
+        True(file.Warnings[1].Contains("buff 'tank' appears twice"), file.Warnings[1]);
+        Eq(1, file.Bundles.Count, "buffs");
     }
 
     private static void Test_Bundles_InvalidYamlTurnsBundlesOff()
     {
-        var state = Evaluate("active: T\nbundles:\n  T:\n\tchest: Vanguard\n");
+        var state = Evaluate("active: T\nbuffs:\n  T:\n\tchest: Vanguard\n");
         False(state.Enabled, "enabled");
         True(state.Warnings.Count == 1 && state.Warnings[0].Contains("not valid YAML") && state.Warnings[0].Contains("line"), string.Join(" | ", state.Warnings));
-        True(state.StatusLine().StartsWith("Bundles off: "), state.StatusLine());
+        True(state.StatusLine().StartsWith("Buffs off: "), state.StatusLine());
     }
 
     private static void Test_Bundles_EmptyAndMissingFilesAreFine()
     {
-        foreach (var text in new[] { null, "", "# only a comment\n", "active: none\n", "bundles: {}\n" })
+        foreach (var text in new[] { null, "", "# only a comment\n", "active: none\n", "buffs: {}\n" })
         {
             var state = Evaluate(text);
             True(state.Enabled && state.Active == null && state.Warnings.Count == 0, $"'{text}': {string.Join(" | ", state.Warnings)}");
@@ -181,21 +181,21 @@ internal static partial class Tests
 
     private static void Test_Bundles_SerializeRoundTrips()
     {
-        var file = BundleFile.Parse("active: \"My Tank\"\nbundles:\n  \"My Tank\":\n    cape: SlowFall\n    chest: SetEffect_DeepNorthMediumArmor\n  Empty: {}\n  none: {}\n");
+        var file = BundleFile.Parse("active: \"My Tank\"\nbuffs:\n  \"My Tank\":\n    cape: SlowFall\n    chest: SetEffect_DeepNorthMediumArmor\n  Empty: {}\n  none: {}\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var names = new Dictionary<string, string> { ["SlowFall"] = "Feather fall", ["SetEffect_DeepNorthMediumArmor"] = "Vanguard" };
         var text = file.Serialize(code => names.TryGetValue(code, out var n) ? n : null);
 
         True(text.Contains("chest: SetEffect_DeepNorthMediumArmor") && text.Contains("# Vanguard"), text);
         True(text.IndexOf("chest:", StringComparison.Ordinal) < text.IndexOf("cape:", StringComparison.Ordinal), "slot order is canonical");
-        True(text.Contains("\"none\": {}"), "a bundle named none is quoted: " + text);
+        True(text.Contains("\"none\": {}"), "a buff named none is quoted: " + text);
 
         var again = BundleFile.Parse(text);
         Eq(0, again.Warnings.Count, "re-parse warnings: " + string.Join(" | ", again.Warnings));
         Eq("My Tank", again.Active, "active");
-        Eq(3, again.Bundles.Count, "bundles");
+        Eq(3, again.Bundles.Count, "buffs");
         Eq("SlowFall", again.Find("my tank").Get(BundleSlot.Cape), "cape");
-        Eq(0, again.Find("Empty").Entries.Count, "empty bundle");
+        Eq(0, again.Find("Empty").Entries.Count, "empty buff");
         Eq(text, again.Serialize(code => names.TryGetValue(code, out var n) ? n : null), "stable");
     }
 
@@ -250,10 +250,10 @@ internal static partial class Tests
 
     private static void Test_Window_WornEffectNames()
     {
-        var file = BundleFile.Parse("bundles:\n  E:\n    cape: SlowFall\n    helmet: Demister\n    chest: BeltStrength\n    legs: NotAnEffect\n");
+        var file = BundleFile.Parse("buffs:\n  E:\n    cape: SlowFall\n    helmet: Demister\n    chest: BeltStrength\n    legs: NotAnEffect\n");
         var worn = new HashSet<BundleSlot> { BundleSlot.Chest, BundleSlot.Helmet, BundleSlot.Legs };
         var names = BundleWindowRules.WornEffectNames(file.Find("E"), new FakeCatalog(), worn.Contains);
         Eq("Wisplight,Megingjord", string.Join(",", names), "worn slots only, in slot order, in-game names; an unknown effect is left out");
-        Eq(0, BundleWindowRules.WornEffectNames(null, new FakeCatalog(), worn.Contains).Count, "no bundle");
+        Eq(0, BundleWindowRules.WornEffectNames(null, new FakeCatalog(), worn.Contains).Count, "no buff");
     }
 }

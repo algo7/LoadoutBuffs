@@ -27,20 +27,20 @@ namespace LoadoutBuffs
         private void Awake()
         {
             Log = Logger;
-            EnsureFile(BundlesPath, "LoadoutBuffs.bundles.example.yaml", "the starter bundles (none active)");
+            EnsureFile(BundlesPath, "LoadoutBuffs.buffs.example.yaml", "the starter buffs (none active)");
 
             var harmony = new Harmony(Guid);
             harmony.PatchAll(typeof(Patches));
             // Each hook is patched on its own: if the game changed under one, the others still load.
-            TryPatch(harmony, typeof(BundlePatches), "bundle hook");
-            TryPatch(harmony, typeof(BundleParryPatches), "bundle parry hook");
-            TryPatch(harmony, typeof(BundleClassPatches), "bundle class hooks");
-            BundleEffects.BlockHookInstalled = TryPatch(harmony, typeof(BundleBlockPatches), "bundle block armor / force hooks");
-            BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "bundle added damage hook");
-            TryPatch(harmony, typeof(BundleUiPatches), "bundle window");
+            TryPatch(harmony, typeof(BundlePatches), "buff hook");
+            TryPatch(harmony, typeof(BundleParryPatches), "buff parry hook");
+            TryPatch(harmony, typeof(BundleClassPatches), "buff class hooks");
+            BundleEffects.BlockHookInstalled = TryPatch(harmony, typeof(BundleBlockPatches), "buff block armor / force hooks");
+            BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
+            TryPatch(harmony, typeof(BundleUiPatches), "buff window");
 
             Commands.Register();
-            Log.LogInfo($"{Name} loaded (v{PluginVersion}), bundles: {BundlesPath}");
+            Log.LogInfo($"{Name} loaded (v{PluginVersion}), buffs: {BundlesPath}");
         }
 
         /// <summary>Sends a queued parry bubble once per frame (AllyAssist.FlushBubble).</summary>
@@ -56,7 +56,7 @@ namespace LoadoutBuffs
             }
             catch (Exception e)
             {
-                Log.LogError($"Could not install the {what}; bundles may not work: {e}");
+                Log.LogError($"Could not install the {what}; buffs may not work: {e}");
                 return false;
             }
         }

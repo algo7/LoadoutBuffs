@@ -59,7 +59,7 @@ namespace LoadoutBuffs
             var gui = InventoryGui.instance;
             if (Player.m_localPlayer == null || gui == null)
             {
-                Plugin.Log.LogInfo("Bundles window: load into a world first.");
+                Plugin.Log.LogInfo("Buffs window: load into a world first.");
                 return;
             }
             if (!InventoryGui.IsVisible()) gui.Show(null);
@@ -93,7 +93,7 @@ namespace LoadoutBuffs
             var root = GUIManager.CustomGUIFront;
             if (root == null)
             {
-                Plugin.Log.LogWarning("Bundles window: Jötunn's GUI isn't ready.");
+                Plugin.Log.LogWarning("Buffs window: Jötunn's GUI isn't ready.");
                 return false;
             }
             var gm = GUIManager.Instance;
@@ -101,12 +101,12 @@ namespace LoadoutBuffs
             s_panel.name = "LoadoutBuffs_Bundles";
             var p = s_panel.transform;
 
-            Label(p, "Bundles", 30, gm.ValheimOrange, 0, 18, Width, 40, TextAnchor.MiddleCenter);
+            Label(p, "Buffs", 30, gm.ValheimOrange, 0, 18, Width, 40, TextAnchor.MiddleCenter);
             s_status = Label(p, "", 16, Color.white, 30, 62, Width - 60, 44, TextAnchor.UpperCenter);
             MakeButton(p, "Close", Width - 130, 18, 100, 34, Close);
 
             // Left: bundles.
-            Label(p, "Your bundles", 20, gm.ValheimOrange, 30, 104, 220, 26, TextAnchor.MiddleLeft);
+            Label(p, "Your buffs", 20, gm.ValheimOrange, 30, 104, 220, 26, TextAnchor.MiddleLeft);
             s_bundleList = ScrollList(p, 30, Top, 220, 330);
             MakeButton(p, "New", 30, 474, 106, 36, NewBundle);
             s_rename = MakeButton(p, "Rename", 144, 474, 106, 36, RenameBundle);
@@ -270,7 +270,7 @@ namespace LoadoutBuffs
                            (active ? "  <size=13><color=#9fdf9f>in use</color></size>" : "");
                 Row(s_bundleList, text, 34, () => SelectBundle(name));
             }
-            if (file.Bundles.Count == 0) Row(s_bundleList, "<color=#bbbbbb>No bundles yet: press New</color>", 34, () => { }, false);
+            if (file.Bundles.Count == 0) Row(s_bundleList, "<color=#bbbbbb>No buffs yet: press New</color>", 34, () => { }, false);
 
             s_slotsHeader.text = bundle == null ? "Slots" : "Slots of " + Escape(bundle.Name);
             var player = Player.m_localPlayer;
@@ -347,7 +347,7 @@ namespace LoadoutBuffs
             var bundle = BundleEffects.File.Find(s_selectedBundle);
             if (bundle == null)
             {
-                s_description.text = "Create a bundle with New, pick an effect for each slot, then press Use.\n\n" +
+                s_description.text = "Create a buff with New, pick an effect for each slot, then press Use.\n\n" +
                                      "A slot's effect is on while anything is equipped in that slot. Your gear keeps its own effects.";
                 return;
             }
@@ -361,7 +361,7 @@ namespace LoadoutBuffs
             var se = BundleEffects.Catalog?.Get(Resolve(code));
             if (se == null)
             {
-                s_description.text = $"<color=#ff8a70>'{Escape(code)}' isn't an effect bundles can use (see LogOutput.log).</color>";
+                s_description.text = $"<color=#ff8a70>'{Escape(code)}' isn't an effect buffs can use (see LogOutput.log).</color>";
                 return;
             }
             var lines = EffectText.Describe(se).ToList();
@@ -371,12 +371,12 @@ namespace LoadoutBuffs
         private static string StatusText(BundleState state)
         {
             string text;
-            if (!state.Enabled) text = $"<color=#ff8a70>Bundles are off: {Escape(state.OffReason)}</color>";
-            else if (state.Active == null) text = "No bundle in use. Pick one and press Use.";
+            if (!state.Enabled) text = $"<color=#ff8a70>Buffs are off: {Escape(state.OffReason)}</color>";
+            else if (state.Active == null) text = "No buff in use. Pick one and press Use.";
             else text = $"In use: <color=orange>{Escape(state.Active.Name)}</color> ({state.Effects.Count} effect{(state.Effects.Count == 1 ? "" : "s")})";
             if (s_error != null) text += $"\n<color=#ff8a70>{Escape(s_error)}</color>";
             else if (state.Warnings.Count > 0)
-                text += $"\n<size=13><color=#ffcf70>{state.Warnings.Count} problem{(state.Warnings.Count == 1 ? "" : "s")} in the bundles file: {Escape(state.Warnings[0])}</color></size>";
+                text += $"\n<size=13><color=#ffcf70>{state.Warnings.Count} problem{(state.Warnings.Count == 1 ? "" : "s")} in the buffs file: {Escape(state.Warnings[0])}</color></size>";
             return text;
         }
 
@@ -388,7 +388,7 @@ namespace LoadoutBuffs
                 return;
             }
             var totals = BundleEffects.WornTotals(Player.m_localPlayer, bundle);
-            var note = !BundleEffects.State.Enabled ? "  <color=#ff8a70>(bundles are off)</color>"
+            var note = !BundleEffects.State.Enabled ? "  <color=#ff8a70>(buffs are off)</color>"
                 : !isActive ? "  <color=#bbbbbb>(not in use)</color>" : "";
             var player = Player.m_localPlayer;
             var effects = BundleWindowRules.WornEffectNames(bundle, BundleEffects.Catalog, slot => player != null && BundleEffects.Worn(player, slot) != null);
@@ -637,11 +637,11 @@ namespace LoadoutBuffs
             if (!UnifiedPopup.IsAvailable())
             {
                 var n = 1;
-                while (BundleEffects.File.Find($"Bundle {n}") != null) n++;
-                CreateBundle($"Bundle {n}");
+                while (BundleEffects.File.Find($"Buff {n}") != null) n++;
+                CreateBundle($"Buff {n}");
                 return;
             }
-            AskForName("New bundle", "Name of the new bundle:", name => IsFreeName(name, null), CreateBundle);
+            AskForName("New buff", "Name of the new buff:", name => IsFreeName(name, null), CreateBundle);
         }
 
         private static void CreateBundle(string name)
@@ -657,12 +657,12 @@ namespace LoadoutBuffs
             if (bundle == null) return;
             if (!UnifiedPopup.IsAvailable())
             {
-                s_error = "Renaming needs the game's text popup, which isn't available here. Rename it in the bundles file.";
+                s_error = "Renaming needs the game's text popup, which isn't available here. Rename it in the buffs file.";
                 Refresh();
                 return;
             }
             var old = bundle.Name;
-            AskForName("Rename bundle", $"New name for '{old}':", name => IsFreeName(name, old), name =>
+            AskForName("Rename buff", $"New name for '{old}':", name => IsFreeName(name, old), name =>
             {
                 var file = BundleEffects.File;
                 var b = file.Find(old);
@@ -685,7 +685,7 @@ namespace LoadoutBuffs
                 return;
             }
             HideForPopup();
-            UnifiedPopup.Push(new YesNoPopup("Delete bundle", $"Delete the bundle '{name}'?",
+            UnifiedPopup.Push(new YesNoPopup("Delete buff", $"Delete the buff '{name}'?",
                 () =>
                 {
                     UnifiedPopup.Pop();
@@ -711,7 +711,7 @@ namespace LoadoutBuffs
         private static void AskForName(string header, string text, Func<string, bool> valid, Action<string> done)
         {
             HideForPopup();
-            UnifiedPopup.Push(new TextEntryPopup(header, text, "Bundle name",
+            UnifiedPopup.Push(new TextEntryPopup(header, text, "Buff name",
                 () =>
                 {
                     UnifiedPopup.Pop();
@@ -766,8 +766,8 @@ namespace LoadoutBuffs
             }
             catch (Exception e)
             {
-                s_error = "Could not save the bundles file: " + e.Message;
-                Plugin.Log.LogError($"Saving bundles failed: {e}");
+                s_error = "Could not save the buffs file: " + e.Message;
+                Plugin.Log.LogError($"Saving buffs failed: {e}");
             }
             s_hoverEffect = null;
             Refresh();

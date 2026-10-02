@@ -126,10 +126,10 @@ namespace LoadoutBuffs
 
         public string StatusLine()
         {
-            if (!Enabled) return "Bundles off: " + OffReason;
-            if (Active == null) return "No bundle active";
+            if (!Enabled) return "Buffs off: " + OffReason;
+            if (Active == null) return "No buff active";
             var stats = StatCount;
-            return $"Bundle '{Active.Name}' active: {Effects.Count} effect{(Effects.Count == 1 ? "" : "s")}" +
+            return $"Buff '{Active.Name}' active: {Effects.Count} effect{(Effects.Count == 1 ? "" : "s")}" +
                    (stats > 0 ? $", {stats} stat{(stats == 1 ? "" : "s")}" : "");
         }
     }
@@ -145,11 +145,11 @@ namespace LoadoutBuffs
             var list = stats.Where(b => b != null).ToList();
             var warnings = new List<string>();
             if (!parryHook && list.Any(b => b.ToParryAssist() != null))
-                warnings.Add("The bundle's on-parry stats can't work with this game version (the parry hook isn't installed, see LogOutput.log).");
+                warnings.Add("The buff's on-parry stats can't work with this game version (the parry hook isn't installed, see LogOutput.log).");
             if (!blockHook && list.Any(b => b.BlockArmor != 0f || b.BlockForce != 0f))
-                warnings.Add("The bundle's block armor / force can't work (the block hook isn't installed, see LogOutput.log).");
+                warnings.Add("The buff's block armor / force can't work (the block hook isn't installed, see LogOutput.log).");
             if (!damageHook && list.Any(b => b.AddDamage.Count > 0))
-                warnings.Add("The bundle's added damage can't work (the added damage hook isn't installed, see LogOutput.log).");
+                warnings.Add("The buff's added damage can't work (the added damage hook isn't installed, see LogOutput.log).");
             return warnings;
         }
 
@@ -173,8 +173,8 @@ namespace LoadoutBuffs
                 return null;
             }
             error = catalog.Exists(t)
-                ? $"'{t}' can't be used in a bundle: only effects that gear has in the game can (the Bundles window lists them)"
-                : $"unknown effect '{t}'; use a code name or in-game name from the Bundles window's list";
+                ? $"'{t}' can't be used in a buff: only effects that gear has in the game can (the Buffs window lists them)"
+                : $"unknown effect '{t}'; use a code name or in-game name from the Buffs window's list";
             return null;
         }
 

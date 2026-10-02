@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/algo7/LoadoutBuffs/actions/workflows/ci.yml/badge.svg)](https://github.com/algo7/LoadoutBuffs/actions/workflows/ci.yml)
 
-A client-side [BepInEx](https://github.com/BepInEx/BepInEx) mod for Valheim: **bundles** of extra "while worn" effects
+A client-side [BepInEx](https://github.com/BepInEx/BepInEx) mod for Valheim: **buffs** of extra "while worn" effects
 and stats per equipment slot, picked in an in-game window (built with [Jötunn](https://github.com/Valheim-Modding/Jotunn)).
-What it does for players, the bundles file format and the console commands are in [package/README.md](package/README.md),
+What it does for players, the buffs file format and the console commands are in [package/README.md](package/README.md),
 which is also the mod's Thunderstore page. Changes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Building
@@ -38,8 +38,8 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
 ```
 LoadoutBuffs.csproj        net48 plugin; ILRepack merges YamlDotNet; Package target (zip + generated manifest)
 src/                       plugin: entry, game glue, commands (lb_stats report), parry help
-src/Bundles/               bundles: file, rules, stats, runtime, Harmony hooks, buff, window
-example/                   first-run bundles file (embedded in the DLL)
+src/Bundles/               buffs: file, rules, stats, runtime, Harmony hooks, buff, window
+example/                   first-run buffs file (embedded in the DLL)
 package/                   Thunderstore README and icon
 tests/                     unit tests (net8.0)
 thunderstore.toml          Thunderstore publishing settings (tcli)

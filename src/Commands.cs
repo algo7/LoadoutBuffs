@@ -14,10 +14,10 @@ namespace LoadoutBuffs
         public static void Register()
         {
             new Terminal.ConsoleCommand("lb_reload",
-                "LoadoutBuffs: re-read the bundles file and apply it",
+                "LoadoutBuffs: re-read the buffs file and apply it",
                 (Terminal.ConsoleEvent)Reload);
-            new Terminal.ConsoleCommand("lb_bundles",
-                "LoadoutBuffs: open the Bundles window (extra effects and stats for your equipment slots)",
+            new Terminal.ConsoleCommand("lb_buffs",
+                "LoadoutBuffs: open the Buffs window (extra effects and stats for your equipment slots)",
                 (Terminal.ConsoleEvent)Bundles);
             new Terminal.ConsoleCommand("lb_stats",
                 "LoadoutBuffs: your current armor, movement, item modifiers, resistances, weapon and active effects",
@@ -58,12 +58,12 @@ namespace LoadoutBuffs
             try
             {
                 BundleWindow.Open();
-                Print(args, "LoadoutBuffs: Bundles window opened (close the console to use it). " + BundleEffects.State.StatusLine());
+                Print(args, "LoadoutBuffs: Buffs window opened (close the console to use it). " + BundleEffects.State.StatusLine());
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError($"lb_bundles failed: {e}");
-                Print(args, $"LoadoutBuffs: could not open the Bundles window: {e.Message}");
+                Plugin.Log.LogError($"lb_buffs failed: {e}");
+                Print(args, $"LoadoutBuffs: could not open the Buffs window: {e.Message}");
             }
         }
 

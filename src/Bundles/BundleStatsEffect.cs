@@ -50,8 +50,8 @@ namespace LoadoutBuffs
                 if (s_template != null) return s_template;
                 s_template = CreateInstance<BundleStatsEffect>();
                 s_template.name = AssetName;
-                s_template.m_name = "Bundle";
-                s_template.m_tooltip = "Custom stats of your bundle, from the slots you wear.";
+                s_template.m_name = "Buff";
+                s_template.m_tooltip = "Custom stats of your buff, from the slots you wear.";
                 s_template.m_icon = Icon();
                 s_template.m_ttl = 0f;
                 s_template.hideFlags = HideFlags.HideAndDontSave; // runtime-only, survives scene changes
@@ -206,7 +206,7 @@ namespace LoadoutBuffs
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning($"Bundle stats icon could not be loaded, the buff shows no icon: {e.Message}");
+                Plugin.Log.LogWarning($"Buff stats icon could not be loaded, the buff shows no icon: {e.Message}");
             }
             return s_icon;
         }

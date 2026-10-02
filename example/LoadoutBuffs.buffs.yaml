@@ -1,15 +1,15 @@
 # LoadoutBuffs: extra "while worn" effects and stats, per equipment slot.
 #
-# Pick and edit bundles in game: inventory -> Bundles (or the console command lb_bundles).
-# Or edit this file and run lb_reload in the F5 console. The Bundles window rewrites this
+# Pick and edit buffs in game: inventory -> Buffs (or the console command lb_buffs).
+# Or edit this file and run lb_reload in the F5 console. The Buffs window rewrites this
 # file, so comments you add here are not kept.
 #
-# active: the bundle in use for every character in this profile, or none.
+# active: the buff in use for every character in this profile, or none.
 # Slots: helmet, chest, legs, cape, melee (swords, knives, clubs, atgeirs, spears, axes, fists),
 # ranged (bows, crossbows, magic staffs), shield. A slot counts while something is equipped there
 # (weapons: in your hands); your gear keeps its own effects. Pickaxes, the fishing rod, torches and
 # tools fill no slot. Effect: code name or in-game name of an effect gear has in the game (the
-# Bundles window lists them).
+# Buffs window lists them).
 # A slot can also have custom stats (long form):
 #   chest:
 #     effect: SetEffect_DeepNorthMediumArmor
@@ -22,11 +22,11 @@
 # healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of you), shieldMinutes
 # (its time, default 1), parryRadius (reach in metres, default 10). Classes: woodcutter: true (melee
 # hits fell any tree), miner: true (melee hits break any rock or ore). The stats of all filled slots
-# add up (reach and bubble time take the largest) and show as one buff named after the bundle.
+# add up (reach and bubble time take the largest) and show on your HUD as one buff named after it.
 
 active: none
 
-bundles:
+buffs:
   Warrior:
     helmet: SetEffect_FenringArmor          # Fenris blessing: fire resistant, fists +15
     chest: SetEffect_DeepNorthMediumArmor   # Vanguard: regen +10 %, dodge stamina -20 %, run stamina -10 %, pierce +10 %

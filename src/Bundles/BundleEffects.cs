@@ -70,7 +70,7 @@ namespace LoadoutBuffs
             if (State.Enabled && !HookInstalled)
             {
                 State.Enabled = false;
-                State.OffReason = "this game version isn't supported by the bundle hook (see LogOutput.log).";
+                State.OffReason = "this game version isn't supported by the buff hook (see LogOutput.log).";
             }
 
             s_effects.Clear();
@@ -143,16 +143,16 @@ namespace LoadoutBuffs
                 foreach (var p in total.AddDamage) s_addDamage[p.Key] = p.Value;
                 if (total.IsEmpty) return;
                 var template = BundleStatsEffect.Template;
-                template.SetTotals(total, s_statsName ?? "Bundle");
+                template.SetTotals(total, s_statsName ?? "Buff");
                 if (humanoid.GetSEMan().GetStatusEffect(template.NameHash()) is BundleStatsEffect active && active != template)
-                    active.SetTotals(total, s_statsName ?? "Bundle");
+                    active.SetTotals(total, s_statsName ?? "Buff");
                 set.Add(template);
             }
             catch (Exception e)
             {
                 if (s_hookErrorLogged) return;
                 s_hookErrorLogged = true;
-                Plugin.Log.LogError($"Bundle effects failed (logged once): {e}");
+                Plugin.Log.LogError($"Buff effects failed (logged once): {e}");
             }
         }
 
@@ -177,7 +177,7 @@ namespace LoadoutBuffs
             {
                 if (s_parryErrorLogged) return;
                 s_parryErrorLogged = true;
-                Plugin.Log.LogError($"Bundle on-parry stats failed (logged once): {e}");
+                Plugin.Log.LogError($"Buff on-parry stats failed (logged once): {e}");
             }
         }
 
@@ -212,7 +212,7 @@ namespace LoadoutBuffs
             {
                 if (s_classErrorLogged) return;
                 s_classErrorLogged = true;
-                Plugin.Log.LogError($"Bundle classes failed (logged once): {e}");
+                Plugin.Log.LogError($"Buff classes failed (logged once): {e}");
             }
         }
 
@@ -236,7 +236,7 @@ namespace LoadoutBuffs
                 if (!s_blockErrorLogged)
                 {
                     s_blockErrorLogged = true;
-                    Plugin.Log.LogError($"Bundle block armor failed (logged once): {e}");
+                    Plugin.Log.LogError($"Buff block armor failed (logged once): {e}");
                 }
                 return value;
             }
@@ -261,7 +261,7 @@ namespace LoadoutBuffs
                 if (!s_blockErrorLogged)
                 {
                     s_blockErrorLogged = true;
-                    Plugin.Log.LogError($"Bundle block force failed (logged once): {e}");
+                    Plugin.Log.LogError($"Buff block force failed (logged once): {e}");
                 }
                 return value;
             }
@@ -286,7 +286,7 @@ namespace LoadoutBuffs
             {
                 if (s_damageErrorLogged) return;
                 s_damageErrorLogged = true;
-                Plugin.Log.LogError($"Bundle added damage failed (logged once): {e}");
+                Plugin.Log.LogError($"Buff added damage failed (logged once): {e}");
             }
         }
 

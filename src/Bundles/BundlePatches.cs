@@ -35,10 +35,10 @@ namespace LoadoutBuffs
                 if (load == null) break;
                 list.InsertRange(i + 2, new[] { new CodeInstruction(OpCodes.Ldarg_0), load, new CodeInstruction(OpCodes.Call, addTo) });
                 BundleEffects.HookInstalled = true;
-                Plugin.Log.LogInfo("Bundle hook installed in Humanoid.UpdateEquipmentStatusEffects");
+                Plugin.Log.LogInfo("Buff hook installed in Humanoid.UpdateEquipmentStatusEffects");
                 return list;
             }
-            Plugin.Log.LogError("Bundles disabled: Humanoid.UpdateEquipmentStatusEffects doesn't look as expected (game update?).");
+            Plugin.Log.LogError("Buffs disabled: Humanoid.UpdateEquipmentStatusEffects doesn't look as expected (game update?).");
             return list;
         }
 
@@ -84,12 +84,12 @@ namespace LoadoutBuffs
                     if (list[j + 1].opcode != OpCodes.Pop) break;
                     list.InsertRange(j + 2, new[] { new CodeInstruction(OpCodes.Ldarg_0), new CodeInstruction(OpCodes.Call, onParry) });
                     BundleEffects.ParryHookInstalled = true;
-                    Plugin.Log.LogInfo("Bundle parry hook installed in Humanoid.BlockAttack");
+                    Plugin.Log.LogInfo("Buff parry hook installed in Humanoid.BlockAttack");
                     return list;
                 }
                 break;
             }
-            Plugin.Log.LogError("Bundle on-parry stats disabled: Humanoid.BlockAttack doesn't look as expected (game update?). " +
+            Plugin.Log.LogError("Buff on-parry stats disabled: Humanoid.BlockAttack doesn't look as expected (game update?). " +
                                 "Everything else is not affected.");
             return list;
         }

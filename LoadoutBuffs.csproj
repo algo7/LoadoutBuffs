@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <Compile Include="src/**/*.cs" />
-    <EmbeddedResource Include="example/LoadoutBuffs.bundles.yaml" LogicalName="LoadoutBuffs.bundles.example.yaml" />
+    <EmbeddedResource Include="example/LoadoutBuffs.buffs.yaml" LogicalName="LoadoutBuffs.buffs.example.yaml" />
     <EmbeddedResource Include="package/icon.png" LogicalName="LoadoutBuffs.icon.png" />
   </ItemGroup>
 

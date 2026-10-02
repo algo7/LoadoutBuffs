@@ -17,7 +17,7 @@ namespace LoadoutBuffs
     internal static class InventoryButton
     {
         private const string ObjectName = "LoadoutBuffs_BundlesButton";
-        private const string Label = "BUNDLES";
+        private const string Label = "BUFFS";
         private static GameObject s_button;
         private static TMP_Text s_label;
         private static bool s_isTab;
@@ -35,7 +35,7 @@ namespace LoadoutBuffs
             var tab = gui.m_tabCraft;
             if (tab == null || gui.m_tabUpgrade == null)
             {
-                Plugin.Log.LogInfo("Bundles button: crafting tabs not found, using a Jötunn button.");
+                Plugin.Log.LogInfo("Buffs button: crafting tabs not found, using a Jötunn button.");
                 return null;
             }
             var copy = Object.Instantiate(tab.gameObject, tab.transform.parent);
@@ -48,7 +48,7 @@ namespace LoadoutBuffs
             if (s_label != null) s_label.text = Label;
             s_isTab = true;
             copy.SetActive(true);
-            Plugin.Log.LogInfo($"Bundles button: copied the CRAFT tab (parent '{copy.transform.parent.name}', " +
+            Plugin.Log.LogInfo($"Buffs button: copied the CRAFT tab (parent '{copy.transform.parent.name}', " +
                                $"label {(s_label != null ? "set" : "not found")}).");
             return copy;
         }
@@ -71,10 +71,10 @@ namespace LoadoutBuffs
         private static GameObject JotunnButton(InventoryGui gui)
         {
             var parent = gui.m_player != null ? gui.m_player : (RectTransform)gui.transform;
-            var go = GUIManager.Instance.CreateButton("Bundles", parent, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(70f, -24f), 120f, 34f);
+            var go = GUIManager.Instance.CreateButton("Buffs", parent, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(70f, -24f), 120f, 34f);
             go.name = ObjectName;
             go.GetComponent<Button>().onClick.AddListener(BundleWindow.Toggle);
-            Plugin.Log.LogInfo($"Bundles button: Jötunn button on '{parent.name}'.");
+            Plugin.Log.LogInfo($"Buffs button: Jötunn button on '{parent.name}'.");
             return go;
         }
     }
@@ -143,7 +143,7 @@ namespace LoadoutBuffs
         {
             if (s_logged) return;
             s_logged = true;
-            Plugin.Log.LogError($"Bundles UI failed (logged once): {e}");
+            Plugin.Log.LogError($"Buffs UI failed (logged once): {e}");
         }
     }
 }

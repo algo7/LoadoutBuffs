@@ -6,7 +6,7 @@ servers and friends don't need the mod. No items are created or changed, and you
 
 ![The Buffs window, opened from the BUFFS tab next to CRAFT](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/buffs-window.png)
 
-## Quick start
+## Quick Start
 
 1. Install with a mod manager (r2modman, Thunderstore Mod Manager, Gale): BepInEx and Jötunn come along automatically.
 2. In game, open your inventory and click the **BUFFS** tab next to CRAFT.
@@ -45,7 +45,7 @@ The buff in use shows on your HUD with its name ("N stats" under it when it has 
 you fill add up; the Compendium's Active effects page lists the buff's effects and stats, and the bottom of the window
 shows them for what you wear now.
 
-## How things behave
+## How Things Behave
 
 - **Slots follow your gear.** A slot counts while something is equipped there. Melee means swords, knives, clubs,
   atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; pickaxes, the fishing rod, torches and
@@ -59,7 +59,7 @@ shows them for what you wear now.
 - **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
   damage* and its % row appears.
 
-## Multiplayer and fair play
+## Multiplayer and Fair Play
 
 LoadoutBuffs runs only on your client. Your stats and the damage you deal are computed by your own game, so buffs work
 on any server, and other players see your gear as usual. Your parry help reaches friends whether they have the mod or
@@ -67,7 +67,7 @@ not.
 
 LoadoutBuffs is a power mod that can make you a lot stronger, so some servers and players probably won't welcome it.
 
-## The buffs file
+## The Buffs File
 
 Everything can be set in the Buffs window. The file (`BepInEx/config/LoadoutBuffs.buffs.yaml`) is only useful to share
 or back up your buffs, or for values beyond the window's limits and raw `fields:`. Reload it with `lb_reload` (it's also
@@ -107,7 +107,7 @@ buffs:
 Within a buff, the stats of all filled slots add up; reach and bubble time take the largest, resistances the most
 protective. A bad entry is skipped with a warning in the window and in `BepInEx/LogOutput.log`; the rest still applies.
 
-## Console commands
+## Console Commands
 
 In the F5 console. Not cheats, so no `devcommands` needed.
 

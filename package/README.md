@@ -67,11 +67,12 @@ not.
 
 LoadoutBuffs is a power mod that can make you a lot stronger, so some servers and players probably won't welcome it.
 
-## Editing the file
+## Editing the file (advanced)
 
-Buffs live in `BepInEx/config/LoadoutBuffs.buffs.yaml`. You can edit it by hand (effect code names or in-game names)
-and reload it with `lb_reload`; it's also re-read on every world load. The window rewrites the file, so comments you add
-aren't kept.
+Use the Buffs window: it's the recommended way, and it saves everything for you. Editing the file by hand isn't
+recommended, but if you really want to, buffs live in `BepInEx/config/LoadoutBuffs.buffs.yaml` (effect code names or
+in-game names). Reload it with `lb_reload`; it's also re-read on every world load. The window rewrites the file, so
+comments you add aren't kept.
 
 ```yaml
 active: Warrior
@@ -108,7 +109,7 @@ protective. A bad entry is skipped with a warning in the window and in `BepInEx/
 
 ## Console commands
 
-Open the console with F5 (the game needs the `-console` launch option). Not cheats, so no `devcommands` needed.
+In the F5 console. Not cheats, so no `devcommands` needed.
 
 - `lb_buffs`: open the Buffs window
 - `lb_reload`: re-read the buffs file and apply it
@@ -123,8 +124,6 @@ Open the console with F5 (the game needs the `-console` launch option). Not chea
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
-- **The console (F5) doesn't open.** The game only has it with the `-console` launch option (Steam: right-click
-  Valheim → Properties → Launch options; in r2modman: Settings → Set launch parameters).
 
 ## Compatibility
 

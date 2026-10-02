@@ -36,8 +36,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
-  damage (blunt, slash, pierce), so even a club or a bow works; a spell without physical damage (frost or lightning
-  only) does nothing to wood or stone. Digging the ground stays a pickaxe thing.
+  damage (blunt, slash, pierce), so even a club or a bow works. A spell without physical damage (the Staff of Frost's,
+  lightning) does nothing to wood or stone until you give it some under *Added damage* on the Ranged slot (e.g. +10
+  pierce). Digging the ground stays a pickaxe thing.
 
 ![Custom stats of a slot: General](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -133,6 +134,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
+- **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
+  lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
 - **My Woodcutter / Miner is gone after updating.** Since 1.1.0 classes go on Melee or Ranged only; one on armor or
   the shield is skipped with a warning. Set it on a weapon slot again.
 

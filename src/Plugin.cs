@@ -17,7 +17,7 @@ namespace LoadoutBuffs
     {
         public const string Guid = "algo7.loadoutbuffs";
         public const string Name = "LoadoutBuffs";
-        public const string PluginVersion = "1.0.0"; // = the csproj Version (the build checks)
+        public const string PluginVersion = PluginInfo.Version; // from the git tag, generated at build time (MinVer)
 
         internal static ManualLogSource Log;
 

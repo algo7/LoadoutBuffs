@@ -1,8 +1,8 @@
 name: Release
 
-# Push a tag vX.Y.Z (= the csproj Version, with a CHANGELOG.md section for it). After the build and checks, the
-# publish job waits for approval (environment "thunderstore"), then creates the GitHub Release and uploads the same
-# zip to Thunderstore.
+# Write a `## X.Y.Z` section in CHANGELOG.md, then push the tag vX.Y.Z: the version comes from the tag (MinVer), nothing
+# else to edit. After the build and checks, the publish job waits for approval (environment "thunderstore"), then
+# creates the GitHub Release and uploads the same zip to Thunderstore.
 on:
   push:
     tags: ['v*']
@@ -40,11 +40,11 @@ jobs:
             echo "::error::Tag $GITHUB_REF_NAME doesn't match the project version $VERSION"; exit 1
           fi
 
-      - name: CHANGELOG.md has a released section for it
+      - name: CHANGELOG.md has a section for it
         run: |
-          header=$(grep -m1 "^## $VERSION\b" CHANGELOG.md || true)
-          if [ -z "$header" ]; then echo "::error::CHANGELOG.md has no '## $VERSION' section"; exit 1; fi
-          if echo "$header" | grep -qi unreleased; then echo "::error::CHANGELOG.md still says $VERSION is unreleased"; exit 1; fi
+          if ! grep -q "^## $VERSION\b" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $VERSION' section: write the release notes there, then tag again"; exit 1
+          fi
 
   publish:
     name: GitHub Release + Thunderstore

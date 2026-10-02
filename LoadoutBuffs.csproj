@@ -4,7 +4,9 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>LoadoutBuffs</AssemblyName>
     <RootNamespace>LoadoutBuffs</RootNamespace>
-    <Version>1.0.0</Version>
+    <!-- The version comes from the latest git tag vX.Y.Z (MinVer); untagged builds count from 1.0. Nothing to edit by hand. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
     <!-- Thunderstore namespace / r2modman author; the package's manifest.json is generated from these (Package target). -->
     <ModAuthor>Algo7</ModAuthor>
     <ModDescription>Extra effects and stats for each equipment slot (damage, block, parry heals and bubbles for allies), picked in an in-game window. Client-side.</ModDescription>
@@ -38,6 +40,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="all" />
     <!-- Compile-time only: BepInEx / HarmonyX and Jötunn come from the player's install at runtime. -->
     <PackageReference Include="BepInEx.Core" Version="5.4.21" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
@@ -87,6 +90,26 @@
   </ItemGroup>
 
   <!--
+    The plugin's version for BepInEx and the package (plain X.Y.Z, which both need) from MinVer's version of the git tag,
+    written into a generated PluginInfo.Version constant that src/Plugin.cs uses.
+  -->
+  <Target Name="GeneratePluginInfo" AfterTargets="MinVer" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <ModVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)</ModVersion>
+      <_PluginInfoFile>$(IntermediateOutputPath)PluginInfo.g.cs</_PluginInfoFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <_PluginInfoLine Include="// Generated at build time from the git tag (MinVer). Do not edit." />
+      <_PluginInfoLine Include="namespace LoadoutBuffs { internal static class PluginInfo { public const string Version = &quot;$(ModVersion)&quot;%3B } }" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_PluginInfoFile)" Lines="@(_PluginInfoLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(_PluginInfoFile)" />
+      <FileWrites Include="$(_PluginInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
     Merge YamlDotNet into the plugin DLL and internalize it, so we never clash with the
     YamlDotNet another mod ships. Output: bin/<Configuration>/merged/LoadoutBuffs.dll
   -->
@@ -109,22 +132,20 @@
 
   <!--
     r2modman / Thunderstore package: manifest.json (generated here, so name, version and the Jötunn dependency can't
-    drift), README.md, CHANGELOG.md, icon.png and the merged DLL, zipped into <project>/<ModAuthor>-<AssemblyName>-<Version>.zip.
+    drift), README.md, CHANGELOG.md, icon.png and the merged DLL, zipped into <project>/<ModAuthor>-<AssemblyName>-<ModVersion>.zip.
   -->
   <Target Name="Package" DependsOnTargets="Build">
     <PropertyGroup>
       <_PackageDir>$(MSBuildProjectDirectory)/bin/package</_PackageDir>
-      <PackagePath>$(MSBuildProjectDirectory)/$(ModAuthor)-$(AssemblyName)-$(Version).zip</PackagePath>
+      <PackagePath>$(MSBuildProjectDirectory)/$(ModAuthor)-$(AssemblyName)-$(ModVersion).zip</PackagePath>
       <_JotunnVersion>@(PackageReference->WithMetadataValue('Identity', 'JotunnLib')->'%(Version)')</_JotunnVersion>
-      <_PluginSource>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/src/Plugin.cs'))</_PluginSource>
     </PropertyGroup>
     <Error Condition="'$(_JotunnVersion)' == ''" Text="No JotunnLib PackageReference: can't write the Jötunn dependency." />
-    <Error Condition="!$(_PluginSource.Contains('PluginVersion = &quot;$(Version)&quot;'))" Text="src/Plugin.cs PluginVersion doesn't match the project Version $(Version)." />
     <ItemGroup>
       <_ManifestLine Include="{" />
       <_ManifestLine Include="    &quot;name&quot;: &quot;$(AssemblyName)&quot;," />
       <_ManifestLine Include="    &quot;author&quot;: &quot;$(ModAuthor)&quot;," />
-      <_ManifestLine Include="    &quot;version_number&quot;: &quot;$(Version)&quot;," />
+      <_ManifestLine Include="    &quot;version_number&quot;: &quot;$(ModVersion)&quot;," />
       <_ManifestLine Include="    &quot;website_url&quot;: &quot;$(ModWebsite)&quot;," />
       <_ManifestLine Include="    &quot;description&quot;: &quot;$(ModDescription)&quot;," />
       <_ManifestLine Include="    &quot;dependencies&quot;: [ &quot;$(BepInExPackDependency)&quot;, &quot;ValheimModding-Jotunn-$(_JotunnVersion)&quot; ]" />

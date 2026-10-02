@@ -7,7 +7,7 @@ on:
   workflow_call:
     outputs:
       version:
-        description: The project version (LoadoutBuffs.csproj)
+        description: The version, from the git tag (MinVer)
         value: ${{ jobs.build.outputs.version }}
 
 permissions:
@@ -25,6 +25,8 @@ jobs:
       DOTNET_NOLOGO: 1
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # MinVer reads the version from the git tags
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -36,15 +38,15 @@ jobs:
       - name: Download the game DLLs (dedicated server, anonymous)
         run: .github/scripts/valheim-managed.sh "$MANAGED_DIR"
 
-      - name: Version
-        id: version
-        run: echo "version=$(dotnet msbuild LoadoutBuffs.csproj -getProperty:Version)" >> "$GITHUB_OUTPUT"
-
       - name: Test
         run: make test DOTNET=dotnet MANAGED_DIR="$MANAGED_DIR"
 
       - name: Package
         run: make package DOTNET=dotnet MANAGED_DIR="$MANAGED_DIR"
+
+      - name: Version (from the generated manifest)
+        id: version
+        run: echo "version=$(python3 -c 'import json; print(json.load(open("bin/package/manifest.json"))["version_number"])')" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         with:

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (unreleased)
+## 1.0.0
 
 First public release, as **LoadoutBuffs** (developed privately as ItemStatOverrides).
 

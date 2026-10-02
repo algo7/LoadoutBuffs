@@ -30,9 +30,12 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
   game DLLs come from Valheim's free dedicated server (Steam app 896660, anonymous login): only its `Managed` DLLs, fetched
   with [DepotDownloader](https://github.com/SteamRE/DepotDownloader) (pinned, checksum-verified) in a few seconds;
   nothing from the game is committed.
-- **Release** (`.github/workflows/release.yml`): pushing a tag `vX.Y.Z` that matches the project version (and a released
-  `## X.Y.Z` section in CHANGELOG.md) builds and tests again, then, after approval in the `thunderstore` environment,
-  creates the GitHub Release and publishes the same zip to Thunderstore (`tcli`, secret `TCLI_AUTH_TOKEN`).
+- **Release** (`.github/workflows/release.yml`): the version comes from the git tag
+  ([MinVer](https://github.com/adamralph/minver)); nothing else holds a version number. To release:
+  1. add a `## X.Y.Z` section with the release notes at the top of CHANGELOG.md and push it;
+  2. `git tag vX.Y.Z && git push origin vX.Y.Z`;
+  3. approve the run in the `thunderstore` environment: it creates the GitHub Release and publishes the same zip to
+     Thunderstore (`tcli`, secret `TCLI_AUTH_TOKEN`).
 - **Dependabot**: NuGet packages and GitHub Actions, weekly.
 
 ## Layout

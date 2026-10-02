@@ -37,8 +37,8 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
   damage (blunt, slash, pierce), so even a club or a bow works. A spell without physical damage (the Staff of Frost's,
-  lightning) does nothing to wood or stone until you give it some under *Added damage* on the Ranged slot (e.g. +10
-  pierce). Digging the ground stays a pickaxe thing.
+  lightning) does nothing to wood or stone. To make it work, add blunt, slash or pierce damage under *Added damage* on
+  the Ranged slot (e.g. +10 pierce). Digging the ground stays a pickaxe thing.
 
 ![Custom stats of a slot: General](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)

@@ -4,7 +4,7 @@
 
 - Classes on the ranged slot now work: with Woodcutter or Miner there, your arrows, bolts and staff spells (their blasts
   too) fell any tree or break any rock or ore, if they deal physical damage (blunt, slash or pierce). A frost or
-  lightning staff needs some added under Added damage first.
+  lightning staff needs blunt, slash or pierce damage added under Added damage on the Ranged slot first.
 - Classes can only be set on the melee and ranged slots, the weapons that land the hits. On armor or the shield they
   are skipped with a warning (and dropped the next time the window saves): set them on a weapon slot again.
 - README: damage on armor or the shield counts for every weapon you hold; Damage % rows follow the weapon in hand.

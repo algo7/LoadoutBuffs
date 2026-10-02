@@ -23,7 +23,8 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 - **General:** movement speed, carry weight, armor, **block armor** and **block force** (added to what you block with:
   your shield, else your weapon), fall damage.
 - **Regen and costs:** health / stamina / eitr regen; run / jump / attack / block / dodge stamina cost; **eitr cost**
-  (every spell and staff charge, e.g. −50 % for half the eitr; at −100 % spells are free, but you still need some eitr).
+  (every spell and staff charge, e.g. −50 % for half the eitr). Even at −100 %, when spells cost nothing, you need eitr
+  to cast: eat at least one eitr food.
 - **Resistances** per damage type.
 - **Damage** (melee and ranged slots):
   - **Damage %** multiplies what your weapon deals; it scales with your weapon and covers the whole shot of a bow.

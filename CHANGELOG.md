@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Classes on the ranged slot now work: with Woodcutter or Miner there, your arrows, bolts and staff spells (their blasts
+  too) fell any tree or break any rock or ore, if they deal physical damage (blunt, slash or pierce).
+- Classes can only be set on the melee and ranged slots, the weapons that land the hits. On armor or the shield they
+  are skipped with a warning (and dropped the next time the window saves): set them on a weapon slot again.
+- README: damage on armor or the shield counts for every weapon you hold; Damage % rows follow the weapon in hand.
+
 ## 1.0.0
 
 First public release, as **LoadoutBuffs** (developed privately as ItemStatOverrides).

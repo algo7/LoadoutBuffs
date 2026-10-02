@@ -70,6 +70,7 @@ internal static partial class Tests
             False(text.Contains("dump"), $"{what}: no dump reference");
             True(text.StartsWith("# LoadoutBuffs"), $"{what}: named after the mod");
             True(text.Contains("lb_buffs") && text.Contains("lb_reload") && !text.Contains("iso_"), $"{what}: lb_ commands");
+            True(text.Contains("Classes (melee or ranged slot only)"), $"{what}: classes are for weapon slots");
             foreach (var key in new[] { "blockArmor", "blockForce", "addDamage", "shieldOnParry", "shieldMinutes" })
                 True(text.Contains(key), $"{what} lists {key}");
         }

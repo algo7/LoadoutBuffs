@@ -190,19 +190,22 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Prefix of Damage(HitData) on trees, logs, rocks and other destructibles, on the attacker's side (before
-        /// the hit is sent to the object's owner). With Woodcutter / Miner in a filled slot, this player's melee
-        /// hits get the max tool tier and chop (trees, logs, stumps) or pickaxe (everything else) damage equal to
-        /// the weapon's physical damage, unless the weapon already does more. Must never throw.
+        /// the hit is sent to the object's owner). With Woodcutter / Miner on the slot of the weapon in hand (classes
+        /// only go on melee and ranged, and only the held weapon's slot is filled), this player's hits get the max tool
+        /// tier and chop (trees, logs, stumps) or pickaxe (everything else) damage equal to the hit's physical damage,
+        /// unless it already does more: swings, and also arrows, bolts, staff spells and the blasts they spawn
+        /// (Projectile / Aoe hits are the owner's, sent through the same Damage). Must never throw.
         /// </summary>
         public static void OnDestructibleHit(object target, HitData hit)
         {
             try
             {
-                if (!(s_woodcutter || s_miner) || hit == null || hit.m_ranged) return;
+                if (!(s_woodcutter || s_miner) || hit == null) return;
                 var player = Player.m_localPlayer;
                 if (player == null || hit.GetAttacker() != player) return;
                 var weapon = player.GetCurrentWeapon();
-                if (weapon == null || BundleSlots.HandSlot(weapon.m_shared.m_itemType, weapon.m_shared.m_skillType) != BundleSlot.Melee) return;
+                var slot = weapon == null ? null : BundleSlots.HandSlot(weapon.m_shared.m_itemType, weapon.m_shared.m_skillType);
+                if (slot != BundleSlot.Melee && slot != BundleSlot.Ranged) return;
 
                 var tree = target is TreeBase || target is TreeLog ||
                            (target is Destructible d && d.m_destructibleType == DestructibleType.Tree);

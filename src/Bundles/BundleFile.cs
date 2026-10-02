@@ -209,7 +209,7 @@ namespace LoadoutBuffs
                         break;
                     case "stats":
                         if (IsNull(pair.Value)) break;
-                        if (pair.Value is YamlMappingNode stats) entry.Stats = StatBlock.Parse(stats, label, Warnings);
+                        if (pair.Value is YamlMappingNode stats) entry.Stats = StatBlock.Parse(stats, label, Warnings, slot);
                         else Warnings.Add($"{label}.stats: expected stats like {{ armor: 15 }}; skipped (line {pair.Key.Start.Line}).");
                         break;
                     default:
@@ -293,9 +293,10 @@ namespace LoadoutBuffs
             "# weapon you attack with, e.g. { spirit: 30 }), skills, fields (raw SE_Stats fields). On every parry:",
             "# healOnParry, staminaOnParry (you), healAlliesOnParry, staminaAlliesOnParry (other players),",
             "# healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of you), shieldMinutes",
-            "# (its time, default 1), parryRadius (reach in metres, default 10). Classes: woodcutter: true (melee",
-            "# hits fell any tree), miner: true (melee hits break any rock or ore). The stats of all filled slots",
-            "# add up (reach and bubble time take the largest) and show on your HUD as one buff named after it.",
+            "# (its time, default 1), parryRadius (reach in metres, default 10). Classes (melee or ranged slot only):",
+            "# woodcutter: true (that weapon's hits fell any tree), miner: true (they break any rock or ore). The",
+            "# stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD as one",
+            "# buff named after it.",
         };
 
         private static string Scalar(YamlNode node) => (node as YamlScalarNode)?.Value;

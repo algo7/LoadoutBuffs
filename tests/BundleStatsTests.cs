@@ -349,22 +349,48 @@ internal static partial class Tests
     {
         var file = BundleFile.Parse(
             "active: T\nbuffs:\n  T:\n    melee:\n      stats: { Woodcutter: true, miner: yes, armor: 5 }\n" +
-            "    chest:\n      stats: { woodcutter: on }\n    legs:\n      stats: { miner: false }\n");
+            "    ranged:\n      stats: { woodcutter: on, miner: false }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
         Eq(3, bundle.GetStats(BundleSlot.Melee).Count, "melee: two classes + armor");
-        Eq(null, bundle.GetStats(BundleSlot.Legs), "miner: false sets nothing");
+        Eq(1, bundle.GetStats(BundleSlot.Ranged).Count, "ranged: one class (miner: false sets nothing)");
 
-        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Melee), bundle.GetStats(BundleSlot.Chest) });
+        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Melee), bundle.GetStats(BundleSlot.Ranged) });
         Eq(1f, total.Scalars["woodcutter"], "a class from two slots is still just on");
         Eq("+5 armor; class: Woodcutter, Miner", total.Summary(), "summary");
 
         var saved = file.Serialize(null);
         True(saved.Contains("stats: { armor: 5, woodcutter: true, miner: true }"), saved);
-        True(saved.Contains("    chest:\n      stats: { woodcutter: true }"), saved);
+        True(saved.Contains("    ranged:\n      stats: { woodcutter: true }"), saved);
         var again = BundleFile.Parse(saved);
         Eq(0, again.Warnings.Count, "re-parse warnings: " + string.Join(" | ", again.Warnings));
         Eq(saved, again.Serialize(null), "stable");
+    }
+
+    private static void Test_Classes_OnlyOnWeaponSlots()
+    {
+        var file = BundleFile.Parse(
+            "buffs:\n  T:\n    helmet:\n      stats: { woodcutter: true }\n    chest:\n      stats: { miner: true, armor: 5 }\n" +
+            "    legs:\n      stats: { woodcutter: true }\n    cape:\n      stats: { miner: true }\n" +
+            "    shield:\n      effect: Sneaky\n      stats: { woodcutter: true }\n");
+        Eq(5, file.Warnings.Count, "one warning per armor / shield class: " + string.Join(" | ", file.Warnings));
+        Eq("T.chest.miner: only works on the melee or ranged slot; skipped (line 6).", file.Warnings[1], "warning text");
+        True(file.Warnings[4].StartsWith("T.shield.woodcutter: only works on the melee or ranged slot"), file.Warnings[4]);
+
+        var bundle = file.Find("T");
+        Eq(null, bundle.GetStats(BundleSlot.Helmet), "helmet: nothing left");
+        Eq(1, bundle.GetStats(BundleSlot.Chest).Count, "chest keeps its armor only");
+        False(bundle.GetStats(BundleSlot.Chest).Scalars.ContainsKey("miner"), "chest: no class");
+        Eq(null, bundle.GetStats(BundleSlot.Shield), "shield: class dropped");
+        Eq("Sneaky", bundle.Entries.Single(e => e.Slot == BundleSlot.Shield).Effect, "shield keeps its effect");
+        var body = file.Serialize(null);
+        body = body.Substring(body.IndexOf("\nbuffs:", StringComparison.Ordinal));
+        False(body.Contains("woodcutter") || body.Contains("miner"), "the window's save drops them: " + body);
+
+        foreach (var def in BundleStatCatalog.Toggles)
+            foreach (var slot in BundleSlots.All)
+                Eq(slot == BundleSlot.Melee || slot == BundleSlot.Ranged, def.Allows(slot), $"{def.Key} on {slot}");
+        True(BundleStatCatalog.Scalars.All(d => BundleSlots.All.All(d.Allows)), "every other stat fits every slot");
     }
 
     private static void Test_Classes_BadValueWarns()

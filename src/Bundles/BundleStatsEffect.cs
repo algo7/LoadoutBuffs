@@ -93,7 +93,7 @@ namespace LoadoutBuffs
             if (m_blockForce != 0f)
                 sb.AppendFormat("Block force: <color=orange>{0}</color> (what you block with)\n", StatBlock.Number(m_blockForce));
             if (!string.IsNullOrEmpty(m_classes))
-                sb.AppendFormat("Class: <color=orange>{0}</color> (melee hits)\n", m_classes);
+                sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
             return sb.ToString();
         }
 

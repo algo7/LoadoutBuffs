@@ -28,13 +28,16 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   - **Damage %** multiplies what your weapon deals; it scales with your weapon and covers the whole shot of a bow.
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
+  - Both work from any slot: on armor or the shield they count for every weapon you hold (see below).
 - **Skills:** + or − levels for any skill.
 - **On parry:** heal and stamina, set separately for you and for other players; heal for tamed creatures; and a
   **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its health and time (1–10
   minutes). Friends without the mod get it too.
-- **Classes:** *Woodcutter* lets your melee weapon fell any tree (logs and stumps too), *Miner* break any rock or ore
-  deposit (black marble included). The hit gets the highest tool tier, and chop / pickaxe damage equal to the weapon's
-  physical damage, so even a club works. Digging the ground stays a pickaxe thing.
+- **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
+  break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
+  arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
+  damage (blunt, slash, pierce), so even a club or a bow works; a spell without physical damage (frost or lightning
+  only) does nothing to wood or stone. Digging the ground stays a pickaxe thing.
 
 ![Custom stats of a slot: General](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -56,8 +59,13 @@ shows them for what you wear now.
   a bubble to everyone in reach who has none. A bubble that is still up (yours or from a real Staff of Protection) isn't
   refreshed: it stays until it breaks or runs out, and the next parry after that gives a new one. When a bubble breaks,
   the player in it gains a little Blood Magic skill, as with the staff.
-- **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
-  damage* and its % row appears.
+- **Damage on armor counts for every weapon.** All filled slots add up into one buff, so Damage % or Added damage on
+  your chest counts for whatever weapon you hold while you wear it, like Vanguard's +10 % pierce. On Melee or Ranged it
+  counts only while that weapon is in your hands.
+- **Damage % follows your weapon:** it lists the types the weapon in your hand deals, on every slot (edit your chest
+  with a bow in hand and you see pierce). Add a new type under *Added damage* and its % row appears.
+- **Classes are for weapons.** Woodcutter and Miner can only be set on Melee or Ranged, the slots of what lands the
+  hit. A staff blast with Miner breaks every chunk of a deposit it reaches.
 
 ## Multiplayer and Fair Play
 
@@ -102,7 +110,7 @@ buffs:
 | `healAlliesOnParry`, `staminaAlliesOnParry`, `healTamedOnParry` | for other players / tamed creatures in reach |
 | `shieldOnParry`, `shieldMinutes` | bubble health, and its time in minutes (default 1) |
 | `parryRadius` | reach in metres (default 10) |
-| `woodcutter`, `miner` | `true` |
+| `woodcutter`, `miner` | `true` (melee or ranged slot only) |
 | `fields` | any other `SE_Stats` field by its code name, raw game value |
 
 Within a buff, the stats of all filled slots add up; reach and bubble time take the largest, resistances the most
@@ -125,6 +133,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
+- **My Woodcutter / Miner is gone after updating.** Since 1.1.0 classes go on Melee or Ranged only; one on armor or
+  the shield is skipped with a warning. Set it on a weapon slot again.
 
 ## Compatibility
 

@@ -52,6 +52,14 @@ namespace LoadoutBuffs
         /// <summary>A cost or a penalty: a negative value helps (stamina costs, fall damage).</summary>
         public bool LowerIsBetter;
 
+        /// <summary>The only slots this stat may be set on (null: any slot).</summary>
+        public BundleSlot[] OnlyOn;
+
+        public bool Allows(BundleSlot slot) => OnlyOn == null || Array.IndexOf(OnlyOn, slot) >= 0;
+
+        /// <summary>"melee or ranged slot": where the stat may be set, for warnings.</summary>
+        public string WhereAllowed => OnlyOn == null ? "any slot" : string.Join(" or ", OnlyOn.Select(BundleSlots.Key)) + " slot";
+
         /// <summary>Whether a value helps the player (the window shows it green) or hurts (red).</summary>
         public bool Helps(float value) => LowerIsBetter ? value < 0f : value > 0f;
 
@@ -112,6 +120,9 @@ namespace LoadoutBuffs
         };
 
         public const string ParryRadiusKey = "parryRadius";
+
+        /// <summary>Where classes may be set: the slots of weapons that land hits.</summary>
+        private static readonly BundleSlot[] ClassSlots = { BundleSlot.Melee, BundleSlot.Ranged };
         public const string BlockArmorKey = "blockArmor";
         public const string BlockForceKey = "blockForce";
 
@@ -125,11 +136,22 @@ namespace LoadoutBuffs
         public static float WithBlockArmor(float baseBlockArmor, float bonus) =>
             Math.Max(Math.Min(baseBlockArmor, 1f), baseBlockArmor + bonus);
 
-        /// <summary>Classes: melee hits fell trees (Woodcutter) or break rocks and ore (Miner).</summary>
+        /// <summary>
+        /// Classes: the hits of the weapon whose slot holds one fell trees (Woodcutter) or break rocks and ore (Miner).
+        /// Weapon slots only: elsewhere a class would only reach the weapon in a roundabout way.
+        /// </summary>
         public static readonly StatDef[] Toggles =
         {
-            new StatDef { Key = WoodcutterKey, Label = "Woodcutter", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true },
-            new StatDef { Key = MinerKey, Label = "Miner", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true },
+            new StatDef
+            {
+                Key = WoodcutterKey, Label = "Woodcutter", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true,
+                OnlyOn = ClassSlots,
+            },
+            new StatDef
+            {
+                Key = MinerKey, Label = "Miner", Group = Class, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true,
+                OnlyOn = ClassSlots,
+            },
         };
 
         public const float DamageStep = 5, DamageMin = -50, DamageMax = 200;
@@ -368,8 +390,11 @@ namespace LoadoutBuffs
             return parts.Count == 0 ? "{}" : "{ " + string.Join(", ", parts) + " }";
         }
 
-        /// <summary>Reads a <c>stats:</c> mapping; problems become warnings (prefixed with <paramref name="label"/>) and are skipped.</summary>
-        public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings)
+        /// <summary>
+        /// Reads a <c>stats:</c> mapping; problems become warnings (prefixed with <paramref name="label"/>) and are skipped.
+        /// With a <paramref name="slot"/>, stats that slot can't have (see <see cref="StatDef.OnlyOn"/>) are skipped too.
+        /// </summary>
+        public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings, BundleSlot? slot = null)
         {
             var block = new StatBlock();
             foreach (var pair in map.Children)
@@ -377,6 +402,11 @@ namespace LoadoutBuffs
                 var key = (pair.Key as YamlScalarNode)?.Value?.Trim() ?? "";
                 var line = pair.Key.Start.Line;
                 var def = BundleStatCatalog.Find(key);
+                if (def != null && slot.HasValue && !def.Allows(slot.Value))
+                {
+                    warnings.Add($"{label}.{def.Key}: only works on the {def.WhereAllowed}; skipped (line {line}).");
+                    continue;
+                }
                 if (def != null && def.Kind == StatKind.Toggle)
                 {
                     var text = (pair.Value as YamlScalarNode)?.Value?.Trim().ToLowerInvariant();

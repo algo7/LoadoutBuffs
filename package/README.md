@@ -115,7 +115,7 @@ Open the console with F5 (the game needs the `-console` launch option). Not chea
 - `lb_stats`: your current totals: armor, movement and run speed, stamina modifiers, resistances, weapon and what you
   block with, buff, active effects
 
-## FAQ
+## Troubleshooting
 
 - **There's no BUFFS tab.** Jötunn is missing or failed to load. Look for `[LoadoutBuffs]` lines in
   `BepInEx/LogOutput.log`.

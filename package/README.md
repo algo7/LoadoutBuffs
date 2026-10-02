@@ -52,13 +52,12 @@ shows them for what you wear now.
   tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
-- **The bubble isn't refreshed.** A parry gives a bubble to everyone in reach who has none. A bubble that is still up
-  (yours or from a real Staff of Protection) is left alone until it breaks or runs out; then the next parry gives a new
-  one. When a bubble breaks, the player in it gains a little Blood Magic, as with the staff.
-- **Damage % lists only the types your weapon deals**; a % of a type it doesn't deal would multiply zero. Add a new
-  type under *Added damage* and its % row appears.
-- **Fire, poison and spirit** damage arrive as damage over time, shown as separate numbers after the hit; blunt,
-  slash, pierce, frost and lightning are part of the hit itself.
+- **The bubble (if your buff has one).** The bubble is off unless you set *Bubble health* in a buff. Then a parry gives
+  a bubble to everyone in reach who has none. A bubble that is still up (yours or from a real Staff of Protection) isn't
+  refreshed: it stays until it breaks or runs out, and the next parry after that gives a new one. When a bubble breaks,
+  the player in it gains a little Blood Magic skill, as with the staff.
+- **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
+  damage* and its % row appears.
 
 ## Multiplayer and fair play
 

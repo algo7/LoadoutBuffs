@@ -1,46 +1,71 @@
 # LoadoutBuffs
 
-Client-side mod: **buffs** of extra "while worn" effects and stats for your equipment slots, picked in an in-game
-window. No items are created, cloned or changed, so other players (modded or not) see your gear normally, removing the
-mod leaves nothing behind, and nothing is written to your save files.
+Give each equipment slot extra **effects and stats**, picked in an in-game window: Megingjord's carry weight on your
+chest, +30 spirit damage on your melee weapon, a protection bubble for you and your friends when you parry. Client-side:
+servers and friends don't need the mod. No items are created or changed, and your saves are never touched.
 
-## Buffs
+## Quick start
 
-A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) one extra effect and/or custom stats, on
-while something is equipped there. Melee means swords, knives, clubs, atgeirs, spears, axes and fists; ranged means
-bows, crossbows and magic staffs (pickaxes, the fishing rod, torches and tools count as neither). Swap your chest piece
-and the chest slot stays; your gear keeps its own effects, and the same effect from two sources counts once. Weapon and
-shield slots are off while sheathed.
+1. Install with a mod manager (r2modman, Thunderstore Mod Manager, Gale): BepInEx and Jötunn come along automatically.
+2. In game, open your inventory and click the **BUFFS** tab next to CRAFT.
+3. Pick a starter buff (Warrior, Hunter, Explorer, Homesteader) or press **New**, then press **Use**.
 
-Open the **BUFFS** tab next to CRAFT in your inventory (or `lb_buffs` in the console). Create a buff, click a
-slot, point at an effect to read what it does and click it to use it; press **Use** to turn the buff on. Changes are
-saved and applied immediately. Starter buffs (Warrior, Hunter, Explorer, Homesteader) are included, none active.
+Changes are saved and applied at once. One buff is in use at a time, for every character in your profile.
 
-Effects available are the ones gear has in the game (set bonuses and equipment effects, including other mods' gear).
-One buff is active at a time, for every character in the profile.
+## Features
 
-**Stats** (the window's Stats tab, − / + buttons):
+A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an extra **effect** and/or **custom stats**.
 
-- General: movement speed, carry weight, armor, **block armor** and **block force** (added to whatever you block with:
+- **Effects:** any set bonus or equipment effect gear has in the game (Vanguard, Megingjord, Feather fall, Wisplight…,
+  including other mods' gear). Point at one in the window to read what it does.
+- **General:** movement speed, carry weight, armor, **block armor** and **block force** (added to what you block with:
   your shield, else your weapon), fall damage.
-- Regen (health / stamina / eitr), stamina costs (run, jump, attack, block, dodge), resistances, damage % per type
-  (the list shows the types your weapon deals: a % of a type it doesn't deal would multiply zero).
-- **Added damage** per type (e.g. +30 spirit on the weapon you attack with, scaled like the weapon's own damage).
-  Fire, poison and spirit arrive as damage over time after the hit, like the game's own.
-- Skill levels.
-- **On parry**: heal / stamina for you, heal / stamina for other players, heal for tamed creatures, a **bubble** (the
-  Staff of Protection's Magic barrier: its health, i.e. the damage it absorbs, and its time in minutes) for all of you, and their reach (default
-  10 m). Other players don't need the mod. Anyone who already has a bubble keeps theirs; a broken or expired one is
-  replaced on your next parry.
-- **Class**: *Woodcutter* lets your melee weapon fell any tree (and logs and stumps), *Miner* lets it break any rock or
-  ore deposit (black marble included; digging the ground stays a pickaxe thing).
+- **Regen and stamina:** health / stamina / eitr regen, run / jump / attack / block / dodge stamina cost.
+- **Resistances** per damage type.
+- **Damage:**
+  - **Damage %** multiplies what your weapon deals; it scales with your weapon and covers the whole shot of a bow.
+  - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
+    own damage.
+- **Skills:** + or − levels for any skill.
+- **On parry:** heal and stamina for you and other players, heal for tamed creatures, and a **bubble** (the Staff of
+  Protection's Magic barrier) for all of you, with its health and time (1–10 minutes). Friends without the mod get it
+  too.
+- **Classes:** *Woodcutter* lets your melee weapon fell any tree (logs and stumps too), *Miner* break any rock or ore
+  deposit (black marble included). The hit gets the highest tool tier, and chop / pickaxe damage equal to the weapon's
+  physical damage, so even a club works. Digging the ground stays a pickaxe thing.
 
-The buff in use shows on your HUD with its name ("N stats" under it when it has custom stats); the stats of the slots
-you're wearing add up, and the Compendium's Active effects page lists its effects and stats. The bottom of the window shows the buff's effects and custom stats
-for what you wear now.
+The buff in use shows on your HUD with its name ("N stats" under it when it has custom stats). The stats of all slots
+you fill add up; the Compendium's Active effects page lists the buff's effects and stats, and the bottom of the window
+shows them for what you wear now.
 
-Buffs live in `BepInEx/config/LoadoutBuffs.buffs.yaml`, which you can also edit by hand (code or in-game
-effect names) and reload with `lb_reload`:
+## How things behave
+
+- **Slots follow your gear.** A slot counts while something is equipped there. Melee means swords, knives, clubs,
+  atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; pickaxes, the fishing rod, torches and
+  tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
+- **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
+- **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
+- **The bubble isn't refreshed.** A parry gives a bubble to everyone in reach who has none. A bubble that is still up
+  (yours or from a real Staff of Protection) is left alone until it breaks or runs out; then the next parry gives a new
+  one. When a bubble breaks, the player in it gains a little Blood Magic, as with the staff.
+- **Damage % lists only the types your weapon deals**; a % of a type it doesn't deal would multiply zero. Add a new
+  type under *Added damage* and its % row appears.
+- **Fire, poison and spirit** damage arrive as damage over time, shown as separate numbers after the hit; blunt,
+  slash, pierce, frost and lightning are part of the hit itself.
+
+## Multiplayer and fair play
+
+LoadoutBuffs runs only on your client. Your stats and the damage you deal are computed by your own game, so buffs work
+on any server, and other players see your gear as usual. Your parry help reaches friends whether they have the mod or
+not.
+
+It can make you very strong. On servers that aren't yours, ask the host and the other players first.
+
+## Editing the file
+
+Buffs live in `BepInEx/config/LoadoutBuffs.buffs.yaml`. You can edit it by hand (effect code names or in-game names)
+and reload it with `lb_reload`; it's also re-read on every world load. The window rewrites the file, so comments you add
+aren't kept.
 
 ```yaml
 active: Warrior
@@ -55,23 +80,62 @@ buffs:
       stats: { addDamage: { spirit: 30 }, shieldOnParry: 500, shieldMinutes: 2 }
 ```
 
-Percent stats are written in percent (`10` = +10 %). `fields:` inside `stats` sets any other SE_Stats field by its
-code name (raw game value). Mistakes never block the rest: a bad entry is skipped with a warning in the window and in
-`BepInEx/LogOutput.log`.
+| Key | Value |
+|---|---|
+| `movementSpeed`, `fallDamage` | percent (`10` = +10 %) |
+| `healthRegen`, `staminaRegen`, `eitrRegen` | percent |
+| `runStamina`, `jumpStamina`, `attackStamina`, `blockStamina`, `dodgeStamina` | percent of the cost (negative = cheaper) |
+| `carryWeight`, `armor`, `blockArmor`, `blockForce` | flat amount |
+| `resist` | `{ Fire: Resistant }`: Normal, SlightlyResistant, Resistant, VeryResistant, Immune, SlightlyWeak, Weak, VeryWeak |
+| `damage` | percent per type: `{ slash: 10 }` |
+| `addDamage` | flat per type: `{ spirit: 30 }` (blunt, slash, pierce, fire, frost, lightning, poison, spirit) |
+| `skills` | levels per skill: `{ Bows: 15 }` |
+| `healOnParry`, `staminaOnParry` | for you, on every parry |
+| `healAlliesOnParry`, `staminaAlliesOnParry`, `healTamedOnParry` | for other players / tamed creatures in reach |
+| `shieldOnParry`, `shieldMinutes` | bubble health, and its time in minutes (default 1) |
+| `parryRadius` | reach in metres (default 10) |
+| `woodcutter`, `miner` | `true` |
+| `fields` | any other `SE_Stats` field by its code name, raw game value |
+
+Within a buff, the stats of all filled slots add up; reach and bubble time take the largest, resistances the most
+protective. A bad entry is skipped with a warning in the window and in `BepInEx/LogOutput.log`; the rest still applies.
 
 ## Console commands
 
-F5 console; the game needs the `-console` launch option. Not cheats, so no `devcommands` needed.
+Open the console with F5 (the game needs the `-console` launch option). Not cheats, so no `devcommands` needed.
 
-- `lb_reload`: re-read the buffs file and apply it
 - `lb_buffs`: open the Buffs window
-- `lb_stats`: your current totals: armor, movement and run speed, stamina modifiers, resistances, weapon and what
-  you block with, buff, active effects
+- `lb_reload`: re-read the buffs file and apply it
+- `lb_stats`: your current totals: armor, movement and run speed, stamina modifiers, resistances, weapon and what you
+  block with, buff, active effects
 
-The buffs file is also re-read on every world load.
+## FAQ
 
-## Notes
+- **There's no BUFFS tab.** Jötunn is missing or failed to load. Look for `[LoadoutBuffs]` lines in
+  `BepInEx/LogOutput.log`.
+- **My stats don't apply.** Is the buff *in use* (the window says "in use" next to it)? Is something equipped in that
+  slot, and for weapons, in your hands?
+- **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
+- **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
+- **Console commands do nothing.** Add `-console` to the game's launch options.
 
-- Your stats and the damage you deal are computed on your own client, so buffs apply in multiplayer too. Other
-  players aren't affected (except by your parry help), and servers don't need the mod.
-- Requires Jötunn (installed automatically by r2modman) for the Buffs window.
+## Compatibility
+
+- Built and tested for Valheim 1.0 (Deep North). Tested on Linux; it should work on Windows and macOS (no OS-specific
+  code), but hasn't been tested there yet. Reports welcome.
+- If another mod changes the same game functions and one of LoadoutBuffs' hooks can't install, that feature turns off
+  with a message in the log and the window; the rest keeps working.
+- English only.
+
+## Uninstalling
+
+Nothing is stored in your characters or items: remove the mod and your gear is vanilla again. Delete
+`BepInEx/config/LoadoutBuffs.buffs.yaml` if you don't want to keep your buffs.
+
+## Links
+
+- Source, bug reports and ideas: https://github.com/algo7/LoadoutBuffs (issues welcome)
+- Changes: the Changelog tab
+- Made with AI assistance.
+- Built with [BepInEx](https://github.com/BepInEx/BepInEx) and [Jötunn](https://github.com/Valheim-Modding/Jotunn).
+  MIT license.

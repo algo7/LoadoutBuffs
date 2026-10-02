@@ -59,7 +59,7 @@ LoadoutBuffs runs only on your client. Your stats and the damage you deal are co
 on any server, and other players see your gear as usual. Your parry help reaches friends whether they have the mod or
 not.
 
-It can make you very strong. On servers that aren't yours, ask the host and the other players first.
+LoadoutBuffs is a power mod that can make you a lot stronger, so some servers and players probably won't welcome it.
 
 ## Editing the file
 

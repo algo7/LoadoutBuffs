@@ -29,9 +29,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
 - **Skills:** + or − levels for any skill.
-- **On parry:** heal and stamina for you and other players, heal for tamed creatures, and a **bubble** (the Staff of
-  Protection's Magic barrier) for all of you, with its health and time (1–10 minutes). Friends without the mod get it
-  too.
+- **On parry:** heal and stamina, set separately for you and for other players; heal for tamed creatures; and a
+  **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its health and time (1–10
+  minutes). Friends without the mod get it too.
 - **Classes:** *Woodcutter* lets your melee weapon fell any tree (logs and stumps too), *Miner* break any rock or ore
   deposit (black marble included). The hit gets the highest tool tier, and chop / pickaxe damage equal to the weapon's
   physical damage, so even a club works. Digging the ground stays a pickaxe thing.

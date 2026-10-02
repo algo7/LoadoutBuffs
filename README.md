@@ -4,6 +4,8 @@
 
 A client-side [BepInEx](https://github.com/BepInEx/BepInEx) mod for Valheim: **buffs** of extra "while worn" effects
 and stats per equipment slot, picked in an in-game window (built with [Jötunn](https://github.com/Valheim-Modding/Jotunn)).
+![The Buffs window](images/buffs-window.png)
+
 What it does for players, the buffs file format and the console commands are in [package/README.md](package/README.md),
 which is also the mod's Thunderstore page. Changes: [CHANGELOG.md](CHANGELOG.md).
 

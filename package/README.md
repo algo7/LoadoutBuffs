@@ -4,6 +4,8 @@ Give each equipment slot extra **effects and stats**, picked in an in-game windo
 chest, +30 spirit damage on your melee weapon, a protection bubble for you and your friends when you parry. Client-side:
 servers and friends don't need the mod. No items are created or changed, and your saves are never touched.
 
+![The Buffs window, opened from the BUFFS tab next to CRAFT](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/buffs-window.png)
+
 ## Quick start
 
 1. Install with a mod manager (r2modman, Thunderstore Mod Manager, Gale): BepInEx and Jötunn come along automatically.
@@ -33,6 +35,11 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 - **Classes:** *Woodcutter* lets your melee weapon fell any tree (logs and stumps too), *Miner* break any rock or ore
   deposit (black marble included). The hit gets the highest tool tier, and chop / pickaxe damage equal to the weapon's
   physical damage, so even a club works. Digging the ground stays a pickaxe thing.
+
+![Custom stats of a slot: General](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
+![On parry: heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
+
+![The buff in use on the HUD, followed by its effects](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/hud-buff.png)
 
 The buff in use shows on your HUD with its name ("N stats" under it when it has custom stats). The stats of all slots
 you fill add up; the Compendium's Active effects page lists the buff's effects and stats, and the bottom of the window

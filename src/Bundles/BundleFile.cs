@@ -71,6 +71,15 @@ namespace LoadoutBuffs
         /// <summary>The file isn't valid YAML: nothing in it is used.</summary>
         public bool Invalid;
 
+        /// <summary>Stats skipped for their slot (classes on armor or the shield, allowed in 1.0.0): "Woodcutter from Bro's chest".</summary>
+        public readonly List<string> Misplaced = new List<string>();
+
+        /// <summary>
+        /// The file's only problems are misplaced stats: saving it (as the window would) removes just those lines, so their
+        /// warnings don't come back on every launch. With any other problem, saving would also drop that entry, so no.
+        /// </summary>
+        public bool OnlyMisplaced => !Invalid && Misplaced.Count > 0 && Warnings.Count == Misplaced.Count;
+
         public BundleDef Find(string name) =>
             name == null ? null : Bundles.FirstOrDefault(b => string.Equals(b.Name, name, StringComparison.OrdinalIgnoreCase));
 
@@ -209,7 +218,12 @@ namespace LoadoutBuffs
                         break;
                     case "stats":
                         if (IsNull(pair.Value)) break;
-                        if (pair.Value is YamlMappingNode stats) entry.Stats = StatBlock.Parse(stats, label, Warnings, slot);
+                        if (pair.Value is YamlMappingNode stats)
+                        {
+                            var misplaced = new List<StatDef>();
+                            entry.Stats = StatBlock.Parse(stats, label, Warnings, slot, misplaced);
+                            foreach (var def in misplaced) Misplaced.Add($"{def.Label} from {bundle.Name}'s {BundleSlots.Key(slot)}");
+                        }
                         else Warnings.Add($"{label}.stats: expected stats like {{ armor: 15 }}; skipped (line {pair.Key.Start.Line}).");
                         break;
                     default:

@@ -392,9 +392,11 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Reads a <c>stats:</c> mapping; problems become warnings (prefixed with <paramref name="label"/>) and are skipped.
-        /// With a <paramref name="slot"/>, stats that slot can't have (see <see cref="StatDef.OnlyOn"/>) are skipped too.
+        /// With a <paramref name="slot"/>, stats that slot can't have (see <see cref="StatDef.OnlyOn"/>) are skipped too
+        /// and listed in <paramref name="misplaced"/>.
         /// </summary>
-        public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings, BundleSlot? slot = null)
+        public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings, BundleSlot? slot = null,
+            List<StatDef> misplaced = null)
         {
             var block = new StatBlock();
             foreach (var pair in map.Children)
@@ -405,6 +407,7 @@ namespace LoadoutBuffs
                 if (def != null && slot.HasValue && !def.Allows(slot.Value))
                 {
                     warnings.Add($"{label}.{def.Key}: only works on the {def.WhereAllowed}; skipped (line {line}).");
+                    misplaced?.Add(def);
                     continue;
                 }
                 if (def != null && def.Kind == StatKind.Toggle)

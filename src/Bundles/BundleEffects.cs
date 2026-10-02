@@ -67,6 +67,7 @@ namespace LoadoutBuffs
 
             var all = GameGlue.CollectStatusEffects(db);
             Catalog = new GameEffectCatalog(db, all);
+            if (File.OnlyMisplaced) RemoveMisplaced();
             State = BundleRules.Evaluate(File, Catalog);
             if (State.Enabled && !HookInstalled)
             {
@@ -93,6 +94,26 @@ namespace LoadoutBuffs
                     s_stats[pair.Key] = pair.Value;
             }
             return State;
+        }
+
+        /// <summary>
+        /// 1.0.0 allowed classes on armor and the shield; now they're skipped. When those are the file's only problems,
+        /// save it once without them, as the window would, so the dead lines and their warnings don't stay forever.
+        /// </summary>
+        private static void RemoveMisplaced()
+        {
+            try
+            {
+                var text = File.Serialize(code => Catalog?.DisplayName(code));
+                System.IO.File.WriteAllText(Plugin.BundlesPath, text);
+                foreach (var note in File.Misplaced)
+                    Plugin.Log.LogInfo($"{BundleFile.FileName}: removed {note}; classes only go on the melee or ranged slot now.");
+                File = BundleFile.Parse(text);
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogWarning($"Could not remove the misplaced classes from {BundleFile.FileName}: {e.Message}");
+            }
         }
 
         /// <summary>Re-evaluate the file (after the window saved it) and refresh the player.</summary>

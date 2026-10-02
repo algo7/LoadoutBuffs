@@ -393,6 +393,29 @@ internal static partial class Tests
         True(BundleStatCatalog.Scalars.All(d => BundleSlots.All.All(d.Allows)), "every other stat fits every slot");
     }
 
+    private static void Test_Classes_MisplacedAreCleanedUp()
+    {
+        // A 1.0.0 file with classes on armor / shield: the only problems, so the mod may save it without them.
+        var file = BundleFile.Parse(
+            "active: Bro\nbuffs:\n  Bro:\n    chest:\n      stats: { woodcutter: true, armor: 5 }\n" +
+            "    shield:\n      stats: { miner: true }\n    melee:\n      stats: { miner: true }\n");
+        Eq(2, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
+        True(file.OnlyMisplaced, "only misplaced classes");
+        Eq("Woodcutter from Bro's chest | Miner from Bro's shield", string.Join(" | ", file.Misplaced), "notes");
+
+        var again = BundleFile.Parse(file.Serialize(null));
+        Eq(0, again.Warnings.Count, "saved without them: " + string.Join(" | ", again.Warnings));
+        False(again.OnlyMisplaced, "nothing left to clean up");
+        Eq(5f, again.Find("Bro").GetStats(BundleSlot.Chest).Scalars["armor"], "the chest keeps its other stats");
+        Eq(1f, again.Find("Bro").GetStats(BundleSlot.Melee).Scalars["miner"], "melee keeps its class");
+
+        // Any other problem: hands off (saving would also drop that entry).
+        var typo = BundleFile.Parse("buffs:\n  T:\n    chest:\n      stats: { woodcutter: true, armr: 5 }\n");
+        Eq(2, typo.Warnings.Count, "class + typo");
+        False(typo.OnlyMisplaced, "a typo blocks the cleanup");
+        False(BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { woodcutter: true }\n").OnlyMisplaced, "clean file");
+    }
+
     private static void Test_Classes_BadValueWarns()
     {
         var file = BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { woodcutter: maybe }\n");

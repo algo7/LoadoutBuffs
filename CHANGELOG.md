@@ -4,8 +4,8 @@
 
 - Classes on the ranged slot now work: with Woodcutter or Miner there, your arrows, bolts and staff spells (their blasts
   too) fell any tree or break any rock or ore.
-- Classes can only be set on the melee and ranged slots now. If a buff of yours has one on armor or the shield, it's
-  skipped with a warning: set it on a weapon slot again.
+- Clearer slots: Woodcutter / Miner are offered only on Melee and Ranged, the weapons they act on, not on armor or the
+  shield.
 
 ## 1.0.0
 

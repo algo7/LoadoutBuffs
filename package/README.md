@@ -69,7 +69,7 @@ LoadoutBuffs is a power mod that can make you a lot stronger, so some servers an
 
 ## The Buffs File
 
-Everything can be set in the Buffs window. The file (`BepInEx/config/LoadoutBuffs.buffs.yaml`) is only useful to share
+Everything can be set in the Buffs window of the in-game UI. The file (`BepInEx/config/LoadoutBuffs.buffs.yaml`) is only useful to share
 or back up your buffs, or for values beyond the window's limits and raw `fields:`. Effects can be written as code names or
 in-game names. After editing, run `lb_reload` (or edit while the game is closed): the window saves what it has loaded,
 so edits it hasn't loaded are overwritten the next time you change something in it. Comments and lines it can't read

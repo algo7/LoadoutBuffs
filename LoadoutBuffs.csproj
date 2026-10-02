@@ -7,7 +7,7 @@
     <Version>1.0.0</Version>
     <!-- Thunderstore namespace / r2modman author; the package's manifest.json is generated from these (Package target). -->
     <ModAuthor>Algo7</ModAuthor>
-    <ModDescription>Bundles: extra gear effects and stats per equipment slot (damage, block, parry heals and bubbles for allies), picked in an in-game window. Client-side.</ModDescription>
+    <ModDescription>Extra effects and stats for each equipment slot (damage, block, parry heals and bubbles for allies), picked in an in-game window. Client-side.</ModDescription>
     <ModWebsite>https://github.com/algo7/LoadoutBuffs</ModWebsite>
     <!-- Runtime dependency (Thunderstore). Jötunn's comes from the JotunnLib PackageReference version below. -->
     <BepInExPackDependency>denikson-BepInExPack_Valheim-5.4.2351</BepInExPackDependency>

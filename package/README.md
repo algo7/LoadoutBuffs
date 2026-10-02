@@ -123,7 +123,8 @@ Open the console with F5 (the game needs the `-console` launch option). Not chea
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
-- **Console commands do nothing.** Add `-console` to the game's launch options.
+- **The console (F5) doesn't open.** The game only has it with the `-console` launch option (Steam: right-click
+  Valheim → Properties → Launch options; in r2modman: Settings → Set launch parameters).
 
 ## Compatibility
 

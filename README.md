@@ -32,8 +32,11 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
   nothing from the game is committed.
 - **Release** (`.github/workflows/release.yml`): the version comes from the git tag
   ([MinVer](https://github.com/adamralph/minver)); nothing else holds a version number. To release:
-  1. add a `## X.Y.Z` section with the release notes at the top of CHANGELOG.md and push it;
-  2. `git tag vX.Y.Z && git push origin vX.Y.Z`;
+  1. add a `## X.Y.Z` section with the release notes to CHANGELOG.md and push it. **New sections go at the top**,
+     right under `# Changelog`, not appended at the end: the whole file is shown as the Thunderstore Changelog tab,
+     newest first;
+  2. tag the commit that has those notes: `git tag vX.Y.Z && git push origin vX.Y.Z` (the release stops if the tagged
+     commit has no `## X.Y.Z` section);
   3. approve the run in the `thunderstore` environment: it creates the GitHub Release and publishes the same zip to
      Thunderstore (`tcli`, secret `TCLI_AUTH_TOKEN`).
 - **Dependabot**: NuGet packages and GitHub Actions, weekly.

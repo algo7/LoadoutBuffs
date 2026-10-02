@@ -35,8 +35,8 @@ One buff is active at a time, for every character in the profile.
 - **Class**: *Woodcutter* lets your melee weapon fell any tree (and logs and stumps), *Miner* lets it break any rock or
   ore deposit (black marble included; digging the ground stays a pickaxe thing).
 
-The stats of the slots you're wearing add up and show on your HUD as one buff named after it (with "N stats" under it);
-the Compendium's Active effects page lists them. The bottom of the window shows the buff's effects and custom stats
+The buff in use shows on your HUD with its name ("N stats" under it when it has custom stats); the stats of the slots
+you're wearing add up, and the Compendium's Active effects page lists its effects and stats. The bottom of the window shows the buff's effects and custom stats
 for what you wear now.
 
 Buffs live in `BepInEx/config/LoadoutBuffs.buffs.yaml`, which you can also edit by hand (code or in-game

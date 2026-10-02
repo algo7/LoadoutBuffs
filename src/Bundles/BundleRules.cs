@@ -136,6 +136,9 @@ namespace LoadoutBuffs
 
     internal static class BundleRules
     {
+        /// <summary>The HUD shows the buff in use (icon + name; "N stats" only with custom stats) whenever one is in use.</summary>
+        public static bool ShowsHudBuff(BundleState state) => state != null && state.Enabled && state.Active != null;
+
         /// <summary>
         /// Warnings for stats whose game hook isn't installed (game update, another mod): the window and the log say why
         /// they do nothing instead of the stat silently not working.

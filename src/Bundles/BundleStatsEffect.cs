@@ -28,6 +28,9 @@ namespace LoadoutBuffs
         /// <summary>"Woodcutter, Miner" (for the tooltip); the chop/mine hook reads BundleEffects' flags.</summary>
         internal string m_classes;
 
+        /// <summary>"Wisplight, Megingjord": the buff's effects on the slots you fill now (for the tooltip).</summary>
+        internal string m_effectNames;
+
         /// <summary>Block armor bonus (for the tooltip); the block hook reads BundleEffects' copy.</summary>
         internal float m_blockArmor;
 
@@ -51,7 +54,7 @@ namespace LoadoutBuffs
                 s_template = CreateInstance<BundleStatsEffect>();
                 s_template.name = AssetName;
                 s_template.m_name = "Buff";
-                s_template.m_tooltip = "Custom stats of your buff, from the slots you wear.";
+                s_template.m_tooltip = "Your buff in use: its effects and custom stats from the slots you fill.";
                 s_template.m_icon = Icon();
                 s_template.m_ttl = 0f;
                 s_template.hideFlags = HideFlags.HideAndDontSave; // runtime-only, survives scene changes
@@ -74,6 +77,8 @@ namespace LoadoutBuffs
         public override string GetTooltipString()
         {
             var sb = new StringBuilder(base.GetTooltipString());
+            if (!string.IsNullOrEmpty(m_effectNames))
+                sb.AppendFormat("Effects: <color=orange>{0}</color>\n", m_effectNames);
             if (m_bundleSkills != null)
                 foreach (var pair in m_bundleSkills.OrderBy(p => p.Key.ToString(), StringComparer.Ordinal))
                     sb.AppendFormat("{0}: <color=orange>{1}</color>\n", SkillName(pair.Key), StatBlock.Number(pair.Value));
@@ -93,9 +98,10 @@ namespace LoadoutBuffs
         }
 
         /// <summary>Writes summed stats into this effect; every field not in <paramref name="total"/> goes back to its default.</summary>
-        internal void SetTotals(StatBlock total, string bundleName)
+        internal void SetTotals(StatBlock total, string bundleName, string effectNames)
         {
             m_name = bundleName;
+            m_effectNames = effectNames;
             m_statCount = total.Count;
 
             m_parry = total.ToParryAssist();

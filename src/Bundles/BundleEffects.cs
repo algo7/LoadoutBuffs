@@ -33,6 +33,7 @@ namespace LoadoutBuffs
         private static readonly Dictionary<BundleSlot, StatusEffect> s_effects = new Dictionary<BundleSlot, StatusEffect>();
         private static readonly Dictionary<BundleSlot, StatBlock> s_stats = new Dictionary<BundleSlot, StatBlock>();
         private static string s_statsName;
+        private static bool s_showHudBuff;
         private static ParryAssist s_parry;
         private static bool s_parryErrorLogged;
         private static bool s_woodcutter;
@@ -80,6 +81,7 @@ namespace LoadoutBuffs
             s_blockArmor = s_blockForce = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
+            s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
                 State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled));
             if (State.Enabled)
@@ -125,14 +127,15 @@ namespace LoadoutBuffs
         {
             try
             {
-                if ((s_effects.Count == 0 && s_stats.Count == 0) || set == null || !(humanoid is Player)) return;
+                if ((!s_showHudBuff && s_effects.Count == 0 && s_stats.Count == 0) || set == null || !(humanoid is Player)) return;
                 var nview = s_nview?.GetValue(humanoid) as ZNetView;
                 if (nview == null || !nview.IsValid() || !nview.IsOwner()) return;
                 foreach (var pair in s_effects)
                     if (pair.Value != null && Worn(humanoid, pair.Key) != null)
                         set.Add(pair.Value);
 
-                // Custom stats: one buff with the sum over filled slots, updated in place when already active.
+                // The HUD buff: the buff's name, its worn effects and the sum of the filled slots' custom stats,
+                // updated in place when already active. Shown whenever a buff is in use, with or without stats.
                 var total = StatBlock.Sum(s_stats.Where(p => Worn(humanoid, p.Key) != null).Select(p => p.Value));
                 s_parry = total.ToParryAssist();
                 s_woodcutter = total.Scalars.ContainsKey(BundleStatCatalog.WoodcutterKey);
@@ -141,11 +144,15 @@ namespace LoadoutBuffs
                 s_blockForce = total.BlockForce;
                 s_addDamage.Clear();
                 foreach (var p in total.AddDamage) s_addDamage[p.Key] = p.Value;
-                if (total.IsEmpty) return;
+                if (!s_showHudBuff) return;
+                var effectNames = string.Join(", ", s_effects
+                    .Where(p => p.Value != null && Worn(humanoid, p.Key) != null)
+                    .OrderBy(p => p.Key)
+                    .Select(p => EffectText.DisplayName(p.Value.m_name)));
                 var template = BundleStatsEffect.Template;
-                template.SetTotals(total, s_statsName ?? "Buff");
+                template.SetTotals(total, s_statsName ?? "Buff", effectNames);
                 if (humanoid.GetSEMan().GetStatusEffect(template.NameHash()) is BundleStatsEffect active && active != template)
-                    active.SetTotals(total, s_statsName ?? "Buff");
+                    active.SetTotals(total, s_statsName ?? "Buff", effectNames);
                 set.Add(template);
             }
             catch (Exception e)

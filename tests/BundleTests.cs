@@ -256,4 +256,12 @@ internal static partial class Tests
         Eq("Wisplight,Megingjord", string.Join(",", names), "worn slots only, in slot order, in-game names; an unknown effect is left out");
         Eq(0, BundleWindowRules.WornEffectNames(null, new FakeCatalog(), worn.Contains).Count, "no buff");
     }
+
+    private static void Test_Hud_BuffShowsWheneverOneIsInUse()
+    {
+        True(BundleRules.ShowsHudBuff(Evaluate("active: E\nbuffs:\n  E:\n    chest: BeltStrength\n")), "effects only, no stats: still on the HUD");
+        True(BundleRules.ShowsHudBuff(Evaluate("active: E\nbuffs:\n  E: {}\n")), "an empty buff in use: its name still shows");
+        False(BundleRules.ShowsHudBuff(Evaluate("active: none\nbuffs:\n  E:\n    chest: BeltStrength\n")), "none in use");
+        False(BundleRules.ShowsHudBuff(Evaluate("active: E\nbuffs:\n  E:\n\tchest: x\n")), "invalid file: buffs are off");
+    }
 }

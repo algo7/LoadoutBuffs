@@ -165,6 +165,23 @@ internal static partial class Tests
         Eq(1, file.Bundles.Count, "buffs");
     }
 
+    private static void Test_Bundles_SlotTwiceWarns()
+    {
+        var file = BundleFile.Parse(
+            "active: T\nbuffs:\n  T:\n    chest: Sneaky\n    CHEST: WindRun\n    legs: none\n    Legs:\n      stats: { armor: 5 }\n");
+        Eq(2, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
+        Eq("T.chest: the slot appears twice (slots ignore upper/lower case); the second one is skipped (line 5).", file.Warnings[0], "text");
+        True(file.Warnings[1].StartsWith("T.legs: the slot appears twice"), "also after an empty one: " + file.Warnings[1]);
+        var bundle = file.Find("T");
+        Eq("Sneaky", bundle.Entries.Single(e => e.Slot == BundleSlot.Chest).Effect, "the first one counts");
+        Eq(null, bundle.GetStats(BundleSlot.Legs), "the second legs is skipped");
+
+        // With a misplaced stat too, the cleanup must not run: its save would drop the second slot.
+        var mixed = BundleFile.Parse("buffs:\n  T:\n    chest:\n      stats: { healOnParry: 20 }\n    CHEST: WindRun\n");
+        Eq(2, mixed.Warnings.Count, "warnings: " + string.Join(" | ", mixed.Warnings));
+        False(mixed.OnlyMisplaced, "a slot twice blocks the cleanup");
+    }
+
     private static void Test_Bundles_InvalidYamlTurnsBundlesOff()
     {
         var state = Evaluate("active: T\nbuffs:\n  T:\n\tchest: Vanguard\n");

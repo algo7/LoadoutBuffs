@@ -178,12 +178,13 @@ namespace LoadoutBuffs
                     Warnings.Add($"{name}: expected slots like 'chest: Vanguard' (line {line}).");
                     continue;
                 }
+                var seen = new HashSet<BundleSlot>();
                 foreach (var slotPair in slots.Children)
-                    ParseSlot(bundle, slotPair.Key, slotPair.Value);
+                    ParseSlot(bundle, slotPair.Key, slotPair.Value, seen);
             }
         }
 
-        private void ParseSlot(BundleDef bundle, YamlNode keyNode, YamlNode valueNode)
+        private void ParseSlot(BundleDef bundle, YamlNode keyNode, YamlNode valueNode, HashSet<BundleSlot> seen)
         {
             var key = Scalar(keyNode);
             var line = keyNode.Start.Line;
@@ -195,6 +196,12 @@ namespace LoadoutBuffs
                 return;
             }
             var label = $"{bundle.Name}.{BundleSlots.Key(slot)}";
+            // Like buff names: the first one counts. A warning, so the cleanup never saves the file without the second.
+            if (!seen.Add(slot))
+            {
+                Warnings.Add($"{label}: the slot appears twice (slots ignore upper/lower case); the second one is skipped (line {line}).");
+                return;
+            }
             if (IsNull(valueNode) || IsNone(valueNode)) return;
             if (valueNode is YamlScalarNode scalar)
             {

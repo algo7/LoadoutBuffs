@@ -71,7 +71,10 @@ namespace LoadoutBuffs
         /// <summary>The file isn't valid YAML: nothing in it is used.</summary>
         public bool Invalid;
 
-        /// <summary>Stats skipped for their slot (classes or damage on armor or the shield, allowed in 1.0.0): "Woodcutter from Bro's chest".</summary>
+        /// <summary>
+        /// Stats skipped for their slot (classes or damage on armor or the shield, allowed in 1.0.0; on-parry stats on armor or
+        /// the cape, allowed in 1.0.0 and 1.1.0): "Woodcutter from Bro's chest; it only goes on the melee or ranged slot now".
+        /// </summary>
         public readonly List<string> Misplaced = new List<string>();
 
         /// <summary>
@@ -220,9 +223,10 @@ namespace LoadoutBuffs
                         if (IsNull(pair.Value)) break;
                         if (pair.Value is YamlMappingNode stats)
                         {
-                            var misplaced = new List<string>();
+                            var misplaced = new List<(string What, string Where)>();
                             entry.Stats = StatBlock.Parse(stats, label, Warnings, slot, misplaced);
-                            foreach (var what in misplaced) Misplaced.Add($"{what} from {bundle.Name}'s {BundleSlots.Key(slot)}");
+                            foreach (var (what, where) in misplaced)
+                                Misplaced.Add($"{what} from {bundle.Name}'s {BundleSlots.Key(slot)}; it only goes on the {where} now");
                         }
                         else Warnings.Add($"{label}.stats: expected stats like {{ armor: 15 }}; skipped (line {pair.Key.Start.Line}).");
                         break;
@@ -304,9 +308,11 @@ namespace LoadoutBuffs
             "# Stats: movementSpeed, carryWeight, armor, blockArmor, blockForce (what you block with), fallDamage,",
             "# healthRegen, staminaRegen, eitrRegen, runStamina, jumpStamina, attackStamina, blockStamina,",
             "# dodgeStamina, eitrCost (percent stats in percent: 10 = +10 %), resist, skills, fields (raw SE_Stats",
-            "# fields). On every parry: healOnParry, staminaOnParry (you), healAlliesOnParry, staminaAlliesOnParry",
-            "# (other players), healTamedOnParry, shieldOnParry (a Magic barrier absorbing that much, for all of",
-            "# you), shieldMinutes (its time, default 1), parryRadius (reach in metres, default 10).",
+            "# fields).",
+            "# Melee, ranged or shield slot only, on every parry: healOnParry, staminaOnParry (you),",
+            "# healAlliesOnParry, staminaAlliesOnParry (other players), healTamedOnParry, shieldOnParry (a Magic",
+            "# barrier absorbing that much, for all of you), shieldMinutes (its time, default 1), parryRadius",
+            "# (reach in metres, default 10).",
             "# Melee or ranged slot only: damage (%), addDamage (flat, e.g. { spirit: 30 }), and the classes",
             "# woodcutter: true (that weapon's hits fell any tree) and miner: true (they break any rock or ore).",
             "# The stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD",

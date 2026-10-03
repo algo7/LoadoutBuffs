@@ -31,9 +31,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
 - **Skills:** + or − levels for any skill.
-- **On parry:** heal and stamina, set separately for you and for other players; heal for tamed creatures; and a
-  **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its health and time (1–10
-  minutes). Friends without the mod get it too.
+- **On parry** (melee, ranged and shield slots): heal and stamina, set separately for you and for other players; heal
+  for tamed creatures; and a **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its
+  health and time (1–10 minutes). Friends without the mod get it too.
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
@@ -57,6 +57,9 @@ shows them for what you wear now.
   tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
+- **On parry goes on what you parry with.** Its stats can only be set on Melee, Ranged or Shield, and count while that
+  item is in your hands: holding a sword and a shield, a parry also uses the sword's on-parry stats. A parry with empty
+  hands, a torch or a pickaxe gives none.
 - **The bubble (if your buff has one).** The bubble is off unless you set *Bubble health* in a buff. Then a parry gives
   a bubble to everyone in reach who has none. A bubble that is still up (yours or from a real Staff of Protection) isn't
   refreshed: it stays until it breaks or runs out, and the next parry after that gives a new one. When a bubble breaks,
@@ -106,7 +109,7 @@ buffs:
 | `damage` | percent per type: `{ slash: 10 }` (melee or ranged slot only) |
 | `addDamage` | flat per type: `{ spirit: 30 }` (blunt, slash, pierce, fire, frost, lightning, poison, spirit; melee or ranged slot only) |
 | `skills` | levels per skill: `{ Bows: 15 }` |
-| `healOnParry`, `staminaOnParry` | for you, on every parry |
+| `healOnParry`, `staminaOnParry` | for you, on every parry (melee, ranged or shield slot only, like all on-parry keys) |
 | `healAlliesOnParry`, `staminaAlliesOnParry`, `healTamedOnParry` | for other players / tamed creatures in reach |
 | `shieldOnParry`, `shieldMinutes` | bubble health, and its time in minutes (default 1) |
 | `parryRadius` | reach in metres (default 10) |
@@ -135,9 +138,10 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
 - **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
   lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
-- **A class or damage stat is gone from my armor or shield after updating.** Since 1.1.0 Woodcutter, Miner, Damage %
-  and Added damage go on Melee or Ranged only. On other slots they're skipped with a warning, and when that's the only
-  problem in your buffs file, the mod removes them from it (the log says which). Set them on a weapon slot again.
+- **A class, damage or on-parry stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and
+  Added damage go on Melee or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only. On other slots
+  they're skipped with a warning, and when that's the only problem in your buffs file, the mod removes them from it (the
+  log says which). Set them on one of those slots again.
 
 ## Compatibility
 

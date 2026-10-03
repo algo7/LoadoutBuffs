@@ -276,10 +276,10 @@ internal static partial class Tests
     {
         var file = BundleFile.Parse(
             "active: T\nbuffs:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, parryRadius: 15 }\n" +
-            "    chest:\n      stats: { ShieldOnParry: 200 }\n");
+            "    melee:\n      stats: { ShieldOnParry: 200 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
-        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Chest) });
+        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Melee) });
         Eq(500f, total.Scalars["shieldOnParry"], "bubbles add across slots");
 
         var assist = total.ToParryAssist();
@@ -303,14 +303,14 @@ internal static partial class Tests
     {
         var file = BundleFile.Parse(
             "active: T\nbuffs:\n  T:\n    shield:\n      stats: { shieldOnParry: 300, shieldMinutes: 3 }\n" +
-            "    chest:\n      stats: { ShieldMinutes: 2 }\n");
+            "    melee:\n      stats: { ShieldMinutes: 2 }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
-        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Chest) });
+        var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Melee) });
         Eq(3f, total.Scalars["shieldMinutes"], "the longest time, not the sum");
         Eq(3f, total.ToParryAssist().ShieldMinutes, "assist");
         Eq("on parry: bubble health +300, bubble time 3 min", total.Summary(), "summary");
-        Eq(null, bundle.GetStats(BundleSlot.Chest).ToParryAssist(), "a time without a bubble does nothing");
+        Eq(null, bundle.GetStats(BundleSlot.Melee).ToParryAssist(), "a time without a bubble does nothing");
 
         var noTime = new StatBlock();
         noTime.Scalars["shieldOnParry"] = 300;
@@ -391,18 +391,23 @@ internal static partial class Tests
         foreach (var def in BundleStatCatalog.Toggles)
             foreach (var slot in BundleSlots.All)
                 Eq(slot == BundleSlot.Melee || slot == BundleSlot.Ranged, def.Allows(slot), $"{def.Key} on {slot}");
-        True(BundleStatCatalog.Scalars.All(d => BundleSlots.All.All(d.Allows)), "every other stat fits every slot");
+        True(BundleStatCatalog.Scalars.Where(d => d.Group != BundleStatCatalog.OnParry).All(d => BundleSlots.All.All(d.Allows)),
+            "every stat outside On parry fits every slot");
     }
 
     private static void Test_Classes_MisplacedAreCleanedUp()
     {
         // A 1.0.0 file with classes on armor / shield: the only problems, so the mod may save it without them.
         var file = BundleFile.Parse(
-            "active: Bro\nbuffs:\n  Bro:\n    chest:\n      stats: { woodcutter: true, armor: 5, damage: { slash: 10 } }\n" +
+            "active: Bro\nbuffs:\n  Bro:\n    chest:\n      stats: { woodcutter: true, armor: 5, damage: { slash: 10 }, healOnParry: 20 }\n" +
             "    shield:\n      stats: { miner: true, addDamage: { spirit: 30 } }\n    melee:\n      stats: { miner: true }\n");
-        Eq(4, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
-        True(file.OnlyMisplaced, "only misplaced classes and damage");
-        Eq("Woodcutter from Bro's chest | Damage % from Bro's chest | Miner from Bro's shield | Added damage from Bro's shield",
+        Eq(5, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
+        True(file.OnlyMisplaced, "only misplaced classes, damage and parry stats");
+        Eq("Woodcutter from Bro's chest; it only goes on the melee or ranged slot now | " +
+           "Damage % from Bro's chest; it only goes on the melee or ranged slot now | " +
+           "Heal you from Bro's chest; it only goes on the melee, ranged or shield slot now | " +
+           "Miner from Bro's shield; it only goes on the melee or ranged slot now | " +
+           "Added damage from Bro's shield; it only goes on the melee or ranged slot now",
             string.Join(" | ", file.Misplaced), "notes");
 
         var again = BundleFile.Parse(file.Serialize(null));
@@ -446,6 +451,44 @@ internal static partial class Tests
         True(caps.Warnings[0].StartsWith("T.chest.damage: only works") && caps.Warnings[1].StartsWith("T.chest.addDamage: only works"),
             "warnings use the file's key names: " + string.Join(" | ", caps.Warnings));
         True(caps.OnlyMisplaced, "cleaned up too");
+    }
+
+    private static void Test_Parry_OnlyOnHandSlots()
+    {
+        var file = BundleFile.Parse(
+            "buffs:\n  T:\n    helmet:\n      stats: { healOnParry: 20, armor: 5 }\n    chest:\n      stats: { shieldOnParry: 300, shieldMinutes: 2 }\n" +
+            "    legs:\n      stats: { parryRadius: 15 }\n    cape:\n      effect: Feather fall\n      stats: { staminaAlliesOnParry: 10 }\n" +
+            "    melee:\n      stats: { healOnParry: 20 }\n    ranged:\n      stats: { healAlliesOnParry: 30 }\n" +
+            "    shield:\n      stats: { shieldOnParry: 300, parryRadius: 15 }\n");
+        Eq(5, file.Warnings.Count, "one warning per parry stat on armor / cape: " + string.Join(" | ", file.Warnings));
+        Eq("T.helmet.healOnParry: only works on the melee, ranged or shield slot; skipped (line 4).", file.Warnings[0], "warning text");
+        True(file.Warnings[4].StartsWith("T.cape.staminaAlliesOnParry: only works on the melee, ranged or shield slot"), file.Warnings[4]);
+        True(file.OnlyMisplaced, "cleaned up like classes and damage");
+
+        var bundle = file.Find("T");
+        Eq(1, bundle.GetStats(BundleSlot.Helmet).Count, "helmet keeps its armor only");
+        Eq(5f, bundle.GetStats(BundleSlot.Helmet).Scalars["armor"], "helmet armor");
+        Eq(null, bundle.GetStats(BundleSlot.Chest), "chest: nothing left");
+        Eq(null, bundle.GetStats(BundleSlot.Legs), "legs: nothing left");
+        Eq("Feather fall", bundle.Entries.Single(e => e.Slot == BundleSlot.Cape).Effect, "cape keeps its effect");
+        Eq(20f, bundle.GetStats(BundleSlot.Melee).Scalars["healOnParry"], "melee keeps its parry heal");
+        Eq(30f, bundle.GetStats(BundleSlot.Ranged).Scalars["healAlliesOnParry"], "ranged keeps its ally heal");
+        Eq(300f, bundle.GetStats(BundleSlot.Shield).Scalars["shieldOnParry"], "shield keeps its bubble");
+
+        foreach (var def in BundleStatCatalog.Scalars.Where(d => d.Group == BundleStatCatalog.OnParry))
+        {
+            Eq("melee, ranged or shield slot", def.WhereAllowed, $"{def.Key}: where");
+            foreach (var slot in BundleSlots.All)
+                Eq(slot == BundleSlot.Melee || slot == BundleSlot.Ranged || slot == BundleSlot.Shield, def.Allows(slot), $"{def.Key} on {slot}");
+        }
+        Eq(8, BundleStatCatalog.Scalars.Count(d => d.Group == BundleStatCatalog.OnParry), "all 8 parry stats");
+        Eq("melee or ranged slot", BundleStatCatalog.Find("woodcutter").WhereAllowed, "two slots: no comma");
+        Eq("any slot", BundleStatCatalog.Find("armor").WhereAllowed, "no limit");
+
+        var zero = BundleFile.Parse("buffs:\n  T:\n    chest:\n      stats: { healOnParry: 0 }\n");
+        Eq(1, zero.Warnings.Count, "the slot check comes first: " + string.Join(" | ", zero.Warnings));
+        True(zero.Warnings[0].StartsWith("T.chest.healOnParry: only works on"), zero.Warnings[0]);
+        True(zero.OnlyMisplaced, "so it's still cleaned up");
     }
 
     private static void Test_Classes_BadValueWarns()

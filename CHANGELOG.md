@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Clearer slots: On parry (heal, stamina, bubble, reach) is offered only on Melee, Ranged and Shield, the gear you
+  parry with, not on armor or the cape.
+
 ## 1.1.0
 
 - New stat: Eitr cost, a percent of every spell and staff charge (−50 = half the eitr). It's in the window's Costs

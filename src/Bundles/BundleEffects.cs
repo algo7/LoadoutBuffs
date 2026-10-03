@@ -103,8 +103,9 @@ namespace LoadoutBuffs
         }
 
         /// <summary>
-        /// 1.0.0 allowed classes and damage stats on armor and the shield; now they're skipped. When those are the file's only problems,
-        /// save it once without them, as the window would, so the dead lines and their warnings don't stay forever.
+        /// 1.0.0 allowed classes and damage stats on armor and the shield, 1.1.0 on-parry stats on armor and the cape; now
+        /// they're skipped. When those are the file's only problems, save it once without them, as the window would, so the
+        /// dead lines and their warnings don't stay forever.
         /// </summary>
         private static void RemoveMisplaced()
         {
@@ -113,7 +114,7 @@ namespace LoadoutBuffs
                 var text = File.Serialize(code => Catalog?.DisplayName(code));
                 System.IO.File.WriteAllText(Plugin.BundlesPath, text);
                 foreach (var note in File.Misplaced)
-                    Plugin.Log.LogInfo($"{BundleFile.FileName}: removed {note}; it only goes on the melee or ranged slot now.");
+                    Plugin.Log.LogInfo($"{BundleFile.FileName}: removed {note}.");
                 File = BundleFile.Parse(text);
             }
             catch (Exception e)

@@ -60,8 +60,8 @@ namespace LoadoutBuffs
 
         public bool Allows(BundleSlot slot) => OnlyOn == null || Array.IndexOf(OnlyOn, slot) >= 0;
 
-        /// <summary>"melee or ranged slot": where the stat may be set, for warnings.</summary>
-        public string WhereAllowed => OnlyOn == null ? "any slot" : string.Join(" or ", OnlyOn.Select(BundleSlots.Key)) + " slot";
+        /// <summary>"melee or ranged slot", "melee, ranged or shield slot": where the stat may be set, for warnings.</summary>
+        public string WhereAllowed => OnlyOn == null ? "any slot" : BundleStatCatalog.SlotsText(OnlyOn);
 
         /// <summary>Whether a value helps the player (the window shows it green) or hurts (red).</summary>
         public bool Helps(float value) => LowerIsBetter ? value < 0f : value > 0f;
@@ -88,6 +88,9 @@ namespace LoadoutBuffs
         public const string SkillsKey = "skills";
         public const string FieldsKey = "fields";
 
+        /// <summary>The slots of what's in your hands, what you parry with: the only ones for on-parry stats. Before Scalars (init order).</summary>
+        private static readonly BundleSlot[] HandSlots = { BundleSlot.Melee, BundleSlot.Ranged, BundleSlot.Shield };
+
         public static readonly StatDef[] Scalars =
         {
             Def("movementSpeed", "Movement speed", General, "m_speedModifier", StatKind.Percent, 5, -50, 100),
@@ -109,21 +112,21 @@ namespace LoadoutBuffs
                 Key = EitrCostKey, Label = "Eitr cost", Group = Costs, Kind = StatKind.EitrCost, Step = 5, Min = -100, Max = 100,
                 LowerIsBetter = true,
             },
-            Def(Catalog.HealOnParry, "Heal you", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.StaminaOnParry, "Stamina to you", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.HealAlliesOnParry, "Heal allies", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.StaminaAlliesOnParry, "Stamina to allies", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.HealTamedOnParry, "Heal tamed", OnParry, null, StatKind.Parry, 10, 0, 300),
-            Def(Catalog.ShieldOnParry, "Bubble health", OnParry, null, StatKind.Parry, 100, 0, 3000),
+            Parry(Catalog.HealOnParry, "Heal you", 10, 0, 300),
+            Parry(Catalog.StaminaOnParry, "Stamina to you", 10, 0, 300),
+            Parry(Catalog.HealAlliesOnParry, "Heal allies", 10, 0, 300),
+            Parry(Catalog.StaminaAlliesOnParry, "Stamina to allies", 10, 0, 300),
+            Parry(Catalog.HealTamedOnParry, "Heal tamed", 10, 0, 300),
+            Parry(Catalog.ShieldOnParry, "Bubble health", 100, 0, 3000),
             new StatDef
             {
                 Key = Catalog.ShieldMinutes, Label = "Bubble time", Group = OnParry, Kind = StatKind.Parry, Step = 1, Min = 1, Max = 10,
-                Default = 1, TakesLargest = true, Unit = " min",
+                Default = 1, TakesLargest = true, Unit = " min", OnlyOn = HandSlots,
             },
             new StatDef
             {
                 Key = ParryRadiusKey, Label = "Reach", Group = OnParry, Kind = StatKind.Parry, Step = 5, Min = 5, Max = 50,
-                Default = Catalog.DefaultHealAlliesRadius, TakesLargest = true, Unit = " m",
+                Default = Catalog.DefaultHealAlliesRadius, TakesLargest = true, Unit = " m", OnlyOn = HandSlots,
             },
         };
 
@@ -137,6 +140,16 @@ namespace LoadoutBuffs
         private static readonly BundleSlot[] WeaponSlots = { BundleSlot.Melee, BundleSlot.Ranged };
 
         public static bool IsWeaponSlot(BundleSlot slot) => Array.IndexOf(WeaponSlots, slot) >= 0;
+
+        /// <summary>"melee or ranged slot", "melee, ranged or shield slot".</summary>
+        public static string SlotsText(BundleSlot[] slots)
+        {
+            var keys = slots.Select(BundleSlots.Key).ToList();
+            var last = keys[keys.Count - 1];
+            return (keys.Count == 1 ? last : string.Join(", ", keys.Take(keys.Count - 1)) + " or " + last) + " slot";
+        }
+
+        public static string WeaponSlotsText => SlotsText(WeaponSlots);
 
         /// <summary>Nested stats only weapon slots take: file key and window group.</summary>
         private static readonly (string Key, string Group)[] s_weaponOnlyNested = { (DamageKey, Damage), (AddDamageKey, AddedDamage) };
@@ -256,6 +269,13 @@ namespace LoadoutBuffs
 
         private static StatDef Def(string key, string label, string group, string field, StatKind kind, float step, float min, float max) =>
             new StatDef { Key = key, Label = label, Group = group, Field = field, Kind = kind, Step = step, Min = min, Max = max };
+
+        private static StatDef Parry(string key, string label, float step, float min, float max)
+        {
+            var def = Def(key, label, OnParry, null, StatKind.Parry, step, min, max);
+            def.OnlyOn = HandSlots;
+            return def;
+        }
 
         private static StatDef Cost(string key, string label, string group, string field, float step, float min, float max)
         {
@@ -422,10 +442,10 @@ namespace LoadoutBuffs
         /// <summary>
         /// Reads a <c>stats:</c> mapping; problems become warnings (prefixed with <paramref name="label"/>) and are skipped.
         /// With a <paramref name="slot"/>, stats that slot can't have (see <see cref="StatDef.OnlyOn"/>) are skipped too
-        /// and listed in <paramref name="misplaced"/>.
+        /// and listed in <paramref name="misplaced"/> with where they go.
         /// </summary>
         public static StatBlock Parse(YamlMappingNode map, string label, List<string> warnings, BundleSlot? slot = null,
-            List<string> misplaced = null)
+            List<(string What, string Where)> misplaced = null)
         {
             var block = new StatBlock();
             foreach (var pair in map.Children)
@@ -436,14 +456,15 @@ namespace LoadoutBuffs
                 if (def != null && slot.HasValue && !def.Allows(slot.Value))
                 {
                     warnings.Add($"{label}.{def.Key}: only works on the {def.WhereAllowed}; skipped (line {line}).");
-                    misplaced?.Add(def.Label);
+                    misplaced?.Add((def.Label, def.WhereAllowed));
                     continue;
                 }
                 var nested = BundleStatCatalog.WeaponOnlyNested(key);
                 if (nested.HasValue && slot.HasValue && !BundleStatCatalog.IsWeaponSlot(slot.Value))
                 {
-                    warnings.Add($"{label}.{nested.Value.Key}: only works on the melee or ranged slot; skipped (line {line}).");
-                    misplaced?.Add(nested.Value.Group);
+                    var where = BundleStatCatalog.WeaponSlotsText;
+                    warnings.Add($"{label}.{nested.Value.Key}: only works on the {where}; skipped (line {line}).");
+                    misplaced?.Add((nested.Value.Group, where));
                     continue;
                 }
                 if (def != null && def.Kind == StatKind.Toggle)

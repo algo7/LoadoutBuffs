@@ -71,6 +71,8 @@ internal static partial class Tests
             True(text.StartsWith("# LoadoutBuffs"), $"{what}: named after the mod");
             True(text.Contains("lb_buffs") && text.Contains("lb_reload") && !text.Contains("iso_"), $"{what}: lb_ commands");
             True(text.Contains("Melee or ranged slot only: damage (%), addDamage"), $"{what}: damage and classes are for weapon slots");
+            True(text.Contains("Melee, ranged or shield slot only, on every parry:"), $"{what}: parry stats are for hand slots");
+            True(StarterBundles().StartsWith(string.Join("\n", BundleFile.Header) + "\n\n"), "the starter file starts with the window's header");
             foreach (var key in new[] { "blockArmor", "blockForce", "addDamage", "shieldOnParry", "shieldMinutes", "eitrCost" })
                 True(text.Contains(key), $"{what} lists {key}");
         }

@@ -1,6 +1,7 @@
 # LoadoutBuffs
 
 [![CI](https://github.com/algo7/LoadoutBuffs/actions/workflows/ci.yml/badge.svg)](https://github.com/algo7/LoadoutBuffs/actions/workflows/ci.yml)
+[![Thunderstore](https://img.shields.io/badge/Thunderstore-LoadoutBuffs-blue)](https://thunderstore.io/c/valheim/p/Algo7/LoadoutBuffs/)
 
 A client-side [BepInEx](https://github.com/BepInEx/BepInEx) mod for Valheim: **buffs** of extra "while worn" effects
 and stats per equipment slot, picked in an in-game window (built with [Jötunn](https://github.com/Valheim-Modding/Jotunn)).

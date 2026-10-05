@@ -418,9 +418,10 @@ namespace LoadoutBuffs
         private static readonly Dictionary<ItemData.SharedData, bool> s_alliesOnly = new Dictionary<ItemData.SharedData, bool>();
 
         /// <summary>
-        /// Whether the item's attack is a spell that can't hit enemies: its projectile is an Aoe with m_hitEnemy off
-        /// (Staff of Protection, Northern Vengeance). That Aoe takes the cast's damage and hits you, players and tamed.
-        /// Cached per item kind (Worn runs on every equipment update). Never throws.
+        /// Whether the item's attack is a spell that can't hit enemies but takes the cast's damage: its projectile is an
+        /// Aoe (on the root, where Attack hands over the hit) with m_useAttackSettings on and m_hitEnemy off (Staff of
+        /// Protection, Northern Vengeance), so it hits you, players and tamed with it. Cached per SharedData (Worn runs
+        /// on every equipment update). Never throws.
         /// </summary>
         private static bool AlliesOnly(ItemData.SharedData shared)
         {
@@ -430,8 +431,8 @@ namespace LoadoutBuffs
             try
             {
                 var projectile = shared.m_attack?.m_attackProjectile;
-                var aoe = projectile == null ? null : projectile.GetComponentInChildren<Aoe>(true);
-                result = aoe != null && !aoe.m_hitEnemy;
+                var aoe = projectile == null ? null : projectile.GetComponent<Aoe>();
+                result = aoe != null && aoe.m_useAttackSettings && !aoe.m_hitEnemy;
             }
             catch (Exception) { }
             s_alliesOnly[shared] = result;

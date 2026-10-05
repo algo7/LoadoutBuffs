@@ -57,7 +57,7 @@ shows them for what you wear now.
   tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Staffs that help allies fill no slot.** The Staff of Protection's and Northern Vengeance's spells hit only you,
   other players and tamed creatures, so the Ranged slot's Added damage would hurt them. With one of them in your hands,
-  the Ranged slot's stats don't count (put eitr cost on armor instead, it works on any slot).
+  the Ranged slot (its effect and stats) doesn't count; put eitr cost on armor instead, it works on any slot.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
 - **On parry goes on what you parry with.** Its stats can only be set on Melee, Ranged or Shield, and count while that

@@ -233,7 +233,7 @@ namespace LoadoutBuffs
                 var player = Player.m_localPlayer;
                 if (player == null || hit.GetAttacker() != player) return;
                 var weapon = player.GetCurrentWeapon();
-                var slot = weapon == null ? null : BundleSlots.HandSlot(weapon.m_shared.m_itemType, weapon.m_shared.m_skillType);
+                var slot = HandSlotOf(weapon);
                 if (slot != BundleSlot.Melee && slot != BundleSlot.Ranged) return;
 
                 var tree = target is TreeBase || target is TreeLog ||
@@ -402,7 +402,7 @@ namespace LoadoutBuffs
                 case BundleSlot.Ranged:
                 case BundleSlot.Shield:
                     foreach (var item in new[] { Get(s_right, h), Get(s_left, h) })
-                        if (item != null && BundleSlots.HandSlot(item.m_shared.m_itemType, item.m_shared.m_skillType) == slot)
+                        if (HandSlotOf(item) == slot)
                             return item;
                     return null;
                 default: return null;
@@ -410,6 +410,33 @@ namespace LoadoutBuffs
         }
 
         private static ItemData Get(FieldInfo field, Humanoid h) => h == null ? null : field?.GetValue(h) as ItemData;
+
+        /// <summary>The hand slot an item fills (BundleSlots.HandSlot), null for none or no item.</summary>
+        public static BundleSlot? HandSlotOf(ItemData item) =>
+            item == null ? null : BundleSlots.HandSlot(item.m_shared.m_itemType, item.m_shared.m_skillType, AlliesOnly(item.m_shared));
+
+        private static readonly Dictionary<ItemData.SharedData, bool> s_alliesOnly = new Dictionary<ItemData.SharedData, bool>();
+
+        /// <summary>
+        /// Whether the item's attack is a spell that can't hit enemies: its projectile is an Aoe with m_hitEnemy off
+        /// (Staff of Protection, Northern Vengeance). That Aoe takes the cast's damage and hits you, players and tamed.
+        /// Cached per item kind (Worn runs on every equipment update). Never throws.
+        /// </summary>
+        private static bool AlliesOnly(ItemData.SharedData shared)
+        {
+            if (shared == null) return false;
+            if (s_alliesOnly.TryGetValue(shared, out var known)) return known;
+            var result = false;
+            try
+            {
+                var projectile = shared.m_attack?.m_attackProjectile;
+                var aoe = projectile == null ? null : projectile.GetComponentInChildren<Aoe>(true);
+                result = aoe != null && !aoe.m_hitEnemy;
+            }
+            catch (Exception) { }
+            s_alliesOnly[shared] = result;
+            return result;
+        }
 
         private static string Read(out string error)
         {

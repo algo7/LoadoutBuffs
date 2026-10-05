@@ -50,9 +50,11 @@ namespace LoadoutBuffs
         /// Which hand slot an item in the hands fills, by its weapon skill (the item type can't tell: staffs,
         /// atgeirs, pickaxes and the fishing rod are all two-handed weapons, crossbows are bows). Ranged: bows,
         /// crossbows, magic staffs. Melee: swords, knives, clubs, atgeirs, spears, axes, fists. Shields: shield.
-        /// Pickaxes, the fishing rod, torches and tools fill none.
+        /// Pickaxes, the fishing rod, torches and tools fill none, and so does a weapon whose spell only hits allies
+        /// (<paramref name="alliesOnly"/>: Staff of Protection, Northern Vengeance; the spell carries the weapon's
+        /// damage to you, players and tamed, so the slot's Added damage would hurt them).
         /// </summary>
-        public static BundleSlot? HandSlot(ItemDrop.ItemData.ItemType type, Skills.SkillType skill)
+        public static BundleSlot? HandSlot(ItemDrop.ItemData.ItemType type, Skills.SkillType skill, bool alliesOnly)
         {
             switch (type)
             {
@@ -62,6 +64,7 @@ namespace LoadoutBuffs
                 case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
                 case ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft:
                 case ItemDrop.ItemData.ItemType.Bow:
+                    if (alliesOnly) return null;
                     if (s_ranged.Contains(skill)) return BundleSlot.Ranged;
                     if (s_melee.Contains(skill)) return BundleSlot.Melee;
                     return null;

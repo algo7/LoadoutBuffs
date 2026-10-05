@@ -191,12 +191,12 @@ internal static partial class Tests
     private static void Test_Slots_HandsAreSplitByWeaponSkill()
     {
         void Is(BundleSlot? expected, ItemDrop.ItemData.ItemType type, Skills.SkillType skill) =>
-            Eq(expected, BundleSlots.HandSlot(type, skill), $"{type}/{skill}");
+            Eq(expected, BundleSlots.HandSlot(type, skill, alliesOnly: false), $"{type}/{skill}");
 
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.Bow, Skills.SkillType.Bows);                    // bows
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.Bow, Skills.SkillType.Crossbows);               // crossbows are Bow type
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.ElementalMagic); // Staff of Embers
-        Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft, Skills.SkillType.ElementalMagic); // Northern Vengeance
+        Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft, Skills.SkillType.BloodMagic); // Dead Raiser
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic);
         Is(BundleSlot.Melee, ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.Polearms);     // atgeir
         Is(BundleSlot.Melee, ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Spears);
@@ -207,6 +207,18 @@ internal static partial class Tests
         Is(null, ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.Fishing);                  // fishing rod
         Is(null, ItemDrop.ItemData.ItemType.Torch, Skills.SkillType.Clubs);                              // torch
         Is(null, ItemDrop.ItemData.ItemType.Tool, Skills.SkillType.Swords);                              // hammer, hoe, cultivator
+    }
+
+    private static void Test_Slots_StaffsThatOnlyHitAlliesFillNoSlot()
+    {
+        // Staff of Protection, Northern Vengeance: their spell hits you, players and tamed, never enemies, and carries
+        // the weapon's damage, so the Ranged slot's Added damage would hurt them.
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, alliesOnly: true), "Staff of Protection");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft, Skills.SkillType.BloodMagic, alliesOnly: true), "Northern Vengeance");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.ElementalMagic, alliesOnly: true), "elemental");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Swords, alliesOnly: true), "any weapon");
+        Eq(BundleSlot.Ranged, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, alliesOnly: false), "other staffs");
+        Eq(BundleSlot.Shield, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.Shield, Skills.SkillType.Blocking, alliesOnly: true), "shields have no spell");
     }
 
     private static void Test_Slots_RemovedSlotsWarnWithAHint()

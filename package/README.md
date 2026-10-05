@@ -55,6 +55,9 @@ shows them for what you wear now.
 - **Slots follow your gear.** A slot counts while something is equipped there. Melee means swords, knives, clubs,
   atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; pickaxes, the fishing rod, torches and
   tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
+- **Staffs that help allies fill no slot.** The Staff of Protection's and Northern Vengeance's spells hit only you,
+  other players and tamed creatures, so the Ranged slot's Added damage would hurt them. With one of them in your hands,
+  the Ranged slot's stats don't count (put eitr cost on armor instead, it works on any slot).
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
 - **On parry goes on what you parry with.** Its stats can only be set on Melee, Ranged or Shield, and count while that
@@ -136,6 +139,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
+- **My Ranged stats don't count with the Staff of Protection or Northern Vengeance.** On purpose: their spell hits
+  your allies, so Added damage would hurt them. Those two staffs fill no slot.
 - **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
   lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
 - **A class, damage or on-parry stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Staff of Protection and Northern Vengeance no longer fill the Ranged slot: their spell hits only you, other players
+  and tamed creatures, so Added damage on it hurt them.
+
 ## 1.2.0
 
 - Clearer slots: On parry (heal, stamina, bubble, reach) is offered only on Melee, Ranged and Shield, the gear you

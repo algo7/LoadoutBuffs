@@ -20,6 +20,8 @@
     <!-- Copy YamlDotNet.dll next to our DLL so ILRepack can merge it. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- No PDB: the package ships only the DLL, and a PDB's path in the DLL would carry the build machine's home folder. -->
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <!--

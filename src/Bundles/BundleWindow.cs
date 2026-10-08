@@ -453,7 +453,7 @@ namespace LoadoutBuffs
                     var has = stats.Resist.TryGetValue(t, out var modifier);
                     StatRow(t, has ? BundleStatCatalog.ModifierLabel(modifier) : "Normal", has,
                         !has || BundleStatCatalog.Protection(modifier) < BundleStatCatalog.Protection("Normal"),
-                        () => CycleResist(t, -1), () => CycleResist(t, 1), "<", ">", 130);
+                        () => CycleResist(t, -1), () => CycleResist(t, 1), "<", ">", 140);
                 }
 
             // Damage rows follow the weapon in hand: a % multiplies what it deals, so a % of a type it lacks does nothing.

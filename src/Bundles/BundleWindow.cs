@@ -475,7 +475,7 @@ namespace LoadoutBuffs
                 {
                     var key = type.ToLowerInvariant();
                     var has = stats.Damage.TryGetValue(key, out var v);
-                    StatRow(type + " damage", has ? StatBlock.Number(v) + "%" : "0", has, !has || v > 0f,
+                    StatRow(type, has ? StatBlock.Number(v) + "%" : "0", has, !has || v > 0f,
                         () => ChangeNumber(b => b.Damage, key, -BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax),
                         () => ChangeNumber(b => b.Damage, key, BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax));
                 }
@@ -490,7 +490,7 @@ namespace LoadoutBuffs
                     var key = type.ToLowerInvariant();
                     var has = stats.AddDamage.TryGetValue(key, out var v);
                     var ownValue = own != null && own.TryGetValue(key, out var o) ? o : 0f;
-                    StatRow(type + " damage", has ? StatBlock.Number(v) : "0", has, true,
+                    StatRow(type, has ? StatBlock.Number(v) : "0", has, true,
                         () => ChangeNumber(b => b.AddDamage, key, -BundleStatCatalog.AddDamageStep, BundleStatCatalog.AddDamageMin, BundleStatCatalog.AddDamageMax),
                         () => ChangeNumber(b => b.AddDamage, key, BundleStatCatalog.AddDamageStep, BundleStatCatalog.AddDamageMin, BundleStatCatalog.AddDamageMax),
                         note: BundleWindowRules.AddedDamageNote(ownValue));

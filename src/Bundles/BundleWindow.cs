@@ -178,7 +178,7 @@ namespace LoadoutBuffs
             return button;
         }
 
-        private static void StyleRowText(Button button, int size)
+        private static Text StyleRowText(Button button, int size)
         {
             var label = button.GetComponentInChildren<Text>();
             label.alignment = TextAnchor.MiddleLeft;
@@ -190,6 +190,7 @@ namespace LoadoutBuffs
             rt.anchorMax = Vector2.one;
             rt.offsetMin = new Vector2(10f, 2f);
             rt.offsetMax = new Vector2(-8f, -2f);
+            return label;
         }
 
         /// <summary>A Jötunn scroll view; returns its content (vertical layout).</summary>
@@ -212,11 +213,18 @@ namespace LoadoutBuffs
         {
             var width = content.rect.width - 4f;
             var go = GUIManager.Instance.CreateButton(text, content, new Vector2(0f, 1f), new Vector2(0f, 1f), Vector2.zero, width, height);
+            var button = go.GetComponent<Button>();
+            var label = StyleRowText(button, 15);
+            // A Text drops the lines it has no room for: a row whose text wraps onto more lines grows to fit it.
+            var needed = label.preferredHeight;
+            if (needed > label.rectTransform.rect.height)
+            {
+                height = Mathf.Ceil(needed) + 6f;
+                ((RectTransform)go.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            }
             var element = go.AddComponent<LayoutElement>();
             element.minHeight = element.preferredHeight = height;
             element.preferredWidth = width;
-            var button = go.GetComponent<Button>();
-            StyleRowText(button, 15);
             button.interactable = interactable;
             button.onClick.AddListener(onClick);
             return button;
@@ -445,7 +453,7 @@ namespace LoadoutBuffs
                     var has = stats.Resist.TryGetValue(t, out var modifier);
                     StatRow(t, has ? BundleStatCatalog.ModifierLabel(modifier) : "Normal", has,
                         !has || BundleStatCatalog.Protection(modifier) < BundleStatCatalog.Protection("Normal"),
-                        () => CycleResist(t, -1), () => CycleResist(t, 1), "<", ">", 110);
+                        () => CycleResist(t, -1), () => CycleResist(t, 1), "<", ">", 130);
                 }
 
             // Damage rows follow the weapon in hand: a % multiplies what it deals, so a % of a type it lacks does nothing.
@@ -475,7 +483,7 @@ namespace LoadoutBuffs
                 {
                     var key = type.ToLowerInvariant();
                     var has = stats.Damage.TryGetValue(key, out var v);
-                    StatRow(type, has ? StatBlock.Number(v) + "%" : "0", has, !has || v > 0f,
+                    StatRow(type, has ? StatBlock.Number(v) + "%" : "0%", has, !has || v > 0f,
                         () => ChangeNumber(b => b.Damage, key, -BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax),
                         () => ChangeNumber(b => b.Damage, key, BundleStatCatalog.DamageStep, BundleStatCatalog.DamageMin, BundleStatCatalog.DamageMax));
                 }

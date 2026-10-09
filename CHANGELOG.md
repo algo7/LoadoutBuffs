@@ -7,6 +7,8 @@
 - Clearer slots: Fall damage, Regen and Resistances are offered only on armor (helmet, chest, legs, cape); Block armor
   and Block force only on Melee, Ranged and Shield.
 - Block armor goes up to 1000 in the window (was 200).
+- Buffs window: the selected slot has a gold frame.
+- Buffs window: Shift + click on − / + changes a value ten steps at a time.
 
 ## 1.2.3
 

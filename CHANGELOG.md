@@ -4,8 +4,8 @@
 
 - New stat: Parry bonus (On parry group, Melee / Ranged / Shield), added to the parry multiplier of what you parry
   with (+2 turns a buckler's 2.5x into 4.5x; up to +20).
-- Clearer slots: Fall damage, Regen and Resistances are offered only on armor (helmet, chest, legs, cape); Block armor
-  and Block force only on Melee, Ranged and Shield.
+- Clearer slots: Armor, Fall damage, Regen and Resistances are offered only on armor (helmet, chest, legs, cape);
+  Block armor and Block force only on Melee, Ranged and Shield.
 - Block armor goes up to 1000 in the window (was 200).
 - Buffs window: the selected slot has a gold frame.
 - Buffs window: Shift + click on − / + changes a value ten steps at a time.

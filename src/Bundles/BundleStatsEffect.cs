@@ -225,13 +225,13 @@ namespace LoadoutBuffs
             return string.IsNullOrEmpty(localized) || localized.StartsWith("[", StringComparison.Ordinal) ? skill.ToString() : localized;
         }
 
-        /// <summary>The package icon (shield with an up arrow), embedded in the DLL.</summary>
+        /// <summary>The buff icon: the package icon's shield and rune without its dark square (package/icon.svg), embedded in the DLL.</summary>
         private static Sprite Icon()
         {
             if (s_icon != null) return s_icon;
             try
             {
-                using (var stream = typeof(BundleStatsEffect).Assembly.GetManifestResourceStream("LoadoutBuffs.icon.png"))
+                using (var stream = typeof(BundleStatsEffect).Assembly.GetManifestResourceStream("LoadoutBuffs.BuffIcon.png"))
                 {
                     var bytes = new byte[stream.Length];
                     var read = 0;

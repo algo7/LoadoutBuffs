@@ -582,6 +582,16 @@ internal static partial class Tests
         Eq(saved, BundleFile.Parse(saved).Serialize(null), "stable");
     }
 
+    private static void Test_ParryBonus_AboveTheMaxLoadsAsTheMax()
+    {
+        // A value past +20 (e.g. 200 from a percent test build) works as +20: the window shows and saves what applies.
+        var file = BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { parryBonus: 200 }\n    ranged:\n      stats: { parryBonus: 119 }\n");
+        Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
+        Eq(20f, file.Find("T").GetStats(BundleSlot.Melee).Scalars["parryBonus"], "200 → 20");
+        Eq(20f, file.Find("T").GetStats(BundleSlot.Ranged).Scalars["parryBonus"], "119 → 20");
+        True(file.Serialize(null).Contains("    melee:\n      stats: { parryBonus: 20 }"), "saved as 20");
+    }
+
     private static void Test_ParryBonus_AddsToTheItemsMultiplier()
     {
         Eq(4.5f, BundleStatCatalog.WithParryBonus(2.5f, 2f), "buckler 2.5x + 2 = 4.5x");

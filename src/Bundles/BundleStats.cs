@@ -53,7 +53,7 @@ namespace LoadoutBuffs
         /// <summary>Several slots: the largest value instead of the sum (a reach, not an amount).</summary>
         public bool TakesLargest;
 
-        /// <summary>Several slots: the sum stops here.</summary>
+        /// <summary>The most that counts: the sum of several slots stops here, and so does a larger value in the file.</summary>
         public float TotalMax = float.PositiveInfinity;
 
         /// <summary>Shown after the number, e.g. " m".</summary>
@@ -530,7 +530,7 @@ namespace LoadoutBuffs
                     if (!TryNumber(pair.Value, out var v, out var error)) warnings.Add($"{label}.{def.Key}: {error}; skipped (line {line}).");
                     else if ((def.Kind == StatKind.Parry || def.Kind == StatKind.ParryBonus) && v <= 0f) // a negative amount would cancel another slot's
                         warnings.Add($"{label}.{def.Key}: '{(pair.Value as YamlScalarNode)?.Value}' must be more than 0; skipped (line {line}).");
-                    else SetNumber(block.Scalars, def.Key, v);
+                    else SetNumber(block.Scalars, def.Key, Math.Min(v, def.TotalMax)); // past the cap it works as the cap: show that
                     continue;
                 }
                 switch (key.ToLowerInvariant())

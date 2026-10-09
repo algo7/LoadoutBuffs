@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3
+
+- The Abyssal Harpoon is excluded from the Melee slot, like pickaxes and other tools, so dragging tamed animals
+  no longer kills them.
+
 ## 1.2.2
 
 - Buffs window: cut-off text and values now show in full (e.g. "Slightly resistant"); damage rows name just the type

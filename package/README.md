@@ -53,13 +53,8 @@ shows them for what you wear now.
 ## How Things Behave
 
 - **Slots follow your gear.** A slot counts while something is equipped there. Melee means swords, knives, clubs,
-  atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; pickaxes, the fishing rod, torches and
-  tools count as neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
-- **Staffs that help allies fill no slot.** The Staff of Protection's and Northern Vengeance's spells hit only you,
-  other players and tamed creatures, and would carry the Ranged slot's Added damage: instead of protecting your friends
-  and your tamed animals, you'd be hurting or even killing them. So these two staffs don't count as a ranged weapon:
-  holding one is like holding a torch, and your Ranged slot's effect and stats apply only to your bows, crossbows and
-  other staffs. For cheaper casts with them, put eitr cost on armor.
+  atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; items that count as tools (below)
+  are neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
 - **On parry goes on what you parry with.** Its stats can only be set on Melee, Ranged or Shield, and count while that
@@ -74,6 +69,17 @@ shows them for what you wear now.
   it reaches.
 - **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
   damage* and its % row appears.
+
+## Items That Count as Tools
+
+These fill no slot: while one is in your hands, your Melee and Ranged slots' effects and stats don't apply.
+
+- Pickaxes, the fishing rod, torches and tools (hammer, hoe, cultivator…).
+- **Staff of Protection** and **Northern Vengeance**: their spells hit only you, other players and tamed creatures.
+  With Added damage, instead of protecting your friends and your tamed animals, you'd be hurting or even killing them.
+  For cheaper casts with them, put eitr cost on armor.
+- **Abyssal Harpoon**: besides pulling in enemies like sea serpents, it's also used to drag tamed animals, and with PvP
+  on, with Added damage, you'd be killing them.
 
 ## Multiplayer and Fair Play
 
@@ -141,8 +147,9 @@ In the F5 console. Not cheats, so no `devcommands` needed.
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
-- **My Ranged stats don't count with the Staff of Protection or Northern Vengeance.** On purpose: their spell hits
-  your friends and your tamed animals, so Added damage would hurt or even kill them. Those two staffs fill no slot.
+- **My Melee / Ranged stats don't count with the Staff of Protection, Northern Vengeance or the Abyssal Harpoon.**
+  On purpose: they count as tools (see Items That Count as Tools), because Added damage on them would hurt or kill
+  your friends and tamed animals.
 - **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
   lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
 - **A class, damage or on-parry stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and

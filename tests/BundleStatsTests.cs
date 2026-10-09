@@ -191,7 +191,7 @@ internal static partial class Tests
     private static void Test_Slots_HandsAreSplitByWeaponSkill()
     {
         void Is(BundleSlot? expected, ItemDrop.ItemData.ItemType type, Skills.SkillType skill) =>
-            Eq(expected, BundleSlots.HandSlot(type, skill, alliesOnly: false), $"{type}/{skill}");
+            Eq(expected, BundleSlots.HandSlot(type, skill, usedOnAllies: false), $"{type}/{skill}");
 
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.Bow, Skills.SkillType.Bows);                    // bows
         Is(BundleSlot.Ranged, ItemDrop.ItemData.ItemType.Bow, Skills.SkillType.Crossbows);               // crossbows are Bow type
@@ -209,16 +209,19 @@ internal static partial class Tests
         Is(null, ItemDrop.ItemData.ItemType.Tool, Skills.SkillType.Swords);                              // hammer, hoe, cultivator
     }
 
-    private static void Test_Slots_StaffsThatOnlyHitAlliesFillNoSlot()
+    private static void Test_Slots_WeaponsUsedOnAlliesFillNoSlot()
     {
         // Staff of Protection, Northern Vengeance: their spell hits you, players and tamed, never enemies, and carries
-        // the weapon's damage, so the Ranged slot's Added damage would hurt them.
-        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, alliesOnly: true), "Staff of Protection");
-        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft, Skills.SkillType.BloodMagic, alliesOnly: true), "Northern Vengeance");
-        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.ElementalMagic, alliesOnly: true), "elemental");
-        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Swords, alliesOnly: true), "any weapon");
-        Eq(BundleSlot.Ranged, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, alliesOnly: false), "other staffs");
-        Eq(BundleSlot.Shield, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.Shield, Skills.SkillType.Blocking, alliesOnly: true), "shields have no spell");
+        // the weapon's damage, so the Ranged slot's Added damage would hurt them. The Abyssal Harpoon drags tamed
+        // animals (its shot hits them with PvP on), so the Melee slot's Added damage would kill them.
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, usedOnAllies: true), "Staff of Protection");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft, Skills.SkillType.BloodMagic, usedOnAllies: true), "Northern Vengeance");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.ElementalMagic, usedOnAllies: true), "elemental");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Swords, usedOnAllies: true), "any weapon");
+        Eq(BundleSlot.Ranged, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.TwoHandedWeapon, Skills.SkillType.BloodMagic, usedOnAllies: false), "other staffs");
+        Eq(null, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Spears, usedOnAllies: true), "Abyssal Harpoon");
+        Eq(BundleSlot.Melee, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Spears, usedOnAllies: false), "other spears");
+        Eq(BundleSlot.Shield, BundleSlots.HandSlot(ItemDrop.ItemData.ItemType.Shield, Skills.SkillType.Blocking, usedOnAllies: true), "shields have no spell");
     }
 
     private static void Test_Slots_RemovedSlotsWarnWithAHint()

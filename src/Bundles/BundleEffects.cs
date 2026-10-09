@@ -413,29 +413,35 @@ namespace LoadoutBuffs
 
         /// <summary>The hand slot an item fills (BundleSlots.HandSlot), null for none or no item.</summary>
         public static BundleSlot? HandSlotOf(ItemData item) =>
-            item == null ? null : BundleSlots.HandSlot(item.m_shared.m_itemType, item.m_shared.m_skillType, AlliesOnly(item.m_shared));
+            item == null ? null : BundleSlots.HandSlot(item.m_shared.m_itemType, item.m_shared.m_skillType, UsedOnAllies(item.m_shared));
 
-        private static readonly Dictionary<ItemData.SharedData, bool> s_alliesOnly = new Dictionary<ItemData.SharedData, bool>();
+        private static readonly Dictionary<ItemData.SharedData, bool> s_usedOnAllies = new Dictionary<ItemData.SharedData, bool>();
 
         /// <summary>
-        /// Whether the item's attack is a spell that can't hit enemies but takes the cast's damage: its projectile is an
-        /// Aoe (on the root, where Attack hands over the hit) with m_useAttackSettings on and m_hitEnemy off (Staff of
-        /// Protection, Northern Vengeance), so it hits you, players and tamed with it. Cached per SharedData (Worn runs
-        /// on every equipment update). Never throws.
+        /// Whether the item is a weapon you use on your own, whose hit would carry the slot's damage to them:
+        /// <list type="bullet">
+        /// <item>a spell that can't hit enemies but takes the cast's damage: its projectile is an Aoe (on the root, where
+        /// Attack hands over the hit) with m_useAttackSettings on and m_hitEnemy off (Staff of Protection, Northern
+        /// Vengeance), so it hits you, players and tamed with it;</item>
+        /// <item>a harpoon: its hit applies SE_Harpooned, the pull used to drag tamed animals (Abyssal Harpoon; a player's
+        /// projectile hits them with PvP on).</item>
+        /// </list>
+        /// Cached per SharedData (Worn runs on every equipment update). Never throws.
         /// </summary>
-        private static bool AlliesOnly(ItemData.SharedData shared)
+        private static bool UsedOnAllies(ItemData.SharedData shared)
         {
             if (shared == null) return false;
-            if (s_alliesOnly.TryGetValue(shared, out var known)) return known;
+            if (s_usedOnAllies.TryGetValue(shared, out var known)) return known;
             var result = false;
             try
             {
+                result = shared.m_attackStatusEffect is SE_Harpooned;
                 var projectile = shared.m_attack?.m_attackProjectile;
                 var aoe = projectile == null ? null : projectile.GetComponent<Aoe>();
-                result = aoe != null && aoe.m_useAttackSettings && !aoe.m_hitEnemy;
+                result |= aoe != null && aoe.m_useAttackSettings && !aoe.m_hitEnemy;
             }
             catch (Exception) { }
-            s_alliesOnly[shared] = result;
+            s_usedOnAllies[shared] = result;
             return result;
         }
 

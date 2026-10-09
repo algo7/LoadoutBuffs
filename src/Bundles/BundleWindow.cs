@@ -457,7 +457,7 @@ namespace LoadoutBuffs
                 }
 
             // Damage rows follow the weapon in hand: a % multiplies what it deals, so a % of a type it lacks does nothing.
-            // An item that fills no slot (pickaxe, torch, Staff of Protection) gets no slot's damage: rows as with none.
+            // An item that fills no slot (pickaxe, torch, Staff of Protection, Abyssal Harpoon) gets no slot's damage: rows as with none.
             var weapon = BundleEffects.CurrentWeapon();
             if (BundleEffects.HandSlotOf(weapon) == null) weapon = null;
             var own = weapon != null ? BundleEffects.OwnDamage(weapon) : null;

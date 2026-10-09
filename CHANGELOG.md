@@ -2,7 +2,8 @@
 
 ## 1.2.2
 
-- Buffs window: long text and values are no longer cut off.
+- Buffs window: cut-off text and values now show in full (e.g. "Slightly resistant"); damage rows name just the type
+  ("Lightning").
 
 ## 1.2.1
 

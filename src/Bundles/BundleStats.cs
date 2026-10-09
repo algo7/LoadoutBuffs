@@ -139,6 +139,12 @@ namespace LoadoutBuffs
 
         public const string ParryRadiusKey = "parryRadius";
         public const string ParryBonusKey = "parryBonus";
+
+        /// <summary>
+        /// The summed Parry bonus as SE_Stats' fraction, never below −50 %: Humanoid.BlockAttack divides a parry's
+        /// durability drain by the parry multiplier, so −100 % (Shield −50 and Melee −50) would break the item, less repair it.
+        /// </summary>
+        public static float ParryBonusField(float percent) => Math.Max(-50f, percent) / 100f;
         public const string EitrCostKey = "eitrCost";
 
         /// <summary>An eitr cost with the buff's percent (−20 = 20 % cheaper); never below 0. No SE_Stats field: see the eitr hook.</summary>

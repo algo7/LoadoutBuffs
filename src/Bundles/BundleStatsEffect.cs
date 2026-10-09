@@ -122,7 +122,7 @@ namespace LoadoutBuffs
                 float value;
                 switch (def.Kind)
                 {
-                    case StatKind.Percent: value = v / 100f; break;
+                    case StatKind.Percent: value = def.Key == BundleStatCatalog.ParryBonusKey ? BundleStatCatalog.ParryBonusField(v) : v / 100f; break;
                     case StatKind.RegenPercent: value = 1f + v / 100f; break;
                     default: value = v; break;
                 }

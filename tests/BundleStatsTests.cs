@@ -581,6 +581,16 @@ internal static partial class Tests
         Eq(saved, BundleFile.Parse(saved).Serialize(null), "stable");
     }
 
+    private static void Test_ParryBonus_TotalNeverBelowMinus50()
+    {
+        Eq(0.5f, BundleStatCatalog.ParryBonusField(50f), "percent → SE_Stats fraction");
+        Eq(0f, BundleStatCatalog.ParryBonusField(0f), "none");
+        Eq(-0.3f, BundleStatCatalog.ParryBonusField(-30f), "a smaller bonus");
+        // The game divides a parry's durability drain by the parry multiplier: × 0 would break the item, below 0 repair it.
+        Eq(-0.5f, BundleStatCatalog.ParryBonusField(-100f), "Shield −50 + Melee −50: floored");
+        Eq(-0.5f, BundleStatCatalog.ParryBonusField(-250f), "a hand-edited value too");
+    }
+
     private static void Test_Classes_BadValueWarns()
     {
         var file = BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { woodcutter: maybe }\n");

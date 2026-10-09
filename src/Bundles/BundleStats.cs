@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using YamlDotNet.RepresentationModel;
 
 namespace LoadoutBuffs
@@ -156,6 +157,22 @@ namespace LoadoutBuffs
         /// and +20: Humanoid.BlockAttack divides a parry's durability drain by the multiplier, so it must never drop.
         /// </summary>
         public static float WithParryBonus(float itemBonus, float added) => itemBonus + Math.Min(ParryBonusMax, Math.Max(0f, added));
+
+        /// <summary>
+        /// The item tooltip's parry line (ItemData.AddBlockTooltip writes the item's own multiplier, formatted like this)
+        /// with the buff's bonus added, like added damage shows in the damage lines. Only in <paramref name="text"/> from
+        /// <paramref name="start"/> on; false when there's no such line (an item that can't parry).
+        /// </summary>
+        public static bool ShowParryBonus(StringBuilder text, int start, float itemBonus, float bonus)
+        {
+            if (start < 0 || start > text.Length) return false;
+            var line = ParryTooltipLine(itemBonus);
+            if (text.ToString(start, text.Length - start).IndexOf(line, StringComparison.Ordinal) < 0) return false;
+            text.Replace(line, ParryTooltipLine(WithParryBonus(itemBonus, bonus)), start, text.Length - start);
+            return true;
+        }
+
+        private static string ParryTooltipLine(float multiplier) => string.Format("\n$item_parrybonus: <color=orange>{0}x</color>", multiplier);
         public const string EitrCostKey = "eitrCost";
 
         /// <summary>An eitr cost with the buff's percent (−20 = 20 % cheaper); never below 0. No SE_Stats field: see the eitr hook.</summary>

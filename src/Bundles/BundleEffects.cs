@@ -49,6 +49,8 @@ namespace LoadoutBuffs
         private static bool s_damageErrorLogged;
         private static float s_eitrCost;
         private static bool s_eitrErrorLogged;
+        private static float s_parryBonus;
+        private static bool s_tooltipErrorLogged;
 
         /// <summary>A tool tier above anything the game asks for (hits carry it as a 16-bit number).</summary>
         public const short ClassToolTier = 1000;
@@ -84,7 +86,7 @@ namespace LoadoutBuffs
             s_stats.Clear();
             s_parry = null;
             s_woodcutter = s_miner = false;
-            s_blockArmor = s_blockForce = s_eitrCost = 0f;
+            s_blockArmor = s_blockForce = s_eitrCost = s_parryBonus = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
@@ -171,6 +173,7 @@ namespace LoadoutBuffs
                 s_blockArmor = total.BlockArmor;
                 s_blockForce = total.BlockForce;
                 s_eitrCost = total.EitrCost;
+                s_parryBonus = total.ParryBonus;
                 s_addDamage.Clear();
                 foreach (var p in total.AddDamage) s_addDamage[p.Key] = p.Value;
                 if (!s_showHudBuff) return;
@@ -278,6 +281,28 @@ namespace LoadoutBuffs
                     Plugin.Log.LogError($"Buff block armor failed (logged once): {e}");
                 }
                 return value;
+            }
+        }
+
+        /// <summary>
+        /// Postfix of ItemData.AddBlockTooltip: the item tooltip's parry multiplier includes the buff's Parry bonus when that
+        /// item is what the local player parries with (like block armor). The game reads the field directly, so the line
+        /// the method wrote (from <paramref name="start"/> on) is rewritten. Must never throw.
+        /// </summary>
+        public static void ShowParryBonus(ItemData item, System.Text.StringBuilder text, int start)
+        {
+            try
+            {
+                if (s_parryBonus <= 0f || item == null || text == null) return;
+                var player = Player.m_localPlayer;
+                if (player == null || !ReferenceEquals(player.LeftItem ?? player.GetCurrentWeapon(), item)) return;
+                BundleStatCatalog.ShowParryBonus(text, start, item.m_shared.m_timedBlockBonus, s_parryBonus);
+            }
+            catch (Exception e)
+            {
+                if (s_tooltipErrorLogged) return;
+                s_tooltipErrorLogged = true;
+                Plugin.Log.LogError($"Buff parry bonus tooltip failed (logged once): {e}");
             }
         }
 

@@ -591,6 +591,26 @@ internal static partial class Tests
         Eq(2.5f, BundleStatCatalog.WithParryBonus(2.5f, -5f), "never less than the item's own");
     }
 
+    private static void Test_ParryBonus_ShowsInTheItemTooltip()
+    {
+        // ItemData.AddBlockTooltip writes the item's own parry multiplier; the buff's bonus goes into that number,
+        // like added damage and block armor go into theirs.
+        var before = "Old text\n$item_parrybonus: <color=orange>2.5x</color>";
+        var text = new System.Text.StringBuilder(before);
+        var start = text.Length;
+        text.AppendFormat("\n$item_blockforce: <color=orange>{0}</color>", 50f);
+        text.AppendFormat("\n$item_parrybonus: <color=orange>{0}x</color>", 2.5f);
+        text.AppendFormat("\n$item_parryadrenaline: <color=orange>{0}</color>", 5f);
+
+        True(BundleStatCatalog.ShowParryBonus(text, start, 2.5f, 2f), "found the line");
+        var shown = text.ToString();
+        True(shown.EndsWith("\n$item_blockforce: <color=orange>50</color>\n$item_parrybonus: <color=orange>4.5x</color>\n$item_parryadrenaline: <color=orange>5</color>"), shown);
+        True(shown.StartsWith(before), "only the block part is touched: " + shown);
+
+        var none = new System.Text.StringBuilder("\n$item_blockforce: <color=orange>50</color>");
+        False(BundleStatCatalog.ShowParryBonus(none, 0, 2.5f, 2f), "no parry line (a tower shield): nothing to change");
+    }
+
     private static void Test_Classes_BadValueWarns()
     {
         var file = BundleFile.Parse("buffs:\n  T:\n    melee:\n      stats: { woodcutter: maybe }\n");

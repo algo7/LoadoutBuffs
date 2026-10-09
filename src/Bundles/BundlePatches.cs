@@ -114,6 +114,23 @@ namespace LoadoutBuffs
     }
 
     /// <summary>
+    /// Bundle Parry bonus in the item tooltip: ItemData.AddBlockTooltip (private, writes block armor, block force and the
+    /// parry multiplier into the tooltip) reads the multiplier field directly, so its line is rewritten afterwards.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class BundleTooltipPatches
+    {
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "AddBlockTooltip")]
+        [HarmonyPrefix]
+        private static void Before(System.Text.StringBuilder text, out int __state) => __state = text?.Length ?? 0;
+
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "AddBlockTooltip")]
+        [HarmonyPostfix]
+        private static void After(ItemDrop.ItemData item, System.Text.StringBuilder text, int __state) =>
+            BundleEffects.ShowParryBonus(item, text, __state);
+    }
+
+    /// <summary>
     /// Bundle added damage: a postfix on ItemData.GetDamage(int, float) (84 bytes of IL, too big for Mono to inline, so
     /// every attack, the item tooltip and lb_stats go through it).
     /// </summary>

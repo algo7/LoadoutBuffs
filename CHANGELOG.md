@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- Buffs window: long text and values are no longer cut off.
+
 ## 1.2.1
 
 - Staff of Protection and Northern Vengeance are excluded from the Ranged slot to prevent friendly fire.

@@ -43,6 +43,11 @@ namespace LoadoutBuffs
         /// <summary>Added damage (for the tooltip); the damage hook reads BundleEffects' copy.</summary>
         internal Dictionary<string, float> m_addDamage = new Dictionary<string, float>();
 
+        /// <summary>Added to the parry multiplier of what you parry with, see <see cref="ModifyTimedBlockBonus"/>.</summary>
+        internal float m_parryBonus;
+
+        private static bool s_parryErrorLogged;
+
         private static BundleStatsEffect s_template;
         private static SE_Stats s_defaults;
         private static Sprite s_icon;
@@ -74,6 +79,28 @@ namespace LoadoutBuffs
                     value += pair.Value;
         }
 
+        /// <summary>
+        /// Humanoid.BlockAttack calls this on a parry with block power × the parry multiplier of what you parry with: the
+        /// buff adds its Parry bonus to that multiplier. Must never throw.
+        /// </summary>
+        public override void ModifyTimedBlockBonus(ref float timedBlockBonus)
+        {
+            base.ModifyTimedBlockBonus(ref timedBlockBonus);
+            try
+            {
+                if (m_parryBonus <= 0f || !(m_character is Humanoid humanoid)) return;
+                var blocker = humanoid.LeftItem ?? humanoid.GetCurrentWeapon(); // like Humanoid.GetCurrentBlocker
+                var item = blocker?.m_shared.m_timedBlockBonus ?? 0f;
+                if (item > 0f) timedBlockBonus *= BundleStatCatalog.WithParryBonus(item, m_parryBonus) / item;
+            }
+            catch (Exception e)
+            {
+                if (s_parryErrorLogged) return;
+                s_parryErrorLogged = true;
+                Plugin.Log.LogError($"Buff parry bonus failed (logged once): {e}");
+            }
+        }
+
         public override string GetIconText() =>
             m_statCount > 0 ? $"{m_statCount} stat{(m_statCount == 1 ? "" : "s")}" : "";
 
@@ -97,6 +124,8 @@ namespace LoadoutBuffs
                 sb.AppendFormat("Block force: <color=orange>{0}</color> (what you block with)\n", StatBlock.Number(m_blockForce));
             if (m_eitrCost != 0f)
                 sb.AppendFormat("Eitr cost: <color=orange>{0}%</color>\n", StatBlock.Number(m_eitrCost));
+            if (m_parryBonus > 0f)
+                sb.AppendFormat("Parry bonus: <color=orange>{0}x</color> (added to what you parry with)\n", StatBlock.Number(m_parryBonus));
             if (!string.IsNullOrEmpty(m_classes))
                 sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
             return sb.ToString();
@@ -113,6 +142,7 @@ namespace LoadoutBuffs
             m_blockArmor = total.BlockArmor;
             m_blockForce = total.BlockForce;
             m_eitrCost = total.EitrCost;
+            m_parryBonus = total.ParryBonus;
             m_addDamage = new Dictionary<string, float>(total.AddDamage);
             m_classes = string.Join(", ", BundleStatCatalog.Toggles.Where(d => total.Scalars.ContainsKey(d.Key)).Select(d => d.Label));
             foreach (var def in BundleStatCatalog.Scalars)
@@ -122,7 +152,7 @@ namespace LoadoutBuffs
                 float value;
                 switch (def.Kind)
                 {
-                    case StatKind.Percent: value = def.Key == BundleStatCatalog.ParryBonusKey ? BundleStatCatalog.ParryBonusField(v) : v / 100f; break;
+                    case StatKind.Percent: value = v / 100f; break;
                     case StatKind.RegenPercent: value = 1f + v / 100f; break;
                     default: value = v; break;
                 }

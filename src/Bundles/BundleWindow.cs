@@ -425,7 +425,7 @@ namespace LoadoutBuffs
                     var has = stats.Scalars.TryGetValue(d.Key, out var v);
                     string value;
                     if (d.TakesLargest) value = (has ? v : d.Default).ToString("0.##", CultureInfo.InvariantCulture) + d.Unit;
-                    else value = has ? StatBlock.Number(v) + (d.IsPercent ? "%" : "") : "0";
+                    else value = has ? StatBlock.Number(v) + (d.IsPercent ? "%" : d.Unit) : "0";
                     StatRow(d.Label, value, has, !has || d.TakesLargest || d.Helps(v),
                         () => ChangeNumber(b => b.Scalars, d.Key, -d.Step, d.Min, d.Max, d.Default),
                         () => ChangeNumber(b => b.Scalars, d.Key, d.Step, d.Min, d.Max, d.Default));

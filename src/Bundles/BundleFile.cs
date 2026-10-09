@@ -318,7 +318,7 @@ namespace LoadoutBuffs
             "# fields).",
             "# Helmet, chest, legs or cape slot only: fallDamage, healthRegen, staminaRegen, eitrRegen, resist.",
             "# Melee, ranged or shield slot only: blockArmor, blockForce (what you block with), parryBonus",
-            "# (percent on top of the parry bonus of what you parry with: 50 turns 2x into 3x).",
+            "# (added to the parry bonus of what you parry with, up to 20: 2 turns 2.5x into 4.5x).",
             "# Melee, ranged or shield slot only, on every parry: healOnParry, staminaOnParry (you),",
             "# healAlliesOnParry, staminaAlliesOnParry (other players), healTamedOnParry, shieldOnParry (a Magic",
             "# barrier absorbing that much, for all of you), shieldMinutes (its time, default 1), parryRadius",

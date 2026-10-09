@@ -170,7 +170,7 @@ internal static partial class Tests
                 True(def.Min >= 0, $"{def.Key}: no negative parry amounts");
                 continue;
             }
-            if (def.Kind == StatKind.Blocker || def.Kind == StatKind.EitrCost)
+            if (def.Kind == StatKind.Blocker || def.Kind == StatKind.EitrCost || def.Kind == StatKind.ParryBonus)
             {
                 True(def.Field == null, $"{def.Key}: applied by a hook, no SE_Stats field");
                 continue;
@@ -551,44 +551,44 @@ internal static partial class Tests
     private static void Test_ParryBonus_ParseSumSerialize()
     {
         var file = BundleFile.Parse(
-            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { parryBonus: 50 }\n    melee:\n      stats: { ParryBonus: 30, healOnParry: 20 }\n" +
-            "    ranged:\n      stats: { parryBonus: -20 }\n    chest:\n      stats: { parryBonus: 40, armor: 5 }\n");
-        Eq(1, file.Warnings.Count, "only the chest's: " + string.Join(" | ", file.Warnings));
-        Eq("T.chest.parryBonus: only works on the melee, ranged or shield slot; skipped (line 11).", file.Warnings[0], "warning text");
-        True(file.OnlyMisplaced, "cleaned up like the other parry stats");
+            "active: T\nbuffs:\n  T:\n    shield:\n      stats: { parryBonus: 2 }\n    melee:\n      stats: { ParryBonus: 1.5, healOnParry: 20 }\n" +
+            "    ranged:\n      stats: { parryBonus: -1 }\n    chest:\n      stats: { parryBonus: 3, armor: 5 }\n");
+        Eq(2, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
+        Eq("T.ranged.parryBonus: '-1' must be more than 0; skipped (line 9).", file.Warnings[0], "no negative bonus");
+        Eq("T.chest.parryBonus: only works on the melee, ranged or shield slot; skipped (line 11).", file.Warnings[1], "wrong slot");
 
         var bundle = file.Find("T");
-        Eq(-20f, bundle.GetStats(BundleSlot.Ranged).Scalars["parryBonus"], "a smaller bonus is allowed");
+        Eq(null, bundle.GetStats(BundleSlot.Ranged), "the negative bonus is skipped");
         var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Melee) });
-        Eq(80f, total.Scalars["parryBonus"], "sword + shield in hand: both count");
-        Eq("on parry: parry bonus +80%, heal you +20", total.Summary(), "summary");
+        Eq(3.5f, total.Scalars["parryBonus"], "sword + shield in hand: both count");
+        Eq("on parry: parry bonus +3.5x, heal you +20", total.Summary(), "summary");
         Eq(null, bundle.GetStats(BundleSlot.Shield).ToParryAssist(), "a bonus alone helps no one else");
+        Eq(20f, StatBlock.Sum(new[] { Block("parryBonus", 15), Block("parryBonus", 10) }).Scalars["parryBonus"], "the total stops at +20");
 
         var def = BundleStatCatalog.Find("parryBonus");
         Eq("Parry bonus", def.Label, "window label");
         Eq(BundleStatCatalog.OnParry, def.Group, "On parry group");
         True(BundleStatCatalog.Scalars.First(d => d.Group == BundleStatCatalog.OnParry) == def, "first row of On parry");
-        Eq("m_timedBlockBonus", def.Field, "the game's own parry bonus field");
-        Eq(StatKind.Percent, def.Kind, "percent in the file, fraction in the field");
-        Eq(10f, def.Step, "step");
-        Eq(-50f, def.Min, "min");
-        Eq(200f, def.Max, "max");
+        Eq(StatKind.ParryBonus, def.Kind, "applied by the buff's own parry step, no SE_Stats field");
+        Eq(null, def.Field, "no field");
+        Eq(0.5f, def.Step, "step");
+        Eq(0f, def.Min, "min");
+        Eq(20f, def.Max, "max");
+        Eq("x", def.Unit, "shown as +2x");
         False(def.TakesLargest, "slots add up");
-        True(def.Helps(10f) && !def.Helps(-10f), "more is better");
 
         var saved = file.Serialize(null);
-        True(saved.Contains("    melee:\n      stats: { parryBonus: 30, healOnParry: 20 }"), saved);
+        True(saved.Contains("    melee:\n      stats: { parryBonus: 1.5, healOnParry: 20 }"), saved);
         Eq(saved, BundleFile.Parse(saved).Serialize(null), "stable");
     }
 
-    private static void Test_ParryBonus_TotalNeverBelowMinus50()
+    private static void Test_ParryBonus_AddsToTheItemsMultiplier()
     {
-        Eq(0.5f, BundleStatCatalog.ParryBonusField(50f), "percent → SE_Stats fraction");
-        Eq(0f, BundleStatCatalog.ParryBonusField(0f), "none");
-        Eq(-0.3f, BundleStatCatalog.ParryBonusField(-30f), "a smaller bonus");
-        // The game divides a parry's durability drain by the parry multiplier: × 0 would break the item, below 0 repair it.
-        Eq(-0.5f, BundleStatCatalog.ParryBonusField(-100f), "Shield −50 + Melee −50: floored");
-        Eq(-0.5f, BundleStatCatalog.ParryBonusField(-250f), "a hand-edited value too");
+        Eq(4.5f, BundleStatCatalog.WithParryBonus(2.5f, 2f), "buckler 2.5x + 2 = 4.5x");
+        Eq(1.5f, BundleStatCatalog.WithParryBonus(1.5f, 0f), "no bonus: the item's own");
+        Eq(22.5f, BundleStatCatalog.WithParryBonus(2.5f, 25f), "a hand-edited bonus stops at +20");
+        // Humanoid.BlockAttack divides a parry's durability drain by the multiplier: never below the item's own.
+        Eq(2.5f, BundleStatCatalog.WithParryBonus(2.5f, -5f), "never less than the item's own");
     }
 
     private static void Test_Classes_BadValueWarns()
@@ -655,7 +655,7 @@ internal static partial class Tests
         Eq(BundleStatCatalog.General, def.Group, "General group");
         Eq(5f, def.Step, "step");
         Eq(-50f, def.Min, "window min");
-        Eq(200f, def.Max, "window max");
+        Eq(1000f, def.Max, "window max");
     }
 
     private static void Test_BlockArmor_AddsToBaseNeverBelowOne()

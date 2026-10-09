@@ -32,10 +32,10 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
 - **Skills:** + or − levels for any skill.
-- **On parry** (melee, ranged and shield slots): a **parry bonus** on top of what you parry with (+50 % turns a shield's
-  1.5x into 2.25x); heal and stamina, set separately for you and for other players; heal for tamed creatures; and a
-  **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its health and time (1–10
-  minutes). Friends without the mod get it too.
+- **On parry** (melee, ranged and shield slots): a **parry bonus** added to the parry multiplier of what you parry with
+  (+2 turns a buckler's 2.5x into 4.5x; up to +20); heal and stamina, set separately for you and for other players;
+  heal for tamed creatures; and a **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach,
+  with its health and time (1–10 minutes). Friends without the mod get it too.
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
@@ -126,7 +126,7 @@ buffs:
 | `damage` | percent per type: `{ slash: 10 }` (melee or ranged slot only) |
 | `addDamage` | flat per type: `{ spirit: 30 }` (blunt, slash, pierce, fire, frost, lightning, poison, spirit; melee or ranged slot only) |
 | `skills` | levels per skill: `{ Bows: 15 }` |
-| `parryBonus` | percent on top of the parry bonus of what you parry with (`50` turns 2x into 3x; melee, ranged or shield slot only, like all on-parry keys) |
+| `parryBonus` | added to the parry multiplier of what you parry with, up to 20 (`2` turns 2.5x into 4.5x; melee, ranged or shield slot only, like all on-parry keys) |
 | `healOnParry`, `staminaOnParry` | for you, on every parry |
 | `healAlliesOnParry`, `staminaAlliesOnParry`, `healTamedOnParry` | for other players / tamed creatures in reach |
 | `shieldOnParry`, `shieldMinutes` | bubble health, and its time in minutes (default 1) |
@@ -134,8 +134,8 @@ buffs:
 | `woodcutter`, `miner` | `true` (melee or ranged slot only) |
 | `fields` | any other `SE_Stats` field by its code name, raw game value |
 
-Within a buff, the stats of all filled slots add up; reach and bubble time take the largest, resistances the most
-protective. A bad entry is skipped with a warning in the window and in `BepInEx/LogOutput.log`; the rest still applies.
+Within a buff, the stats of all filled slots add up (the parry bonus up to +20); reach and bubble time take the largest,
+resistances the most protective. A bad entry is skipped with a warning in the window and in `BepInEx/LogOutput.log`; the rest still applies.
 
 ## Console Commands
 

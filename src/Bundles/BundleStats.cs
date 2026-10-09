@@ -29,6 +29,9 @@ namespace LoadoutBuffs
 
         /// <summary>Percent of every eitr cost (no SE_Stats field has one): applied by the eitr hook, see <see cref="BundleStatCatalog.WithEitrCost"/>.</summary>
         EitrCost,
+
+        /// <summary>Added to the parry multiplier of what you parry with (no SE_Stats field adds): see <see cref="BundleStatCatalog.WithParryBonus"/>.</summary>
+        ParryBonus,
     }
 
     /// <summary>A scalar stat of the curated set: file key, window label and step, and the SE_Stats field it sets.</summary>
@@ -48,6 +51,9 @@ namespace LoadoutBuffs
 
         /// <summary>Several slots: the largest value instead of the sum (a reach, not an amount).</summary>
         public bool TakesLargest;
+
+        /// <summary>Several slots: the sum stops here.</summary>
+        public float TotalMax = float.PositiveInfinity;
 
         /// <summary>Shown after the number, e.g. " m".</summary>
         public string Unit = "";
@@ -101,7 +107,7 @@ namespace LoadoutBuffs
             Def("movementSpeed", "Movement speed", General, "m_speedModifier", StatKind.Percent, 5, -50, 100),
             Def("carryWeight", "Carry weight", General, "m_addMaxCarryWeight", StatKind.Flat, 25, -100, 500),
             Def("armor", "Armor", General, "m_addArmor", StatKind.Flat, 5, -50, 200),
-            OnlyOn(Def(BlockArmorKey, "Block armor", General, null, StatKind.Blocker, 5, -50, 200), HandSlots),
+            OnlyOn(Def(BlockArmorKey, "Block armor", General, null, StatKind.Blocker, 5, -50, 1000), HandSlots),
             OnlyOn(Def(BlockForceKey, "Block force", General, null, StatKind.Blocker, 5, -50, 300), HandSlots),
             OnlyOn(Cost("fallDamage", "Fall damage", General, "m_fallDamageModifier", 10, -100, 100), ArmorSlots),
             OnlyOn(Def("healthRegen", "Health regen", Regen, "m_healthRegenMultiplier", StatKind.RegenPercent, 10, -50, 300), ArmorSlots),
@@ -117,8 +123,11 @@ namespace LoadoutBuffs
                 Key = EitrCostKey, Label = "Eitr cost", Group = Costs, Kind = StatKind.EitrCost, Step = 5, Min = -100, Max = 100,
                 LowerIsBetter = true,
             },
-            // The game's own parry stat: × (1 + bonus) on top of the item's parry multiplier (SEMan.ModifyTimedBlockBonus).
-            OnlyOn(Def(ParryBonusKey, "Parry bonus", OnParry, "m_timedBlockBonus", StatKind.Percent, 10, -50, 200), HandSlots),
+            new StatDef
+            {
+                Key = ParryBonusKey, Label = "Parry bonus", Group = OnParry, Kind = StatKind.ParryBonus, Step = 0.5f, Min = 0,
+                Max = ParryBonusMax, TotalMax = ParryBonusMax, Unit = "x", OnlyOn = HandSlots,
+            },
             Parry(Catalog.HealOnParry, "Heal you", 10, 0, 300),
             Parry(Catalog.StaminaOnParry, "Stamina to you", 10, 0, 300),
             Parry(Catalog.HealAlliesOnParry, "Heal allies", 10, 0, 300),
@@ -140,11 +149,13 @@ namespace LoadoutBuffs
         public const string ParryRadiusKey = "parryRadius";
         public const string ParryBonusKey = "parryBonus";
 
+        public const float ParryBonusMax = 20f;
+
         /// <summary>
-        /// The summed Parry bonus as SE_Stats' fraction, never below −50 %: Humanoid.BlockAttack divides a parry's
-        /// durability drain by the parry multiplier, so −100 % (Shield −50 and Melee −50) would break the item, less repair it.
+        /// The parry multiplier of what you parry with plus the buff's bonus (buckler 2.5x + 2 = 4.5x), the bonus between 0
+        /// and +20: Humanoid.BlockAttack divides a parry's durability drain by the multiplier, so it must never drop.
         /// </summary>
-        public static float ParryBonusField(float percent) => Math.Max(-50f, percent) / 100f;
+        public static float WithParryBonus(float itemBonus, float added) => itemBonus + Math.Min(ParryBonusMax, Math.Max(0f, added));
         public const string EitrCostKey = "eitrCost";
 
         /// <summary>An eitr cost with the buff's percent (−20 = 20 % cheaper); never below 0. No SE_Stats field: see the eitr hook.</summary>
@@ -328,6 +339,9 @@ namespace LoadoutBuffs
         /// <summary>Eitr cost percent (negative = cheaper), read by the eitr hook.</summary>
         public float EitrCost => Scalars.TryGetValue(BundleStatCatalog.EitrCostKey, out var v) ? v : 0f;
 
+        /// <summary>Added to the parry multiplier of what you parry with (0 when not set).</summary>
+        public float ParryBonus => Scalars.TryGetValue(BundleStatCatalog.ParryBonusKey, out var v) ? v : 0f;
+
         public int Count => Scalars.Count + Resist.Count + Damage.Count + AddDamage.Count + Skills.Count + Fields.Select(f => f.Key).Distinct().Count();
         public bool IsEmpty => Count == 0;
 
@@ -384,8 +398,10 @@ namespace LoadoutBuffs
                 if (block == null) continue;
                 foreach (var p in block.Scalars)
                 {
-                    var largest = BundleStatCatalog.Find(p.Key)?.TakesLargest == true;
-                    SetNumber(total.Scalars, p.Key, !total.Scalars.TryGetValue(p.Key, out var v) ? p.Value : largest ? Math.Max(v, p.Value) : v + p.Value);
+                    var def = BundleStatCatalog.Find(p.Key);
+                    var largest = def?.TakesLargest == true;
+                    var value = !total.Scalars.TryGetValue(p.Key, out var v) ? p.Value : largest ? Math.Max(v, p.Value) : v + p.Value;
+                    SetNumber(total.Scalars, p.Key, Math.Min(value, def?.TotalMax ?? float.PositiveInfinity));
                 }
                 foreach (var p in block.Damage) SetNumber(total.Damage, p.Key, total.Damage.TryGetValue(p.Key, out var v) ? v + p.Value : p.Value);
                 foreach (var p in block.Skills) SetNumber(total.Skills, p.Key, total.Skills.TryGetValue(p.Key, out var v) ? v + p.Value : p.Value);
@@ -413,7 +429,7 @@ namespace LoadoutBuffs
             }
 
             string Value(StatDef def, float v) =>
-                def.TakesLargest ? $"{Plain(v)}{def.Unit}" : $"{Number(v)}{(def.IsPercent ? "%" : "")}";
+                def.TakesLargest ? $"{Plain(v)}{def.Unit}" : $"{Number(v)}{(def.IsPercent ? "%" : def.Unit)}";
 
             var scalars = BundleStatCatalog.Scalars.Where(d => Scalars.ContainsKey(d.Key)).ToList();
             Group(null, scalars.Where(d => d.Group == BundleStatCatalog.General || d.Group == BundleStatCatalog.Regen ||
@@ -495,7 +511,7 @@ namespace LoadoutBuffs
                 if (def != null)
                 {
                     if (!TryNumber(pair.Value, out var v, out var error)) warnings.Add($"{label}.{def.Key}: {error}; skipped (line {line}).");
-                    else if (def.Kind == StatKind.Parry && v <= 0f) // a negative amount would cancel another slot's
+                    else if ((def.Kind == StatKind.Parry || def.Kind == StatKind.ParryBonus) && v <= 0f) // a negative amount would cancel another slot's
                         warnings.Add($"{label}.{def.Key}: '{(pair.Value as YamlScalarNode)?.Value}' must be more than 0; skipped (line {line}).");
                     else SetNumber(block.Scalars, def.Key, v);
                     continue;

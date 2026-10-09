@@ -44,8 +44,8 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   lightning) does nothing to wood or stone. To make it work, add blunt, slash or other physical damage under *Added
   damage* on the Ranged slot (e.g. +10 pierce). Digging the ground stays a pickaxe thing.
 
-![Custom stats of a slot: Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
-![On parry: heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
+![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
+![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
 
 ![The buff in use on the HUD, followed by its effects](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/hud-buff.png)
 

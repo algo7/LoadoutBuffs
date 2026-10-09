@@ -822,6 +822,7 @@ internal static partial class Tests
         True(BundleStatCatalog.WithClass(ref mixed, tree: true, woodcutter: true, miner: false), "mixed hit applies");
         Eq(50f, mixed.m_chop, "chop = all damage but chop / pickaxe");
         Eq(20f, mixed.m_frost, "the hit's other damage is kept");
+        Eq(7f, mixed.m_pickaxe, "woodcutter leaves pickaxe alone");
 
         var axe = new HitData.DamageTypes { m_slash = 30, m_chop = 100 };
         True(BundleStatCatalog.WithClass(ref axe, tree: true, woodcutter: true, miner: true), "axe applies");
@@ -831,6 +832,11 @@ internal static partial class Tests
         True(BundleStatCatalog.WithClass(ref rock, tree: false, woodcutter: false, miner: true), "miner on a rock applies");
         Eq(30f, rock.m_pickaxe, "pickaxe = all damage");
         Eq(0f, rock.m_chop, "no chop on a rock");
+
+        var pick = new HitData.DamageTypes { m_blunt = 20, m_pickaxe = 90, m_chop = 30 };
+        True(BundleStatCatalog.WithClass(ref pick, tree: false, woodcutter: true, miner: true), "miner with a bigger own pickaxe applies");
+        Eq(90f, pick.m_pickaxe, "a bigger own pickaxe stays");
+        Eq(30f, pick.m_chop, "miner leaves chop alone");
 
         var wrong = new HitData.DamageTypes { m_lightning = 40 };
         False(BundleStatCatalog.WithClass(ref wrong, tree: false, woodcutter: true, miner: false), "woodcutter on a rock");

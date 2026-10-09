@@ -42,7 +42,7 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to all its
-  damage (physical and elemental), so even a club, a bow or a frost staff works. Digging the ground stays a pickaxe
+  damage, whatever the type, so even a club, a bow or a frost staff works. Digging the ground stays a pickaxe
   thing.
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)

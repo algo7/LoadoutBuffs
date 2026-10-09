@@ -451,7 +451,7 @@ namespace LoadoutBuffs
             var classes = BundleStatCatalog.Toggles.Count(d => stats.Scalars.ContainsKey(d.Key));
             if (BundleStatCatalog.Toggles.All(d => d.Allows(s_selectedSlot)) && GroupHeader(BundleStatCatalog.Class, classes, true))
             {
-                var hits = s_selectedSlot == BundleSlot.Ranged ? "Your shots (arrows, bolts, spells with blunt / slash / pierce)" : "Your melee hits";
+                var hits = s_selectedSlot == BundleSlot.Ranged ? "Your shots (arrows, bolts, staff spells)" : "Your melee hits";
                 Row(s_statsList, $"<size=13><color=#bbbbbb>{hits}: Woodcutter fells any tree, Miner breaks any rock or ore.</color></size>",
                     40, () => { }, false);
                 foreach (var def in BundleStatCatalog.Toggles)

@@ -100,8 +100,14 @@ namespace LoadoutBuffs
             if (!ReferenceEquals(blocker, weapon))
                 lines.Add($"  Blocking with: {EffectText.DisplayName(blocker.m_shared.m_name)} (quality {blocker.m_quality})");
             var shared = blocker.m_shared;
+            // A parry multiplies block armor by the item's bonus, then by every effect's Parry bonus (Humanoid.BlockAttack).
+            var parryBonus = shared.m_timedBlockBonus;
+            if (parryBonus > 1f) player.GetSEMan().ModifyTimedBlockBonus(ref parryBonus);
+            string X(float v) => "×" + v.ToString("0.##", CultureInfo.InvariantCulture);
+            var parryText = Math.Abs(parryBonus - shared.m_timedBlockBonus) < 0.001f ? X(parryBonus)
+                : $"{X(parryBonus)} (item {X(shared.m_timedBlockBonus)})";
             lines.Add($"    block armor {F(blocker.GetBlockPowerTooltip(blocker.m_quality))} (with your Blocking skill), " +
-                      $"block force {F(blocker.GetDeflectionForce())}, parry ×{F(shared.m_timedBlockBonus)}");
+                      $"block force {F(blocker.GetDeflectionForce())}, parry {parryText}");
 
             var parry = shared.m_perfectBlockStatusEffect;
             if (parry != null)

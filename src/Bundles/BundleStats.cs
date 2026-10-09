@@ -88,20 +88,25 @@ namespace LoadoutBuffs
         public const string SkillsKey = "skills";
         public const string FieldsKey = "fields";
 
-        /// <summary>The slots of what's in your hands, what you parry with: the only ones for on-parry stats. Before Scalars (init order).</summary>
+        /// <summary>The slots of what's in your hands, what you block and parry with: the only ones for block and on-parry stats. Before Scalars (init order).</summary>
         private static readonly BundleSlot[] HandSlots = { BundleSlot.Melee, BundleSlot.Ranged, BundleSlot.Shield };
+
+        /// <summary>The armor slots (the cape too, not the shield): the only ones for fall damage, regen and resistances. Before Scalars (init order).</summary>
+        private static readonly BundleSlot[] ArmorSlots = { BundleSlot.Helmet, BundleSlot.Chest, BundleSlot.Legs, BundleSlot.Cape };
+
+        public static bool IsArmorSlot(BundleSlot slot) => Array.IndexOf(ArmorSlots, slot) >= 0;
 
         public static readonly StatDef[] Scalars =
         {
             Def("movementSpeed", "Movement speed", General, "m_speedModifier", StatKind.Percent, 5, -50, 100),
             Def("carryWeight", "Carry weight", General, "m_addMaxCarryWeight", StatKind.Flat, 25, -100, 500),
             Def("armor", "Armor", General, "m_addArmor", StatKind.Flat, 5, -50, 200),
-            Def(BlockArmorKey, "Block armor", General, null, StatKind.Blocker, 5, -50, 200),
-            Def(BlockForceKey, "Block force", General, null, StatKind.Blocker, 5, -50, 300),
-            Cost("fallDamage", "Fall damage", General, "m_fallDamageModifier", 10, -100, 100),
-            Def("healthRegen", "Health regen", Regen, "m_healthRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
-            Def("staminaRegen", "Stamina regen", Regen, "m_staminaRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
-            Def("eitrRegen", "Eitr regen", Regen, "m_eitrRegenMultiplier", StatKind.RegenPercent, 10, -50, 300),
+            OnlyOn(Def(BlockArmorKey, "Block armor", General, null, StatKind.Blocker, 5, -50, 200), HandSlots),
+            OnlyOn(Def(BlockForceKey, "Block force", General, null, StatKind.Blocker, 5, -50, 300), HandSlots),
+            OnlyOn(Cost("fallDamage", "Fall damage", General, "m_fallDamageModifier", 10, -100, 100), ArmorSlots),
+            OnlyOn(Def("healthRegen", "Health regen", Regen, "m_healthRegenMultiplier", StatKind.RegenPercent, 10, -50, 300), ArmorSlots),
+            OnlyOn(Def("staminaRegen", "Stamina regen", Regen, "m_staminaRegenMultiplier", StatKind.RegenPercent, 10, -50, 300), ArmorSlots),
+            OnlyOn(Def("eitrRegen", "Eitr regen", Regen, "m_eitrRegenMultiplier", StatKind.RegenPercent, 10, -50, 300), ArmorSlots),
             Cost("runStamina", "Run stamina cost", Costs, "m_runStaminaDrainModifier", 5, -100, 100),
             Cost("jumpStamina", "Jump stamina cost", Costs, "m_jumpStaminaUseModifier", 5, -100, 100),
             Cost("attackStamina", "Attack stamina cost", Costs, "m_attackStaminaUseModifier", 5, -100, 100),
@@ -112,6 +117,8 @@ namespace LoadoutBuffs
                 Key = EitrCostKey, Label = "Eitr cost", Group = Costs, Kind = StatKind.EitrCost, Step = 5, Min = -100, Max = 100,
                 LowerIsBetter = true,
             },
+            // The game's own parry stat: × (1 + bonus) on top of the item's parry multiplier (SEMan.ModifyTimedBlockBonus).
+            OnlyOn(Def(ParryBonusKey, "Parry bonus", OnParry, "m_timedBlockBonus", StatKind.Percent, 10, -50, 200), HandSlots),
             Parry(Catalog.HealOnParry, "Heal you", 10, 0, 300),
             Parry(Catalog.StaminaOnParry, "Stamina to you", 10, 0, 300),
             Parry(Catalog.HealAlliesOnParry, "Heal allies", 10, 0, 300),
@@ -131,6 +138,7 @@ namespace LoadoutBuffs
         };
 
         public const string ParryRadiusKey = "parryRadius";
+        public const string ParryBonusKey = "parryBonus";
         public const string EitrCostKey = "eitrCost";
 
         /// <summary>An eitr cost with the buff's percent (−20 = 20 % cheaper); never below 0. No SE_Stats field: see the eitr hook.</summary>
@@ -149,15 +157,16 @@ namespace LoadoutBuffs
             return (keys.Count == 1 ? last : string.Join(", ", keys.Take(keys.Count - 1)) + " or " + last) + " slot";
         }
 
-        public static string WeaponSlotsText => SlotsText(WeaponSlots);
-
-        /// <summary>Nested stats only weapon slots take: file key and window group.</summary>
-        private static readonly (string Key, string Group)[] s_weaponOnlyNested = { (DamageKey, Damage), (AddDamageKey, AddedDamage) };
-
-        /// <summary>The file key and window group of a weapon-only nested stat (<c>damage</c>, <c>addDamage</c>), or null.</summary>
-        public static (string Key, string Group)? WeaponOnlyNested(string key)
+        /// <summary>Nested stats only some slots take: file key, window group and those slots.</summary>
+        private static readonly (string Key, string Group, BundleSlot[] Slots)[] s_nestedOnlyOn =
         {
-            foreach (var n in s_weaponOnlyNested)
+            (ResistKey, Resistances, ArmorSlots), (DamageKey, Damage, WeaponSlots), (AddDamageKey, AddedDamage, WeaponSlots),
+        };
+
+        /// <summary>The file key, window group and slots of a nested stat that only some slots take (<c>resist</c>, <c>damage</c>, <c>addDamage</c>), or null.</summary>
+        public static (string Key, string Group, BundleSlot[] Slots)? NestedOnlyOn(string key)
+        {
+            foreach (var n in s_nestedOnlyOn)
                 if (string.Equals(n.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase)) return n;
             return null;
         }
@@ -270,10 +279,12 @@ namespace LoadoutBuffs
         private static StatDef Def(string key, string label, string group, string field, StatKind kind, float step, float min, float max) =>
             new StatDef { Key = key, Label = label, Group = group, Field = field, Kind = kind, Step = step, Min = min, Max = max };
 
-        private static StatDef Parry(string key, string label, float step, float min, float max)
+        private static StatDef Parry(string key, string label, float step, float min, float max) =>
+            OnlyOn(Def(key, label, OnParry, null, StatKind.Parry, step, min, max), HandSlots);
+
+        private static StatDef OnlyOn(StatDef def, BundleSlot[] slots)
         {
-            var def = Def(key, label, OnParry, null, StatKind.Parry, step, min, max);
-            def.OnlyOn = HandSlots;
+            def.OnlyOn = slots;
             return def;
         }
 
@@ -459,10 +470,10 @@ namespace LoadoutBuffs
                     misplaced?.Add((def.Label, def.WhereAllowed));
                     continue;
                 }
-                var nested = BundleStatCatalog.WeaponOnlyNested(key);
-                if (nested.HasValue && slot.HasValue && !BundleStatCatalog.IsWeaponSlot(slot.Value))
+                var nested = BundleStatCatalog.NestedOnlyOn(key);
+                if (nested.HasValue && slot.HasValue && Array.IndexOf(nested.Value.Slots, slot.Value) < 0)
                 {
-                    var where = BundleStatCatalog.WeaponSlotsText;
+                    var where = BundleStatCatalog.SlotsText(nested.Value.Slots);
                     warnings.Add($"{label}.{nested.Value.Key}: only works on the {where}; skipped (line {line}).");
                     misplaced?.Add((nested.Value.Group, where));
                     continue;

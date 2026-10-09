@@ -414,7 +414,7 @@ namespace LoadoutBuffs
 
             foreach (var group in new[] { BundleStatCatalog.General, BundleStatCatalog.Regen, BundleStatCatalog.Costs, BundleStatCatalog.OnParry })
             {
-                // Only what this slot takes: no On parry on armor or the cape.
+                // Only what this slot takes: no fall damage or Regen on hand slots, no block stats or On parry on armor or the cape.
                 var defs = BundleStatCatalog.Scalars.Where(d => d.Group == group && d.Allows(s_selectedSlot)).ToList();
                 if (defs.Count == 0) continue;
                 var used = defs.Count(d => stats.Scalars.ContainsKey(d.Key));
@@ -446,7 +446,7 @@ namespace LoadoutBuffs
                 }
             }
 
-            if (GroupHeader(BundleStatCatalog.Resistances, stats.Resist.Count, false))
+            if (BundleStatCatalog.IsArmorSlot(s_selectedSlot) && GroupHeader(BundleStatCatalog.Resistances, stats.Resist.Count, false))
                 foreach (var type in BundleStatCatalog.DamageTypes)
                 {
                     var t = type;

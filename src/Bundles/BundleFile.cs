@@ -73,7 +73,8 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Stats skipped for their slot (classes or damage on armor or the shield, allowed in 1.0.0; on-parry stats on armor or
-        /// the cape, allowed in 1.0.0 and 1.1.0): "Woodcutter from Bro's chest; it only goes on the melee or ranged slot now".
+        /// the cape, allowed until 1.1.0; regen and resistances on hand slots, block stats on armor, allowed until 1.2.3):
+        /// "Woodcutter from Bro's chest; it only goes on the melee or ranged slot now".
         /// </summary>
         public readonly List<string> Misplaced = new List<string>();
 
@@ -312,10 +313,12 @@ namespace LoadoutBuffs
             "#   chest:",
             "#     effect: SetEffect_DeepNorthMediumArmor",
             "#     stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, skills: { Bows: 15 } }",
-            "# Stats: movementSpeed, carryWeight, armor, blockArmor, blockForce (what you block with), fallDamage,",
-            "# healthRegen, staminaRegen, eitrRegen, runStamina, jumpStamina, attackStamina, blockStamina,",
-            "# dodgeStamina, eitrCost (percent stats in percent: 10 = +10 %), resist, skills, fields (raw SE_Stats",
+            "# Stats: movementSpeed, carryWeight, armor, runStamina, jumpStamina, attackStamina, blockStamina,",
+            "# dodgeStamina, eitrCost (percent stats in percent: 10 = +10 %), skills, fields (raw SE_Stats",
             "# fields).",
+            "# Helmet, chest, legs or cape slot only: fallDamage, healthRegen, staminaRegen, eitrRegen, resist.",
+            "# Melee, ranged or shield slot only: blockArmor, blockForce (what you block with), parryBonus",
+            "# (percent on top of the parry bonus of what you parry with: 50 turns 2x into 3x).",
             "# Melee, ranged or shield slot only, on every parry: healOnParry, staminaOnParry (you),",
             "# healAlliesOnParry, staminaAlliesOnParry (other players), healTamedOnParry, shieldOnParry (a Magic",
             "# barrier absorbing that much, for all of you), shieldMinutes (its time, default 1), parryRadius",

@@ -49,7 +49,7 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
 
-![The buff in use on the HUD, followed by its effects](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/hud-buff.png)
+![The buff in use on the HUD (Warrior), next to its effects](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/hud-buff.png)
 
 The buff in use shows on your HUD with its name ("N stats" under it when it has custom stats). The stats of all slots
 you fill add up; the Compendium's Active effects page lists the buff's effects and stats, and the bottom of the window

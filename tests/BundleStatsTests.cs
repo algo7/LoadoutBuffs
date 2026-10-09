@@ -561,7 +561,7 @@ internal static partial class Tests
         Eq(null, bundle.GetStats(BundleSlot.Ranged), "the negative bonus is skipped");
         var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Shield), bundle.GetStats(BundleSlot.Melee) });
         Eq(3.5f, total.Scalars["parryBonus"], "sword + shield in hand: both count");
-        Eq("on parry: parry bonus +3.5x, heal you +20", total.Summary(), "summary");
+        Eq("on parry: parry bonus +3.5, heal you +20", total.Summary(), "summary");
         Eq(null, bundle.GetStats(BundleSlot.Shield).ToParryAssist(), "a bonus alone helps no one else");
         Eq(20f, StatBlock.Sum(new[] { Block("parryBonus", 15), Block("parryBonus", 10) }).Scalars["parryBonus"], "the total stops at +20");
 
@@ -574,7 +574,7 @@ internal static partial class Tests
         Eq(0.5f, def.Step, "step");
         Eq(0f, def.Min, "min");
         Eq(20f, def.Max, "max");
-        Eq("x", def.Unit, "shown as +2x");
+        Eq("", def.Unit, "shown as +2");
         False(def.TakesLargest, "slots add up");
 
         var saved = file.Serialize(null);

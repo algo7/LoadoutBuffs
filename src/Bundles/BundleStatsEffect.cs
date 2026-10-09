@@ -125,7 +125,7 @@ namespace LoadoutBuffs
             if (m_eitrCost != 0f)
                 sb.AppendFormat("Eitr cost: <color=orange>{0}%</color>\n", StatBlock.Number(m_eitrCost));
             if (m_parryBonus > 0f)
-                sb.AppendFormat("Parry bonus: <color=orange>{0}x</color> (added to what you parry with)\n", StatBlock.Number(m_parryBonus));
+                sb.AppendFormat("Parry bonus: <color=orange>{0}</color> (added to what you parry with)\n", StatBlock.Number(m_parryBonus));
             if (!string.IsNullOrEmpty(m_classes))
                 sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
             return sb.ToString();

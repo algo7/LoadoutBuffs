@@ -127,7 +127,7 @@ namespace LoadoutBuffs
             new StatDef
             {
                 Key = ParryBonusKey, Label = "Parry bonus", Group = OnParry, Kind = StatKind.ParryBonus, Step = 0.5f, Min = 0,
-                Max = ParryBonusMax, TotalMax = ParryBonusMax, Unit = "x", OnlyOn = HandSlots,
+                Max = ParryBonusMax, TotalMax = ParryBonusMax, OnlyOn = HandSlots,
             },
             Parry(Catalog.HealOnParry, "Heal you", 10, 0, 300),
             Parry(Catalog.StaminaOnParry, "Stamina to you", 10, 0, 300),

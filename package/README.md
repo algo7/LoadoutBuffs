@@ -21,9 +21,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 
 - **Effects:** any set bonus or equipment effect gear has in the game (Vanguard, Megingjord, Feather fall, Wisplight…,
   including other mods' gear). Point at one in the window to read what it does.
-- **General:** movement speed, carry weight, armor; on armor slots (helmet, chest, legs, cape) also fall damage; on the
-  melee, ranged and shield slots **block armor** and **block force** (added to what you block with: your shield, else
-  your weapon).
+- **General:** movement speed, carry weight; on armor slots (helmet, chest, legs, cape) also armor and fall damage; on
+  the melee, ranged and shield slots **block armor** and **block force** (added to what you block with: your shield,
+  else your weapon).
 - **Regen** (armor slots): health / stamina / eitr regen.
 - **Costs:** run / jump / attack / block / dodge stamina cost; **eitr cost** (every spell and staff charge, e.g. −50 %
   for half the eitr). Even at −100 %, when spells cost nothing, you need eitr to cast: eat at least one eitr food.
@@ -68,8 +68,8 @@ shows them for what you wear now.
   a bubble to everyone in reach who has none. A bubble that is still up (yours or from a real Staff of Protection) isn't
   refreshed: it stays until it breaks or runs out, and the next parry after that gives a new one. When a bubble breaks,
   the player in it gains a little Blood Magic skill, as with the staff.
-- **Armor stats on armor, block stats in your hands.** Fall damage, Regen and Resistances can only be set on the
-  helmet, chest, legs or cape. Block armor and Block force can only be set on Melee, Ranged or Shield, and count while
+- **Armor stats on armor, block stats in your hands.** Armor, Fall damage, Regen and Resistances can only be set on
+  the helmet, chest, legs or cape. Block armor and Block force can only be set on Melee, Ranged or Shield, and count while
   that item is in your hands: holding a sword and a shield, a block also uses the sword's.
 - **Damage and classes are for weapons.** Damage %, Added damage, Woodcutter and Miner can only be set on Melee or
   Ranged, and count only while that weapon is in your hands. A staff blast with Miner breaks every chunk of a deposit
@@ -121,7 +121,8 @@ buffs:
 | `movementSpeed` | percent (`10` = +10 %) |
 | `fallDamage`, `healthRegen`, `staminaRegen`, `eitrRegen` | percent (helmet, chest, legs or cape slot only) |
 | `runStamina`, `jumpStamina`, `attackStamina`, `blockStamina`, `dodgeStamina`, `eitrCost` | percent of the cost (negative = cheaper) |
-| `carryWeight`, `armor` | flat amount |
+| `carryWeight` | flat amount |
+| `armor` | flat amount (helmet, chest, legs or cape slot only) |
 | `blockArmor`, `blockForce` | flat amount, added to what you block with (melee, ranged or shield slot only) |
 | `resist` | `{ Fire: Resistant }`: Normal, SlightlyResistant, Resistant, VeryResistant, Immune, SlightlyWeak, Weak, VeryWeak (helmet, chest, legs or cape slot only) |
 | `damage` | percent per type: `{ slash: 10 }` (melee or ranged slot only) |
@@ -161,10 +162,10 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
   lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
 - **A stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and Added damage go on Melee
-  or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only; since 1.3.0 fall damage, regen and
-  resistances go on the helmet, chest, legs or cape only, block armor and block force on Melee, Ranged or Shield only.
-  On other slots they're skipped with a warning, and when that's the only problem in your buffs file, the mod removes
-  them from it (the log says which). Set them on one of those slots again.
+  or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only; since 1.3.0 armor, fall damage, regen
+  and resistances go on the helmet, chest, legs or cape only, block armor and block force on Melee, Ranged or Shield
+  only. On other slots they're skipped with a warning, and when that's the only problem in your buffs file, the mod
+  removes them from it (the log says which). Set them on one of those slots again.
 
 ## Compatibility
 

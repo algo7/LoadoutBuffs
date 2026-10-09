@@ -98,7 +98,7 @@ namespace LoadoutBuffs
         /// <summary>The slots of what's in your hands, what you block and parry with: the only ones for block and on-parry stats. Before Scalars (init order).</summary>
         private static readonly BundleSlot[] HandSlots = { BundleSlot.Melee, BundleSlot.Ranged, BundleSlot.Shield };
 
-        /// <summary>The armor slots (the cape too, not the shield): the only ones for fall damage, regen and resistances. Before Scalars (init order).</summary>
+        /// <summary>The armor slots (the cape too, not the shield): the only ones for armor, fall damage, regen and resistances. Before Scalars (init order).</summary>
         private static readonly BundleSlot[] ArmorSlots = { BundleSlot.Helmet, BundleSlot.Chest, BundleSlot.Legs, BundleSlot.Cape };
 
         public static bool IsArmorSlot(BundleSlot slot) => Array.IndexOf(ArmorSlots, slot) >= 0;
@@ -107,7 +107,7 @@ namespace LoadoutBuffs
         {
             Def("movementSpeed", "Movement speed", General, "m_speedModifier", StatKind.Percent, 5, -50, 100),
             Def("carryWeight", "Carry weight", General, "m_addMaxCarryWeight", StatKind.Flat, 25, -100, 500),
-            Def("armor", "Armor", General, "m_addArmor", StatKind.Flat, 5, -50, 200),
+            OnlyOn(Def("armor", "Armor", General, "m_addArmor", StatKind.Flat, 5, -50, 200), ArmorSlots),
             OnlyOn(Def(BlockArmorKey, "Block armor", General, null, StatKind.Blocker, 5, -50, 1000), HandSlots),
             OnlyOn(Def(BlockForceKey, "Block force", General, null, StatKind.Blocker, 5, -50, 300), HandSlots),
             OnlyOn(Cost("fallDamage", "Fall damage", General, "m_fallDamageModifier", 10, -100, 100), ArmorSlots),

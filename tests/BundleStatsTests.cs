@@ -46,12 +46,12 @@ internal static partial class Tests
     private static void Test_Stats_BadEntriesWarnAndTheRestApplies()
     {
         var file = BundleFile.Parse(
-            "buffs:\n  T:\n    melee:\n      stats: { speed: 5, armor: lots, damage: { magic: 5 },\n" +
+            "buffs:\n  T:\n    melee:\n      stats: { speed: 5, carryWeight: lots, damage: { magic: 5 },\n" +
             "               skills: { Juggling: 5 }, fields: { m_nope: 1, m_icon: x, m_speedModifier: fast }, movementSpeed: 10 }\n      colour: red\n" +
             "    chest:\n      stats: { resist: { Wet: Resistant, Fire: Tough } }\n");
         Eq(10, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         True(file.Warnings[0].StartsWith("T.melee.speed: unknown stat") && file.Warnings[0].Contains("movementSpeed"), file.Warnings[0]);
-        True(file.Warnings[1].StartsWith("T.melee.armor: 'lots' is not a number"), file.Warnings[1]);
+        True(file.Warnings[1].StartsWith("T.melee.carryWeight: 'lots' is not a number"), file.Warnings[1]);
         True(file.Warnings[2].StartsWith("T.melee.damage.magic: unknown damage type"), file.Warnings[2]);
         True(file.Warnings[3].StartsWith("T.melee.skills.Juggling: unknown skill"), file.Warnings[3]);
         True(file.Warnings[4].StartsWith("T.melee.fields.m_nope: 'm_nope' is not a field of SE_Stats"), file.Warnings[4]);
@@ -366,19 +366,19 @@ internal static partial class Tests
     private static void Test_Classes_ParseSumSerialize()
     {
         var file = BundleFile.Parse(
-            "active: T\nbuffs:\n  T:\n    melee:\n      stats: { Woodcutter: true, miner: yes, armor: 5 }\n" +
+            "active: T\nbuffs:\n  T:\n    melee:\n      stats: { Woodcutter: true, miner: yes, carryWeight: 5 }\n" +
             "    ranged:\n      stats: { woodcutter: on, miner: false }\n");
         Eq(0, file.Warnings.Count, "warnings: " + string.Join(" | ", file.Warnings));
         var bundle = file.Find("T");
-        Eq(3, bundle.GetStats(BundleSlot.Melee).Count, "melee: two classes + armor");
+        Eq(3, bundle.GetStats(BundleSlot.Melee).Count, "melee: two classes + carry weight");
         Eq(1, bundle.GetStats(BundleSlot.Ranged).Count, "ranged: one class (miner: false sets nothing)");
 
         var total = StatBlock.Sum(new[] { bundle.GetStats(BundleSlot.Melee), bundle.GetStats(BundleSlot.Ranged) });
         Eq(1f, total.Scalars["woodcutter"], "a class from two slots is still just on");
-        Eq("+5 armor; class: Woodcutter, Miner", total.Summary(), "summary");
+        Eq("+5 carry weight; class: Woodcutter, Miner", total.Summary(), "summary");
 
         var saved = file.Serialize(null);
-        True(saved.Contains("stats: { armor: 5, woodcutter: true, miner: true }"), saved);
+        True(saved.Contains("stats: { carryWeight: 5, woodcutter: true, miner: true }"), saved);
         True(saved.Contains("    ranged:\n      stats: { woodcutter: true }"), saved);
         var again = BundleFile.Parse(saved);
         Eq(0, again.Warnings.Count, "re-parse warnings: " + string.Join(" | ", again.Warnings));
@@ -408,7 +408,7 @@ internal static partial class Tests
         foreach (var def in BundleStatCatalog.Toggles)
             foreach (var slot in BundleSlots.All)
                 Eq(slot == BundleSlot.Melee || slot == BundleSlot.Ranged, def.Allows(slot), $"{def.Key} on {slot}");
-        Eq("movementSpeed, carryWeight, armor, runStamina, jumpStamina, attackStamina, blockStamina, dodgeStamina, eitrCost",
+        Eq("movementSpeed, carryWeight, runStamina, jumpStamina, attackStamina, blockStamina, dodgeStamina, eitrCost",
             string.Join(", ", BundleStatCatalog.Scalars.Where(d => BundleSlots.All.All(d.Allows)).Select(d => d.Key)),
             "the stats every slot takes");
     }
@@ -501,7 +501,7 @@ internal static partial class Tests
         }
         Eq(9, BundleStatCatalog.Scalars.Count(d => d.Group == BundleStatCatalog.OnParry), "all 9 parry stats");
         Eq("melee or ranged slot", BundleStatCatalog.Find("woodcutter").WhereAllowed, "two slots: no comma");
-        Eq("any slot", BundleStatCatalog.Find("armor").WhereAllowed, "no limit");
+        Eq("any slot", BundleStatCatalog.Find("carryWeight").WhereAllowed, "no limit");
 
         var zero = BundleFile.Parse("buffs:\n  T:\n    chest:\n      stats: { healOnParry: 0 }\n");
         Eq(1, zero.Warnings.Count, "the slot check comes first: " + string.Join(" | ", zero.Warnings));
@@ -514,7 +514,7 @@ internal static partial class Tests
         var file = BundleFile.Parse(
             "buffs:\n  T:\n    helmet:\n      stats: { healthRegen: 20, resist: { Fire: Resistant }, fallDamage: -50 }\n" +
             "    cape:\n      stats: { eitrRegen: 10 }\n" +
-            "    melee:\n      stats: { staminaRegen: 50, armor: 5 }\n    ranged:\n      stats: { resist: { Blunt: SlightlyResistant }, fallDamage: -20 }\n" +
+            "    melee:\n      stats: { staminaRegen: 50, movementSpeed: 5 }\n    ranged:\n      stats: { resist: { Blunt: SlightlyResistant }, fallDamage: -20 }\n" +
             "    shield:\n      stats: { healthRegen: 10, resist: { Pierce: Resistant }, blockArmor: 20 }\n");
         Eq(5, file.Warnings.Count, "one warning per regen / resist / fall damage on a hand slot: " + string.Join(" | ", file.Warnings));
         Eq("T.melee.staminaRegen: only works on the helmet, chest, legs or cape slot; skipped (line 8).", file.Warnings[0], "regen");
@@ -535,14 +535,14 @@ internal static partial class Tests
         Eq(-50f, bundle.GetStats(BundleSlot.Helmet).Scalars["fallDamage"], "helmet keeps its fall damage");
         Eq("Resistant", bundle.GetStats(BundleSlot.Helmet).Resist["Fire"], "helmet keeps its resistance");
         Eq(10f, bundle.GetStats(BundleSlot.Cape).Scalars["eitrRegen"], "the cape counts as armor");
-        Eq(1, bundle.GetStats(BundleSlot.Melee).Count, "melee keeps its armor only");
+        Eq(1, bundle.GetStats(BundleSlot.Melee).Count, "melee keeps its movement speed only");
         Eq(null, bundle.GetStats(BundleSlot.Ranged), "ranged: nothing left");
         Eq(1, bundle.GetStats(BundleSlot.Shield).Count, "shield keeps its block armor only");
 
         var armor = new[] { BundleSlot.Helmet, BundleSlot.Chest, BundleSlot.Legs, BundleSlot.Cape };
         foreach (var slot in BundleSlots.All)
             Eq(armor.Contains(slot), BundleStatCatalog.IsArmorSlot(slot), $"armor slot: {slot}");
-        foreach (var def in BundleStatCatalog.Scalars.Where(d => d.Group == BundleStatCatalog.Regen || d.Key == "fallDamage"))
+        foreach (var def in BundleStatCatalog.Scalars.Where(d => d.Group == BundleStatCatalog.Regen || d.Key == "fallDamage" || d.Key == "armor"))
             foreach (var slot in BundleSlots.All)
                 Eq(armor.Contains(slot), def.Allows(slot), $"{def.Key} on {slot}");
         Eq(3, BundleStatCatalog.Scalars.Count(d => d.Group == BundleStatCatalog.Regen), "all 3 regen stats");

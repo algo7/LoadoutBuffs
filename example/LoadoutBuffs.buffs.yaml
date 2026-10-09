@@ -14,10 +14,11 @@
 #   chest:
 #     effect: SetEffect_DeepNorthMediumArmor
 #     stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, skills: { Bows: 15 } }
-# Stats: movementSpeed, carryWeight, armor, runStamina, jumpStamina, attackStamina, blockStamina,
+# Stats: movementSpeed, carryWeight, runStamina, jumpStamina, attackStamina, blockStamina,
 # dodgeStamina, eitrCost (percent stats in percent: 10 = +10 %), skills, fields (raw SE_Stats
 # fields).
-# Helmet, chest, legs or cape slot only: fallDamage, healthRegen, staminaRegen, eitrRegen, resist.
+# Helmet, chest, legs or cape slot only: armor, fallDamage, healthRegen, staminaRegen, eitrRegen,
+# resist.
 # Melee, ranged or shield slot only: blockArmor, blockForce (what you block with), parryBonus
 # (added to the parry bonus of what you parry with, up to 20: 2 turns 2.5x into 4.5x).
 # Melee, ranged or shield slot only, on every parry: healOnParry, staminaOnParry (you),

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- Woodcutter / Miner now count all of a hit's damage, so staffs without physical damage (lightning, frost) chop
+  and mine without added physical damage.
+
 ## 1.3.0
 
 - New stat: Parry bonus (On parry group, Melee / Ranged / Shield), added to the parry multiplier of what you parry

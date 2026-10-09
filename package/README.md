@@ -34,8 +34,8 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
     own damage.
 - **Skills:** + or − levels for any skill.
 - **Parry bonus** (melee, ranged and shield slots, in the window's On parry group): added to the parry multiplier of
-  what you parry with, e.g. +2 turns a buckler's 2.5x into 4.5x (up to +20). The item's tooltip shows the new
-  multiplier while it's in your hands.
+  what you parry with, e.g. +2 turns a buckler's 2.5x into 4.5x (up to +20). The tooltip of what you parry with (your
+  shield, else your weapon) shows the new multiplier.
 - **On parry** (melee, ranged and shield slots): heal and stamina, set separately for you and for other players; heal
   for tamed creatures; and a **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its
   health and time (1–10 minutes). Friends without the mod get it too.
@@ -58,7 +58,7 @@ shows them for what you wear now.
 ## How Things Behave
 
 - **Slots follow your gear.** A slot counts while something is equipped there. Melee means swords, knives, clubs,
-  atgeirs, spears, axes and fists; ranged means bows, crossbows and magic staffs; items that count as tools (below)
+  atgeirs, spears, axes and fist weapons; ranged means bows, crossbows and magic staffs; items that count as tools (below)
   are neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.

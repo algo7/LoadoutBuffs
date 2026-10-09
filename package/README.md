@@ -78,8 +78,7 @@ These fill no slot: while one is in your hands, your Melee and Ranged slots' eff
 - **Staff of Protection** and **Northern Vengeance**: their spells hit only you, other players and tamed creatures.
   With Added damage, instead of protecting your friends and your tamed animals, you'd be hurting or even killing them.
   For cheaper casts with them, put eitr cost on armor.
-- **Abyssal Harpoon**: besides pulling in enemies like sea serpents, it's also used to drag tamed animals, and with PvP
-  on, with Added damage, you'd be killing them.
+- **Abyssal Harpoon**: to avoid killing tamed animals with PvP on.
 
 ## Multiplayer and Fair Play
 

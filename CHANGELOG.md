@@ -9,6 +9,7 @@
 - Block armor goes up to 1000 in the window (was 200).
 - Buffs window: the selected slot has a gold frame.
 - Buffs window: Shift + click on − / + changes a value ten steps at a time.
+- New icon, matching my other mods; the buff on your HUD shows just the shield.
 
 ## 1.2.3
 

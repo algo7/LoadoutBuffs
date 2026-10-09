@@ -100,7 +100,7 @@ namespace LoadoutBuffs
             if (!ReferenceEquals(blocker, weapon))
                 lines.Add($"  Blocking with: {EffectText.DisplayName(blocker.m_shared.m_name)} (quality {blocker.m_quality})");
             var shared = blocker.m_shared;
-            // A parry multiplies block armor by the item's bonus, then by every effect's Parry bonus (Humanoid.BlockAttack).
+            // A parry multiplies block armor by the item's parry multiplier, then the status effects change it (the buff adds its Parry bonus).
             var parryBonus = shared.m_timedBlockBonus;
             if (parryBonus > 1f) player.GetSEMan().ModifyTimedBlockBonus(ref parryBonus);
             string X(float v) => "×" + v.ToString("0.##", CultureInfo.InvariantCulture);

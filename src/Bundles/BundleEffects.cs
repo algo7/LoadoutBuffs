@@ -224,7 +224,7 @@ namespace LoadoutBuffs
         /// Prefix of Damage(HitData) on trees, logs, rocks and other destructibles, on the attacker's side (before
         /// the hit is sent to the object's owner). With Woodcutter / Miner on the slot of the weapon in hand (classes
         /// only go on melee and ranged, and only the held weapon's slot is filled), this player's hits get the max tool
-        /// tier and chop (trees, logs, stumps) or pickaxe (everything else) damage equal to the hit's physical damage,
+        /// tier and chop (trees, logs, stumps) or pickaxe (everything else) damage equal to all of the hit's damage,
         /// unless it already does more: swings, and also arrows, bolts, staff spells and the blasts they spawn
         /// (Projectile / Aoe hits are the owner's, sent through the same Damage). Must never throw.
         /// </summary>
@@ -241,13 +241,7 @@ namespace LoadoutBuffs
 
                 var tree = target is TreeBase || target is TreeLog ||
                            (target is Destructible d && d.m_destructibleType == DestructibleType.Tree);
-                var physical = hit.m_damage.m_blunt + hit.m_damage.m_slash + hit.m_damage.m_pierce;
-                if (tree && s_woodcutter)
-                    hit.m_damage.m_chop = Math.Max(hit.m_damage.m_chop, physical);
-                else if (!tree && s_miner)
-                    hit.m_damage.m_pickaxe = Math.Max(hit.m_damage.m_pickaxe, physical);
-                else
-                    return;
+                if (!BundleStatCatalog.WithClass(ref hit.m_damage, tree, s_woodcutter, s_miner)) return;
                 if (hit.m_toolTier < ClassToolTier) hit.m_toolTier = ClassToolTier;
             }
             catch (Exception e)

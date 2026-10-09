@@ -812,6 +812,32 @@ internal static partial class Tests
         }
     }
 
+    private static void Test_Classes_CountAllDamage()
+    {
+        var staff = new HitData.DamageTypes { m_lightning = 40 };
+        True(BundleStatCatalog.WithClass(ref staff, tree: true, woodcutter: true, miner: false), "woodcutter on a tree applies");
+        Eq(40f, staff.m_chop, "a lightning-only hit chops for its lightning");
+
+        var mixed = new HitData.DamageTypes { m_blunt = 10, m_frost = 20, m_poison = 5, m_spirit = 15, m_pickaxe = 7 };
+        True(BundleStatCatalog.WithClass(ref mixed, tree: true, woodcutter: true, miner: false), "mixed hit applies");
+        Eq(50f, mixed.m_chop, "chop = all damage but chop / pickaxe");
+        Eq(20f, mixed.m_frost, "the hit's other damage is kept");
+
+        var axe = new HitData.DamageTypes { m_slash = 30, m_chop = 100 };
+        True(BundleStatCatalog.WithClass(ref axe, tree: true, woodcutter: true, miner: true), "axe applies");
+        Eq(100f, axe.m_chop, "a bigger own chop stays");
+
+        var rock = new HitData.DamageTypes { m_spirit = 25, m_fire = 5 };
+        True(BundleStatCatalog.WithClass(ref rock, tree: false, woodcutter: false, miner: true), "miner on a rock applies");
+        Eq(30f, rock.m_pickaxe, "pickaxe = all damage");
+        Eq(0f, rock.m_chop, "no chop on a rock");
+
+        var wrong = new HitData.DamageTypes { m_lightning = 40 };
+        False(BundleStatCatalog.WithClass(ref wrong, tree: false, woodcutter: true, miner: false), "woodcutter on a rock");
+        False(BundleStatCatalog.WithClass(ref wrong, tree: true, woodcutter: false, miner: true), "miner on a tree");
+        Eq(0f, wrong.m_chop + wrong.m_pickaxe, "unchanged when the class doesn't apply");
+    }
+
     private static void Test_MissingHookWarnings()
     {
         var parry = new StatBlock();

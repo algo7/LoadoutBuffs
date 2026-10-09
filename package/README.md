@@ -41,10 +41,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   health and time (1–10 minutes). Friends without the mod get it too.
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
-  arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
-  damage (blunt, slash, pierce), so even a club or a bow works. A spell without physical damage (the Staff of Frost's,
-  lightning) does nothing to wood or stone. To make it work, add blunt, slash or other physical damage under *Added
-  damage* on the Ranged slot (e.g. +10 pierce). Digging the ground stays a pickaxe thing.
+  arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to all its
+  damage (physical and elemental), so even a club, a bow or a frost staff works. Digging the ground stays a pickaxe
+  thing.
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -161,8 +160,6 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **My Melee / Ranged stats don't count with the Staff of Protection, Northern Vengeance or the Abyssal Harpoon.**
   On purpose: they count as tools (see Items That Count as Tools), because Added damage on them would hurt or kill
   your friends and tamed animals.
-- **My staff doesn't chop or mine with Woodcutter / Miner.** Its spell has no physical damage (Staff of Frost,
-  lightning). Add some blunt, slash or pierce under Added damage on the Ranged slot.
 - **A stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and Added damage go on Melee
   or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only; since 1.3.0 armor, fall damage, regen
   and resistances go on the helmet, chest, legs or cape only, block armor and block force on Melee, Ranged or Shield

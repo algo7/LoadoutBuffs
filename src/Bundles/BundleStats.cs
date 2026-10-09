@@ -218,6 +218,23 @@ namespace LoadoutBuffs
             Math.Max(Math.Min(baseBlockArmor, 1f), baseBlockArmor + bonus);
 
         /// <summary>
+        /// A class on a hit: Woodcutter on a tree (log, stump) sets chop, Miner on anything else pickaxe, to all of the
+        /// hit's other damage (physical and elemental) unless it already does more. False when neither applies (the
+        /// caller then leaves the tool tier alone).
+        /// </summary>
+        public static bool WithClass(ref HitData.DamageTypes damage, bool tree, bool woodcutter, bool miner)
+        {
+            var all = damage.GetTotalDamage() - damage.m_chop - damage.m_pickaxe;
+            if (tree && woodcutter)
+                damage.m_chop = Math.Max(damage.m_chop, all);
+            else if (!tree && miner)
+                damage.m_pickaxe = Math.Max(damage.m_pickaxe, all);
+            else
+                return false;
+            return true;
+        }
+
+        /// <summary>
         /// Classes: the hits of the weapon whose slot holds one fell trees (Woodcutter) or break rocks and ore (Miner).
         /// Weapon slots only: elsewhere a class would only reach the weapon in a roundabout way.
         /// </summary>

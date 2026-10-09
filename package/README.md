@@ -33,10 +33,12 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   - **Added damage** adds a fixed amount of any type, e.g. +30 spirit on a club that had none, scaled like the weapon's
     own damage.
 - **Skills:** + or − levels for any skill.
-- **On parry** (melee, ranged and shield slots): a **parry bonus** added to the parry multiplier of what you parry with
-  (+2 turns a buckler's 2.5x into 4.5x; up to +20); heal and stamina, set separately for you and for other players;
-  heal for tamed creatures; and a **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach,
-  with its health and time (1–10 minutes). Friends without the mod get it too.
+- **Parry bonus** (melee, ranged and shield slots, in the window's On parry group): added to the parry multiplier of
+  what you parry with, e.g. +2 turns a buckler's 2.5x into 4.5x (up to +20). The item's tooltip shows the new
+  multiplier while it's in your hands.
+- **On parry** (melee, ranged and shield slots): heal and stamina, set separately for you and for other players; heal
+  for tamed creatures; and a **bubble** (the Staff of Protection's Magic barrier) for you and everyone in reach, with its
+  health and time (1–10 minutes). Friends without the mod get it too.
 - **Classes** (melee and ranged slots): *Woodcutter* lets that weapon fell any tree (logs and stumps too), *Miner*
   break any rock or ore deposit (black marble included). On the melee slot it's your swings; on the ranged slot your
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to its physical
@@ -113,7 +115,7 @@ buffs:
       effect: Sneaky
       stats: { movementSpeed: 10, armor: 15, resist: { Fire: Resistant }, skills: { Bows: 15 } }
     melee:
-      stats: { addDamage: { spirit: 30 }, shieldOnParry: 500, shieldMinutes: 2 }
+      stats: { parryBonus: 2, shieldOnParry: 500, shieldMinutes: 2, addDamage: { spirit: 30 } }
 ```
 
 | Key | Value |

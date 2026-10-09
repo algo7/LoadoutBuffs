@@ -62,6 +62,21 @@ internal static partial class Tests
         Eq("No buff active", state.StatusLine(), "status");
     }
 
+    private static void Test_Readme_ExampleFileLoadsWithoutWarnings()
+    {
+        string readme;
+        using (var stream = typeof(Tests).Assembly.GetManifestResourceStream("LoadoutBuffs.readme.md"))
+        using (var reader = new StreamReader(stream))
+            readme = reader.ReadToEnd();
+        var start = readme.IndexOf("```yaml\n", StringComparison.Ordinal);
+        True(start >= 0, "the README has a yaml example");
+        start += "```yaml\n".Length;
+        var example = readme.Substring(start, readme.IndexOf("```", start, StringComparison.Ordinal) - start);
+        var state = Evaluate(example);
+        Eq(0, state.Warnings.Count, "the README's example follows the slot rules: " + string.Join(" | ", state.Warnings));
+        Eq(2f, state.Stats[BundleSlot.Melee].Scalars["parryBonus"], "it shows the Parry bonus");
+    }
+
     private static void Test_Bundles_HeaderHasNoYamlOrDump()
     {
         foreach (var (what, text) in new[] { ("window header", string.Join("\n", BundleFile.Header)), ("starter file", StarterBundles()) })

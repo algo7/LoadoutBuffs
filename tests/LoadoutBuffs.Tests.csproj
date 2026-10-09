@@ -25,6 +25,7 @@
     <Compile Include="../src/Bundles/BundleRules.cs" />
     <Compile Include="../src/Bundles/BundleStats.cs" />
     <EmbeddedResource Include="../example/LoadoutBuffs.buffs.yaml" LogicalName="LoadoutBuffs.buffs.example.yaml" />
+    <EmbeddedResource Include="../package/README.md" LogicalName="LoadoutBuffs.readme.md" />
   </ItemGroup>
 
   <ItemGroup>

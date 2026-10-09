@@ -39,7 +39,7 @@ namespace LoadoutBuffs
         private static Button s_statsTab;
         private static Text s_totals;
         private static readonly List<Button> s_slotButtons = new List<Button>();
-        private static readonly List<Outline> s_slotFrames = new List<Outline>();
+        private static readonly List<GameObject> s_slotFrames = new List<GameObject>();
 
         /// <summary>The gold of the inventory's armor and weight numbers (their font color in the game's UI asset).</summary>
         private static readonly Color s_gold = new Color(1f, 0.848f, 0f);
@@ -126,15 +126,19 @@ namespace LoadoutBuffs
             foreach (var slot in BundleSlots.All)
             {
                 var s = slot;
+                // The selected slot's gold frame: a plain gold rectangle 3 px larger, behind the button (an Outline effect
+                // would tint the button's dark texture, so it came out olive).
+                var frame = new GameObject("SlotFrame", typeof(RectTransform), typeof(Image));
+                frame.transform.SetParent(p, false);
+                Place(frame, 267, y - 3, 336, 60);
+                var image = frame.GetComponent<Image>();
+                image.color = s_gold;
+                image.raycastTarget = false;
+                frame.SetActive(false);
+                s_slotFrames.Add(frame);
                 var button = MakeButton(p, "", 270, y, 330, 54, () => SelectSlot(s));
                 StyleRowText(button, 15);
                 s_slotButtons.Add(button);
-                // The selected slot gets a gold frame: an outline of the button's own background.
-                var frame = button.gameObject.AddComponent<Outline>();
-                frame.effectColor = s_gold;
-                frame.effectDistance = new Vector2(2f, -2f);
-                frame.enabled = false;
-                s_slotFrames.Add(frame);
                 y += 58;
             }
 
@@ -306,7 +310,7 @@ namespace LoadoutBuffs
                 var button = s_slotButtons[i];
                 button.GetComponentInChildren<Text>().text = label;
                 button.interactable = bundle != null;
-                s_slotFrames[i].enabled = slot == s_selectedSlot && bundle != null;
+                s_slotFrames[i].SetActive(slot == s_selectedSlot && bundle != null);
             }
 
             s_effectsHeader.text = $"{SlotLabel(s_selectedSlot)}: effect and stats";

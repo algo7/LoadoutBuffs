@@ -564,7 +564,7 @@ namespace LoadoutBuffs
             Refresh();
         }
 
-        /// <summary>One step up or down, stopping at the window's limits (values set further in the file stay reachable).</summary>
+        /// <summary>One step up or down (ten with Shift), stopping at the window's limits (values set further in the file stay reachable).</summary>
         private static void ChangeNumber(Func<StatBlock, Dictionary<string, float>> part, string key, float step, float min, float max, float unset = 0f)
         {
             var bundle = BundleEffects.File.Find(s_selectedBundle);
@@ -572,7 +572,8 @@ namespace LoadoutBuffs
             var stats = bundle.GetStats(s_selectedSlot)?.Clone() ?? new StatBlock();
             var numbers = part(stats);
             var v = numbers.TryGetValue(key, out var current) ? current : unset;
-            var next = v + step;
+            var shift = ZInput.GetKey(KeyCode.LeftShift, false) || ZInput.GetKey(KeyCode.RightShift, false);
+            var next = v + BundleWindowRules.ClickStep(step, shift);
             if (step > 0 && next > max) next = Math.Max(v, max);
             if (step < 0 && next < min) next = Math.Min(v, min);
             if (Math.Abs(next - v) < 0.0001f) return;

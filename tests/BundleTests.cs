@@ -256,6 +256,13 @@ internal static partial class Tests
         Eq(string.Join(",", BundleStatCatalog.DamageTypes), string.Join(",", BundleWindowRules.DamagePercentRows(null, none)), "no weapon known: every type");
     }
 
+    private static void Test_Window_ShiftClickTakesTenSteps()
+    {
+        Eq(5f, BundleWindowRules.ClickStep(5f, shift: false), "a click: one step");
+        Eq(50f, BundleWindowRules.ClickStep(5f, shift: true), "shift + click: ten steps");
+        Eq(-5f, BundleWindowRules.ClickStep(-0.5f, shift: true), "down too, half steps included");
+    }
+
     private static void Test_Window_AddedDamageNoteShowsWhatTheWeaponHas()
     {
         Eq("has 90", BundleWindowRules.AddedDamageNote(90f), "own damage");

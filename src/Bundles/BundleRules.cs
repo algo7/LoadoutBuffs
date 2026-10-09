@@ -249,6 +249,9 @@ namespace LoadoutBuffs
     /// <summary>What the Bundles window shows for the gear in hand (kept Unity-free for the tests).</summary>
     internal static class BundleWindowRules
     {
+        /// <summary>A − / + click moves one step; with Shift held, ten (up to the window's limit).</summary>
+        public static float ClickStep(float step, bool shift) => shift ? step * 10f : step;
+
         /// <summary>
         /// Damage % rows for the weapon in hand: the types it deals (its own damage plus what bundles add) and any type
         /// that already has a % set, since stats belong to the slot, not to one weapon. A % of a type the weapon doesn't

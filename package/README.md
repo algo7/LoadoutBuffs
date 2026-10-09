@@ -12,7 +12,8 @@ servers and friends don't need the mod. No items are created or changed, and you
 2. In game, open your inventory and click the **BUFFS** tab next to CRAFT.
 3. Pick a starter buff (Warrior, Hunter, Explorer, Homesteader) or press **New**, then press **Use**.
 
-Changes are saved and applied at once. One buff is in use at a time, for every character in your profile.
+Changes are saved and applied at once. One buff is in use at a time, for every character in your profile. Shift + click
+on − / + changes a value ten steps at a time.
 
 ## Features
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- New stat: Parry bonus (On parry group, Melee / Ranged / Shield), a percent on top of the parry multiplier of what you
+  parry with (+50 turns a shield's 1.5x into 2.25x).
+- Clearer slots: Fall damage, Regen and Resistances are offered only on armor (helmet, chest, legs, cape); Block armor
+  and Block force only on Melee, Ranged and Shield.
+
 ## 1.2.3
 
 - The Abyssal Harpoon is excluded from the Melee slot, like pickaxes and other tools, so dragging tamed animals

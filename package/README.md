@@ -59,6 +59,7 @@ shows them for what you wear now.
   are neither. Weapon and shield slots count only while that item is in your hands: sheathing turns them off.
 - **Your gear keeps its own effects.** A buff only adds; the same effect from your gear and the buff counts once.
 - **Parry, not block.** On-parry help needs a *perfect* block (the parry flash). A normal block never triggers it.
+  Tower shields and the Serpentscale shield can't parry, so On parry does nothing with them.
 - **On parry goes on what you parry with.** Its stats can only be set on Melee, Ranged or Shield, and count while that
   item is in your hands: holding a sword and a shield, a parry also uses the sword's on-parry stats. A parry with empty
   hands, a torch or a pickaxe gives none.

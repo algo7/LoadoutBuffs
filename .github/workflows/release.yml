@@ -69,8 +69,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           awk -v v="$VERSION" '/^## /{p=($2==v); next} p' CHANGELOG.md > release-notes.md
-          gh release create "$GITHUB_REF_NAME" "Algo7-LoadoutBuffs-$VERSION.zip" \
-            --title "LoadoutBuffs $VERSION" --notes-file release-notes.md
+          # Re-runnable: a release left by an earlier attempt (e.g. a failed Thunderstore upload) only gets its zip replaced.
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "Algo7-LoadoutBuffs-$VERSION.zip" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "Algo7-LoadoutBuffs-$VERSION.zip" \
+              --title "LoadoutBuffs $VERSION" --notes-file release-notes.md
+          fi
 
       - uses: actions/setup-dotnet@v6
         with:

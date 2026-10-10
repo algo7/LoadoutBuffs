@@ -9,7 +9,7 @@ and stats per equipment slot, picked in an in-game window (built with [Jötunn](
 ![The Buffs window](images/buffs-window.png)
 
 What it does for players, the buffs file format and the console commands are in [package/README.md](package/README.md),
-which is also the mod's Thunderstore page. Changes: [CHANGELOG.md](CHANGELOG.md).
+which is also the mod's Thunderstore and Hexium page. Changes: [CHANGELOG.md](CHANGELOG.md).
 
 Made with AI assistance.
 
@@ -37,7 +37,8 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
 - **Release** (`.github/workflows/release.yml`): the version comes from the git tag
   ([MinVer](https://github.com/adamralph/minver)); nothing else holds a version number. To release:
   1. add a `## X.Y.Z` section with the release notes to [CHANGELOG.md](CHANGELOG.md), **above the previous release's `##` section**
-     (not appended at the end: the whole file is shown as the Thunderstore Changelog tab, newest first), and push it;
+     (not appended at the end: the whole file is shown as the Thunderstore Changelog tab and on Hexium's versions page,
+     newest first), and push it;
   2. tag the commit that has those notes: `git tag vX.Y.Z && git push origin vX.Y.Z` (the release stops if the tagged
      commit has no `## X.Y.Z` section);
   3. approve the run in the `release` environment: it creates the GitHub Release, then publishes the same zip to
@@ -52,9 +53,10 @@ LoadoutBuffs.csproj        net48 plugin; ILRepack merges YamlDotNet; Package tar
 src/                       plugin: entry, game glue, commands (lb_stats report), parry help
 src/Bundles/               buffs: file, rules, stats, runtime, Harmony hooks, buff, window
 example/                   first-run buffs file (embedded in the DLL)
-package/                   Thunderstore README and icon
+package/                   mod page (Thunderstore and Hexium) and icon
 tests/                     unit tests (net8.0)
 thunderstore.toml          Thunderstore publishing settings (tcli)
+hexium.toml                Hexium publishing settings (tcli)
 .github/                   workflows, Dependabot, the CI helper that fetches the game DLLs
 ```
 

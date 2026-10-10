@@ -20,10 +20,11 @@ communities = ["valheim"]
 
 [publish.categories]
 # Hexium's own list (valheim.hexium.gg/api/experimental/community/valheim/category/), not Thunderstore's.
-# Equipment: effects and stats per equipment slot. Valheim 1.0: the game update it is built and tested for.
-# Open Source: MIT, source on GitHub.
-# Client-side isn't a category on Hexium: it's the install location ("client"). Hexium ignores the categories sent
-# with the upload, so the release workflow sets this list and the install location after it (edits on the page are
-# replaced at each release).
+# This list is the source of truth for the mod's Hexium tags. Hexium ignores the categories sent with the upload, so
+# the release workflow sets this list and the install location after it: change tags here, not on the Hexium page
+# (a tag changed only on the page is reverted at the next release).
+# Client-side isn't a category on Hexium: it's the install location ("client"), shown on the page as Client-only.
 # Hexium has no AI-generated category (its FAQ: not required); the README's disclosure line stays.
-valheim = ["Equipment", "Valheim 1.0", "Open Source"]
+valheim = [
+    "Armor", "Cheats", "Combat", "Config", "Equipment", "Open Source", "User Interface", "Valheim 1.0", "Weapons",
+]

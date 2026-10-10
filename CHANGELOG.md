@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2
+
+- Added Hexium release workflows.
+
 ## 1.3.1
 
 - Woodcutter / Miner now count all of a hit's damage, so staffs without physical damage (lightning, frost) chop

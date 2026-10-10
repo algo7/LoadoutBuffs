@@ -184,7 +184,7 @@ Nothing is stored in your characters or items: remove the mod and your gear is v
 - Available on [Thunderstore](https://thunderstore.io/c/valheim/p/Algo7/LoadoutBuffs/) and
   [Hexium](https://valheim.hexium.gg/mods/Algo7/LoadoutBuffs)
 - Source, bug reports and ideas: https://github.com/algo7/LoadoutBuffs (issues welcome)
-- Changes: the Changelog tab
+- Changes: see the changelog
 - Made with AI assistance.
 - Built with [BepInEx](https://github.com/BepInEx/BepInEx) and [Jötunn](https://github.com/Valheim-Modding/Jotunn).
   MIT license.

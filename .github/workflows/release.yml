@@ -141,8 +141,10 @@ jobs:
             dotnet tool restore
             dotnet tcli publish --config-path hexium.toml --file "Algo7-LoadoutBuffs-$VERSION.zip"
           fi
-          # Client-side is the package's install location on Hexium, not a category. Set on every run (same value), so a
-          # re-run fixes it if this call failed after the upload.
+          # Install location (client-side is that on Hexium, not a category) and the categories from hexium.toml: Hexium
+          # ignores the categories sent with the upload. Set on every run (same values), so a re-run fixes them if this
+          # call failed after the upload.
+          categories=$(python3 -c 'import json, tomllib; print(json.dumps(tomllib.load(open("hexium.toml", "rb"))["publish"]["categories"]["valheim"]))')
           curl -sSf -X POST "https://valheim.hexium.gg/api/mod/Algo7/LoadoutBuffs/set-metadata" \
             -H "Authorization: Bearer $TCLI_AUTH_TOKEN" -H "Content-Type: application/json" \
-            -d '{"install_location": "client"}'
+            -d "{\"install_location\": \"client\", \"categories\": $categories}"

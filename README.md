@@ -39,8 +39,9 @@ The Makefile looks for the SDK in `~/.dotnet`; pass `DOTNET=dotnet` if it's on y
      (not appended at the end: the whole file is shown as the Thunderstore Changelog tab, newest first), and push it;
   2. tag the commit that has those notes: `git tag vX.Y.Z && git push origin vX.Y.Z` (the release stops if the tagged
      commit has no `## X.Y.Z` section);
-  3. approve the run in the `thunderstore` environment: it creates the GitHub Release and publishes the same zip to
-     Thunderstore (`tcli`, secret `TCLI_AUTH_TOKEN`).
+  3. approve the run in the `release` environment: it creates the GitHub Release, then publishes the same zip to
+     Thunderstore and Hexium in parallel (`tcli`, secrets `TCLI_AUTH_TOKEN` and `HEXIUM_AUTH_TOKEN` in the
+     `mod-databases` environment).
 - **Dependabot**: NuGet packages and GitHub Actions, weekly.
 
 ## Layout

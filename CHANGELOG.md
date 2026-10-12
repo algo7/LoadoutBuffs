@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- New On hit switches for melee and ranged weapons: Bleeding, Thundering and Primal, the Ashlands and Deep North
+  weapon effects with the game's numbers.
+- Stat groups in the Buffs window start closed; click a title to open one.
+
 ## 1.3.2
 
 - Added Hexium release workflows.

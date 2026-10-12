@@ -142,7 +142,7 @@ internal static partial class Tests
             BundleWindowRules.OnHitInfo(ranged: false), "melee info line");
         Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 35% chain lightning, Primal 35% root (10 s).",
             BundleWindowRules.OnHitInfo(ranged: true), "ranged info line");
-        Eq("Shift + click on − / +: ten steps at a time.", BundleWindowRules.ShiftHint, "the number groups' hint");
+        Eq("Shift + click on − / + : 10 steps at a time.", BundleWindowRules.ShiftHint, "the number groups' hint");
         // (name, rapid fire, the shot spawns its own effect, Primal on its shots, it only summons)
         Eq("Dundr: no Thundering or Primal (rapid fire).",
             BundleWindowRules.OnHitException("Dundr", true, false, ShotPrimal.Rolls, false), "rapid fire");

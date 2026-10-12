@@ -310,9 +310,19 @@ namespace LoadoutBuffs
                 if (!s_thundering || humanoid == null || !ReferenceEquals(humanoid, Player.m_localPlayer)) return;
                 var weapon = humanoid.GetCurrentWeapon();
                 if (!FillsWeaponSlot(weapon) || !(s_currentAttack?.GetValue(humanoid) is Attack attack)) return;
+                var rapid = Facts(weapon.m_shared).RapidFire;
+                var ownSpawn = attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f;
+                if (ownSpawn)
+                {
+                    // A Thundering weapon keeps its own chain lightning (Thunderblood: the red one), raised to 35 %.
+                    if (!rapid)
+                        attack.m_spawnOnHitChance = BundleStatCatalog.RaisedOwnChance(true, IsChainLightning(attack.m_spawnOnHit),
+                            attack.m_spawnOnHitChance);
+                    return;
+                }
                 var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
-                var chance = BundleStatCatalog.ChainChance(true, attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f,
-                    shot && SpawnsOwn(AmmoProjectile(humanoid, weapon) ?? attack.m_attackProjectile), Facts(weapon.m_shared).RapidFire);
+                var chance = BundleStatCatalog.ChainChance(true, false,
+                    shot && SpawnsOwn(AmmoProjectile(humanoid, weapon) ?? attack.m_attackProjectile), rapid);
                 if (chance <= 0f) return;
                 var prefab = ChainLightning();
                 if (prefab == null) return;
@@ -346,8 +356,13 @@ namespace LoadoutBuffs
                 var factor = BundleStatCatalog.BleedingFactor(s_bleeding, facts.OwnBleeding, player.GetMaxHealth(), player.GetHealth());
                 if (factor != 1f) hit.m_damage.Modify(factor);
                 var onShots = BundleStatCatalog.PrimalOnShots(facts.ShotExplodes, facts.ShotSparesFriends, RootHookInstalled);
-                if (s_primal && BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
-                        facts.RapidFire, onShots == ShotPrimal.NoneFriends, onShots == ShotPrimal.NoneBlast, UnityEngine.Random.value))
+                var root = s_primal && (facts.OwnRoot
+                    // A Primal weapon rolled its own 20 %; a miss rolls again so the total is 35 %.
+                    ? BundleStatCatalog.ShouldTopUpRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffectChance,
+                        facts.RapidFire, UnityEngine.Random.value)
+                    : BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
+                        facts.RapidFire, onShots == ShotPrimal.NoneFriends, onShots == ShotPrimal.NoneBlast, UnityEngine.Random.value));
+                if (root)
                 {
                     var hash = RootHash();
                     if (hash != 0) hit.m_statusEffectHash = hash;
@@ -375,7 +390,7 @@ namespace LoadoutBuffs
                     : ShotPrimal.Rolls;
                 return BundleWindowRules.OnHitException(EffectText.DisplayName(item.m_shared.m_name),
                     facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering, onShots,
-                    facts.Summons && (bleeding || thundering || primal));
+                    facts.Summons && (bleeding || thundering || primal), facts.OwnChain && thundering, facts.OwnRoot && primal);
             }
             catch (Exception)
             {
@@ -512,6 +527,10 @@ namespace LoadoutBuffs
             return projectile != null ? projectile : null;
         }
 
+        /// <summary>The game's chain lightning (ChainLightning, Thunderblood's ChainLightningRed), by prefab name.</summary>
+        private static bool IsChainLightning(GameObject prefab) =>
+            prefab != null && prefab.name.StartsWith(ChainLightningPrefab, StringComparison.Ordinal);
+
         /// <summary>A projectile that spawns something of its own on hit (the game's handover would replace it).</summary>
         private static bool SpawnsOwn(GameObject projectile)
         {
@@ -565,6 +584,8 @@ namespace LoadoutBuffs
             public bool ShotExplodes;
             public bool Summons;
             public bool OwnBleeding;
+            public bool OwnChain;
+            public bool OwnRoot;
         }
 
         private static readonly Dictionary<ItemData.SharedData, HitFacts> s_hitFacts = new Dictionary<ItemData.SharedData, HitFacts>();
@@ -596,8 +617,10 @@ namespace LoadoutBuffs
                     facts.ShotExplodes |= shot && Explodes(attack.m_attackProjectile);
                     if (shot && OnlySummons(attack.m_attackProjectile)) summoning++;
                     facts.OwnBleeding |= attack.m_damageMultiplierPerMissingHP > 0f;
+                    facts.OwnChain |= attack.m_spawnOnHitChance > 0f && IsChainLightning(attack.m_spawnOnHit);
                 }
                 facts.Summons = used > 0 && summoning == used;
+                facts.OwnRoot = shared.m_attackStatusEffect != null && shared.m_attackStatusEffect.name == RootEffect;
             }
             catch (Exception) { }
             s_hitFacts[shared] = facts;

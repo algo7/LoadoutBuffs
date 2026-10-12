@@ -82,9 +82,10 @@ shows them for what you wear now.
   can only be set on Melee or Ranged, and count only while that weapon is in your hands. A staff blast with Miner
   breaks every chunk of a deposit it reaches.
 - **On hit works like the game's weapons.** Chain lightning only hits enemies, never other players (PvP or not), tamed
-  animals or objects; like the game's weapons, it angers neutral Dvergr it reaches. A weapon that already has an
-  effect keeps its own chance: a Thundering sword stays at 25 %, a Primal one at 20 %. Primal skips hits that already
-  carry an effect (fire arrows keep burning). The variants' glow and sounds aren't copied.
+  animals or objects; like the game's weapons, it angers neutral Dvergr it reaches. A weapon that already has the
+  effect keeps its own, raised to 35 %: a Thundering weapon's chain lightning (a Thunderblood weapon's red one), a
+  Primal weapon's roots. Bleeding doesn't add up. Primal skips hits that already carry another effect (fire arrows keep
+  burning). The variants' glow and sounds aren't copied.
 - **A staff shot roots one enemy at most.** A shot that explodes, splinters or passes through enemies (Staff of
   Embers, Staff of the Wild, Staff of Fracturing, Lightning Strike, Echo Spike) can only root the enemy it hits
   directly, not the rest of its blast, and nothing when it lands on the ground. Primal never roots other players or

@@ -91,6 +91,29 @@ internal static partial class Tests
         Eq(0f, BundleStatCatalog.ChainChance(true, false, false, true), "rapid fire: none");
     }
 
+    private static void Test_OnHit_OwnEffectsRaised()
+    {
+        // A weapon with its own chain lightning keeps it (Thunderblood: the red one), at 35 % at least.
+        Near(0.35f, BundleStatCatalog.RaisedOwnChance(true, true, 0.25f), "Nidhögg the Thundering: 25 % -> 35 %");
+        Near(0.35f, BundleStatCatalog.RaisedOwnChance(true, true, 0.20f), "Storm Fang / secondary: 20 % -> 35 %");
+        Near(0.5f, BundleStatCatalog.RaisedOwnChance(true, true, 0.5f), "never lowered");
+        Near(0.25f, BundleStatCatalog.RaisedOwnChance(false, true, 0.25f), "switch off: its own");
+        Near(0.25f, BundleStatCatalog.RaisedOwnChance(true, false, 0.25f), "something else than chain lightning: untouched");
+
+        // A Primal weapon rolls its own 20 %; a miss rolls again so the total is 35 %.
+        Near(0.1875f, BundleStatCatalog.TopUpChance(0.2f, 0.35f), "0.2 + 0.8 x 0.1875 = 0.35");
+        Near(0.35f, 0.2f + (1f - 0.2f) * BundleStatCatalog.TopUpChance(0.2f, 0.35f), "total 35 %");
+        Eq(0f, BundleStatCatalog.TopUpChance(0.35f, 0.35f), "already 35 %: nothing");
+        Eq(0f, BundleStatCatalog.TopUpChance(1f, 0.35f), "always: nothing (and no division by 0)");
+        Near(0.35f, BundleStatCatalog.TopUpChance(0f, 0.35f), "no own chance: the full 35 %");
+        // (on, the hit's status effect hash, the weapon's own root chance, rapid fire, roll)
+        True(BundleStatCatalog.ShouldTopUpRoot(true, 0, 0.2f, false, 0.18f), "own roll missed, top-up hits");
+        False(BundleStatCatalog.ShouldTopUpRoot(true, 0, 0.2f, false, 0.19f), "top-up misses");
+        False(BundleStatCatalog.ShouldTopUpRoot(true, 1234, 0.2f, false, 0f), "own roll hit (or an arrow's effect): nothing more");
+        False(BundleStatCatalog.ShouldTopUpRoot(false, 0, 0.2f, false, 0f), "switch off");
+        False(BundleStatCatalog.ShouldTopUpRoot(true, 0, 0.2f, true, 0f), "rapid fire: none");
+    }
+
     private static void Test_OnHit_Root()
     {
         Eq(0.35f, BundleStatCatalog.RootChance, "35 % (the game's Primal weapons: 20 %)");
@@ -143,24 +166,30 @@ internal static partial class Tests
         Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 35% chain lightning, Primal 35% root (10 s).",
             BundleWindowRules.OnHitInfo(ranged: true), "ranged info line");
         Eq("Shift + click on − / + : 10 steps at a time.", BundleWindowRules.ShiftHint, "the number groups' hint");
-        // (name, rapid fire, the shot spawns its own effect, Primal on its shots, it only summons)
+        // (name, rapid fire, the shot spawns its own effect, Primal on its shots, it only summons, own chain lightning, own roots)
         Eq("Dundr: no Thundering or Primal (rapid fire).",
-            BundleWindowRules.OnHitException("Dundr", true, false, ShotPrimal.Rolls, false), "rapid fire");
+            BundleWindowRules.OnHitException("Dundr", true, false, ShotPrimal.Rolls, false, false, false), "rapid fire");
         Eq("Dundr: no Thundering or Primal (rapid fire).",
-            BundleWindowRules.OnHitException("Dundr", true, true, ShotPrimal.DirectHitOnly, false), "rapid fire says it all");
+            BundleWindowRules.OnHitException("Dundr", true, true, ShotPrimal.DirectHitOnly, false, false, false), "rapid fire says it all");
         Eq("Staff of Embers: Primal roots only the enemy it hits directly.",
-            BundleWindowRules.OnHitException("Staff of Embers", false, false, ShotPrimal.DirectHitOnly, false), "a blast: direct hit");
+            BundleWindowRules.OnHitException("Staff of Embers", false, false, ShotPrimal.DirectHitOnly, false, false, false), "a blast: direct hit");
         Eq("Staff of the Wild: no Thundering (its shot spawns its own effect); Primal roots only the enemy it hits directly.",
-            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.DirectHitOnly, false), "own spawn + blast");
+            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.DirectHitOnly, false, false, false), "own spawn + blast");
         Eq("Staff of the Wild: no Thundering (its shot spawns its own effect); no Primal (one roll would root everything it reaches).",
-            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.NoneBlast, false), "without the hooks");
+            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.NoneBlast, false, false, false), "without the hooks");
         Eq("Lightning Strike: no Thundering (its shot spawns its own effect); no Primal (it would root friends).",
-            BundleWindowRules.OnHitException("Lightning Strike", false, true, ShotPrimal.NoneFriends, false), "spares friends, no hooks");
+            BundleWindowRules.OnHitException("Lightning Strike", false, true, ShotPrimal.NoneFriends, false, false, false), "spares friends, no hooks");
         Eq("Modded Staff: no Thundering (its shot spawns its own effect).",
-            BundleWindowRules.OnHitException("Modded Staff", false, true, ShotPrimal.Rolls, false), "own spawn only");
+            BundleWindowRules.OnHitException("Modded Staff", false, true, ShotPrimal.Rolls, false, false, false), "own spawn only");
         Eq("Dead Raiser: On hit does nothing (it summons instead of hitting).",
-            BundleWindowRules.OnHitException("Dead Raiser", false, false, ShotPrimal.Rolls, true), "summons");
-        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, ShotPrimal.Rolls, false), "no exception");
+            BundleWindowRules.OnHitException("Dead Raiser", false, false, ShotPrimal.Rolls, true, false, false), "summons");
+        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, ShotPrimal.Rolls, false, false, false), "no exception");
+        Eq("Nidhögg the Thundering: its own chain lightning, raised to 35%.",
+            BundleWindowRules.OnHitException("Nidhögg the Thundering", false, false, ShotPrimal.Rolls, false, true, false), "own chain");
+        Eq("Root Fang: its own roots, raised to 35%.",
+            BundleWindowRules.OnHitException("Root Fang", false, false, ShotPrimal.Rolls, false, false, true), "own roots");
+        Eq("Modded: its own chain lightning and roots, raised to 35%.",
+            BundleWindowRules.OnHitException("Modded", false, false, ShotPrimal.Rolls, false, true, true), "both");
     }
 
     private static void Near(float expected, float actual, string what)

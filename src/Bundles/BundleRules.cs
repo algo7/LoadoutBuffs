@@ -281,14 +281,19 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// The On hit group's line for a weapon the switches treat differently (null: none): a staff that only summons gets
-        /// nothing, rapid fire loses Thundering and Primal, a shot that spawns its own effect Thundering, and Primal on a
-        /// shot that explodes roots only the enemy hit directly (or none, see <see cref="ShotPrimal"/>).
+        /// nothing, rapid fire loses Thundering and Primal, a weapon's own chain lightning / roots are raised to 35 %, a shot
+        /// that spawns its own effect loses Thundering, and Primal on a shot that explodes roots only the enemy hit directly
+        /// (or none, see <see cref="ShotPrimal"/>).
         /// </summary>
-        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, ShotPrimal primal, bool summons)
+        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, ShotPrimal primal, bool summons,
+            bool ownChainLightning, bool ownRoots)
         {
             if (summons) return $"{weaponName}: On hit does nothing (it summons instead of hitting).";
             if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
             var parts = new List<string>();
+            if (ownChainLightning || ownRoots)
+                parts.Add("its own " + (ownChainLightning && ownRoots ? "chain lightning and roots" : ownChainLightning ? "chain lightning" : "roots") +
+                          ", raised to 35%");
             if (shotSpawnsOwn) parts.Add("no Thundering (its shot spawns its own effect)");
             switch (primal)
             {

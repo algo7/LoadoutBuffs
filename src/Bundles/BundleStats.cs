@@ -317,6 +317,28 @@ namespace LoadoutBuffs
         public const float RootChance = 0.35f;
 
         /// <summary>
+        /// Thundering on a weapon with its own chain lightning (Thundering, Storm Fang, Thunderblood): it keeps its own (the
+        /// red one too), at <see cref="ChainLightningChance"/> at least, never lowered (user, 2026-10-12: "ye raising").
+        /// Anything else an attack spawns is left as it is.
+        /// </summary>
+        public static float RaisedOwnChance(bool on, bool ownIsChainLightning, float ownChance) =>
+            on && ownIsChainLightning ? Math.Max(ownChance, ChainLightningChance) : ownChance;
+
+        /// <summary>
+        /// The second roll that brings a weapon's own chance up to <paramref name="target"/> when its own roll missed:
+        /// own + (1 − own) × topUp = target (a Primal weapon's 20 % → 35 %: 18.75 %). 0 when it's already there.
+        /// </summary>
+        public static float TopUpChance(float own, float target) =>
+            own >= target || own >= 1f ? 0f : (target - Math.Max(0f, own)) / (1f - Math.Max(0f, own));
+
+        /// <summary>
+        /// Primal on a Primal weapon (its own root, <paramref name="ownChance"/>): when its own roll left the hit without an
+        /// effect, roll <see cref="TopUpChance"/> so the total is <see cref="RootChance"/>. Not with rapid fire.
+        /// </summary>
+        public static bool ShouldTopUpRoot(bool on, int hitEffectHash, float ownChance, bool rapidFire, float roll) =>
+            on && hitEffectHash == 0 && !rapidFire && roll < TopUpChance(ownChance, RootChance);
+
+        /// <summary>
         /// Primal: whether this hit roots, for a <paramref name="roll"/> in [0, 1). Never when the hit already carries a
         /// status effect (fire arrows' burning), the weapon has its own (it rolls that), the weapon fires rapidly, its shot
         /// spares friends by zeroing their damage (Lightning Strike, Echo Spike: the effect would still reach them, e.g.

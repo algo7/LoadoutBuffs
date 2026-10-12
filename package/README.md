@@ -12,8 +12,8 @@ servers and friends don't need the mod. No items are created or changed, and you
 2. In game, open your inventory and click the **BUFFS** tab next to CRAFT.
 3. Pick a starter buff (Warrior, Hunter, Explorer, Homesteader) or press **New**, then press **Use**.
 
-Changes are saved and applied at once. One buff is in use at a time, for every character in your profile. Shift + click
-on − / + changes a value ten steps at a time.
+Changes are saved and applied at once. One buff is in use at a time, for every character in your profile. In the
+Stats tab, click a group's title to open it. Shift + click on − / + changes a value ten steps at a time.
 
 ## Features
 
@@ -44,6 +44,12 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to all its
   damage, whatever the type, so even a club, a bow or a frost staff works. Digging the ground stays a pickaxe
   thing.
+- **On hit** (melee and ranged slots): the effects of the Ashlands and Deep North weapon variants, with the game's
+  numbers, on that weapon's hits. *Bleeding*: +0.2 % damage per missing health point (100 missing = +20 %).
+  *Thundering*: 25 % chance per hit (20 % on secondary attacks and with bows) of the Thundering weapons' chain
+  lightning, 75 lightning damage that jumps to more enemies. *Primal*: 20 % chance per hit to root the target for
+  10 s. A Thunderblood weapon is Bleeding + Thundering; the variants' extra damage (and Frostfire's fire and frost) is
+  what Added damage does.
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -72,9 +78,17 @@ shows them for what you wear now.
 - **Armor stats on armor, block stats in your hands.** Armor, Fall damage, Regen and Resistances can only be set on
   the helmet, chest, legs or cape. Block armor and Block force can only be set on Melee, Ranged or Shield, and count while
   that item is in your hands: holding a sword and a shield, a block also uses the sword's.
-- **Damage and classes are for weapons.** Damage %, Added damage, Woodcutter and Miner can only be set on Melee or
-  Ranged, and count only while that weapon is in your hands. A staff blast with Miner breaks every chunk of a deposit
-  it reaches.
+- **Damage, classes and On hit are for weapons.** Damage %, Added damage, Woodcutter, Miner and the On hit switches
+  can only be set on Melee or Ranged, and count only while that weapon is in your hands. A staff blast with Miner
+  breaks every chunk of a deposit it reaches.
+- **On hit works like the game's weapons.** Chain lightning only hits enemies: never other players (PvP or not), tamed
+  animals or objects. A weapon that already has an effect keeps its own: a Thundering sword stays at 25 %, a Primal
+  one rolls its own roots, and Primal skips hits that already carry an effect (fire arrows keep burning). The
+  variants' glow and sounds aren't copied.
+- **On hit skips some staffs.** Dundr and the Staff of Frost fire many projectiles, each would roll: no Thundering or
+  Primal. Lightning Strike, Echo Spike, Staff of Fracturing and Staff of the Wild spawn their own effect where the shot
+  lands, which chain lightning would replace: no Thundering. Bleeding works on all of them. The window's On hit group
+  names your weapon when it's one of these.
 - **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
   damage* and its % row appears.
 
@@ -135,6 +149,7 @@ buffs:
 | `shieldOnParry`, `shieldMinutes` | bubble health, and its time in minutes (default 1) |
 | `parryRadius` | reach in metres (default 10) |
 | `woodcutter`, `miner` | `true` (melee or ranged slot only) |
+| `bleeding`, `thundering`, `primal` | `true` (melee or ranged slot only) |
 | `fields` | any other `SE_Stats` field by its code name, raw game value |
 
 Within a buff, the stats of all filled slots add up (the parry bonus up to +20); reach and bubble time take the largest,
@@ -157,6 +172,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
   slot, and for weapons, in your hands?
 - **No bubble when I parry.** Was it a parry, not a block? Is a bubble still up from an earlier parry?
 - **A Damage % row is missing.** Your weapon doesn't deal that type; add it under Added damage first.
+- **Thundering or Primal does nothing with my staff.** Some staffs are skipped on purpose (see How Things Behave): the
+  On hit group names your weapon if it's one of them.
 - **My Melee / Ranged stats don't count with the Staff of Protection, Northern Vengeance or the Abyssal Harpoon.**
   On purpose: they count as tools (see Items That Count as Tools), because Added damage on them would hurt or kill
   your friends and tamed animals.

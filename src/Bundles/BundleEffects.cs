@@ -29,6 +29,9 @@ namespace LoadoutBuffs
         /// <summary>Set by Plugin when the eitr cost prefixes (Player.UseEitr / HaveEitr) were patched in.</summary>
         public static bool EitrHookInstalled;
 
+        /// <summary>Set by Plugin when the attack-start postfix (Humanoid.StartAttack) was patched in: Thundering needs it.</summary>
+        public static bool HitHookInstalled;
+
         public static BundleFile File { get; private set; } = new BundleFile();
         public static BundleState State { get; private set; } = new BundleState();
         public static GameEffectCatalog Catalog { get; private set; }
@@ -51,6 +54,22 @@ namespace LoadoutBuffs
         private static bool s_eitrErrorLogged;
         private static float s_parryBonus;
         private static bool s_tooltipErrorLogged;
+        private static bool s_bleeding;
+        private static bool s_thundering;
+        private static bool s_primal;
+        private static bool s_attackErrorLogged;
+        private static bool s_onHitErrorLogged;
+        private static bool s_chainMissingLogged;
+        private static bool s_rootMissingLogged;
+        private static GameObject s_chainLightning;
+        private static int s_rootHash;
+        private static ObjectDB s_rootHashDb;
+
+        /// <summary>The game's Thundering weapons' chain lightning (Aoe: 75 lightning, jumps to more enemies, never allies).</summary>
+        private const string ChainLightningPrefab = "ChainLightning";
+
+        /// <summary>The game's Primal weapons' root (10 s, can't move or jump).</summary>
+        private const string RootEffect = "ImmobilizedAshlands";
 
         /// <summary>A tool tier above anything the game asks for (hits carry it as a 16-bit number).</summary>
         public const short ClassToolTier = 1000;
@@ -64,6 +83,7 @@ namespace LoadoutBuffs
         private static readonly FieldInfo s_cape = AccessTools.Field(typeof(Humanoid), "m_shoulderItem");
         private static readonly FieldInfo s_right = AccessTools.Field(typeof(Humanoid), "m_rightItem");
         private static readonly FieldInfo s_left = AccessTools.Field(typeof(Humanoid), "m_leftItem");
+        private static readonly FieldInfo s_currentAttack = AccessTools.Field(typeof(Humanoid), "m_currentAttack");
 
         /// <summary>A bundle pass: read the bundles file and resolve it against this ObjectDB. Doesn't touch the player; see Refresh.</summary>
         public static BundleState Apply(ObjectDB db)
@@ -86,13 +106,14 @@ namespace LoadoutBuffs
             s_stats.Clear();
             s_parry = null;
             s_woodcutter = s_miner = false;
+            s_bleeding = s_thundering = s_primal = false;
             s_blockArmor = s_blockForce = s_eitrCost = s_parryBonus = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
                 State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
-                    EitrHookInstalled));
+                    EitrHookInstalled, HitHookInstalled));
             if (State.Enabled)
             {
                 foreach (var pair in State.Effects)
@@ -170,6 +191,9 @@ namespace LoadoutBuffs
                 s_parry = total.ToParryAssist();
                 s_woodcutter = total.Scalars.ContainsKey(BundleStatCatalog.WoodcutterKey);
                 s_miner = total.Scalars.ContainsKey(BundleStatCatalog.MinerKey);
+                s_bleeding = total.Scalars.ContainsKey(BundleStatCatalog.BleedingKey);
+                s_thundering = total.Scalars.ContainsKey(BundleStatCatalog.ThunderingKey);
+                s_primal = total.Scalars.ContainsKey(BundleStatCatalog.PrimalKey);
                 s_blockArmor = total.BlockArmor;
                 s_blockForce = total.BlockForce;
                 s_eitrCost = total.EitrCost;
@@ -250,6 +274,189 @@ namespace LoadoutBuffs
                 s_classErrorLogged = true;
                 Plugin.Log.LogError($"Buff classes failed (logged once): {e}");
             }
+        }
+
+        /// <summary>
+        /// Postfix of Humanoid.StartAttack (the attack started): with Thundering on the slot of the weapon in hand, the
+        /// swing's own copy of the attack (cloned per swing, never the item's data) gets the game's chain lightning at the
+        /// game's chance. The game then spawns it on melee hits (Attack.SpawnOnHit) and hands it to each projectile it
+        /// fires (arrows, bolts, thrown spears, single-shot staffs). Skipped when the attack spawns something already (a
+        /// Thundering weapon), the shot's projectile spawns its own effect (the game would replace it: Lightning Strike,
+        /// Echo Spike, Staff of Fracturing, Staff of the Wild) or the weapon fires rapidly. Must never throw.
+        /// </summary>
+        public static void OnAttackStart(Humanoid humanoid, bool secondary)
+        {
+            try
+            {
+                if (!s_thundering || humanoid == null || !ReferenceEquals(humanoid, Player.m_localPlayer)) return;
+                var weapon = humanoid.GetCurrentWeapon();
+                if (!FillsWeaponSlot(weapon) || !(s_currentAttack?.GetValue(humanoid) is Attack attack)) return;
+                var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
+                var chance = BundleStatCatalog.ChainChance(true, secondary, weapon.m_shared.m_skillType == Skills.SkillType.Bows,
+                    attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f,
+                    shot && SpawnsOwn(ShotProjectile(humanoid, attack, weapon)), Facts(weapon.m_shared).RapidFire);
+                if (chance <= 0f) return;
+                var prefab = ChainLightning();
+                if (prefab == null) return;
+                attack.m_spawnOnHit = prefab;
+                attack.m_spawnOnHitChance = chance;
+            }
+            catch (Exception e)
+            {
+                if (s_attackErrorLogged) return;
+                s_attackErrorLogged = true;
+                Plugin.Log.LogError($"Buff Thundering failed (logged once): {e}");
+            }
+        }
+
+        /// <summary>
+        /// From the buff's StatusEffect.ModifyAttack, which the game calls on each hit of the local player's attacks (melee
+        /// per target, a shot when fired), after the weapon's own effect roll: Bleeding scales the hit by the missing health
+        /// and Primal may root, for the weapon in hand's slot. Not for a shield's block-charge blast (skill Blocking).
+        /// Must never throw.
+        /// </summary>
+        public static void OnModifyAttack(Character character, Skills.SkillType skill, HitData hit)
+        {
+            try
+            {
+                if (!(s_bleeding || s_primal) || hit == null || skill == Skills.SkillType.Blocking) return;
+                var player = Player.m_localPlayer;
+                if (player == null || !ReferenceEquals(character, player)) return;
+                var weapon = player.GetCurrentWeapon();
+                if (!FillsWeaponSlot(weapon)) return;
+                var facts = Facts(weapon.m_shared);
+                var factor = BundleStatCatalog.BleedingFactor(s_bleeding, facts.OwnBleeding, player.GetMaxHealth(), player.GetHealth());
+                if (factor != 1f) hit.m_damage.Modify(factor);
+                if (s_primal && BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
+                        facts.RapidFire, UnityEngine.Random.value))
+                {
+                    var hash = RootHash();
+                    if (hash != 0) hit.m_statusEffectHash = hash;
+                }
+            }
+            catch (Exception e)
+            {
+                if (s_onHitErrorLogged) return;
+                s_onHitErrorLogged = true;
+                Plugin.Log.LogError($"Buff Bleeding / Primal failed (logged once): {e}");
+            }
+        }
+
+        /// <summary>
+        /// "Dundr: no Thundering or Primal (rapid fire).": why the on-hit switches skip this weapon, or null. Only for the
+        /// switches given (the window passes all). Never throws.
+        /// </summary>
+        public static string OnHitNote(ItemData item, bool thundering = true, bool primal = true)
+        {
+            try
+            {
+                if (item == null) return null;
+                var facts = Facts(item.m_shared);
+                return BundleWindowRules.OnHitException(EffectText.DisplayName(item.m_shared.m_name),
+                    facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>lb_stats: the note for the weapon in hand and the on-hit switches in use now (null: none).</summary>
+        public static string OnHitNoteInUse(ItemData weapon) =>
+            s_thundering || s_primal ? OnHitNote(weapon, s_thundering, s_primal) : null;
+
+        private static bool FillsWeaponSlot(ItemData weapon)
+        {
+            var slot = HandSlotOf(weapon);
+            return slot.HasValue && BundleStatCatalog.IsWeaponSlot(slot.Value);
+        }
+
+        /// <summary>The projectile a shot fires: the ammo's for bows and crossbows (picked like Attack.FindAmmo), else the attack's.</summary>
+        private static GameObject ShotProjectile(Humanoid humanoid, Attack attack, ItemData weapon)
+        {
+            var type = weapon.m_shared.m_ammoType;
+            if (!string.IsNullOrEmpty(type))
+            {
+                var ammo = humanoid.GetAmmoItem();
+                if (ammo == null || ammo.m_shared.m_ammoType != type || !humanoid.GetInventory().ContainsItem(ammo))
+                    ammo = humanoid.GetInventory().GetAmmoItem(type);
+                var fromAmmo = ammo?.m_shared.m_attack?.m_attackProjectile;
+                if (fromAmmo != null) return fromAmmo;
+            }
+            return attack.m_attackProjectile;
+        }
+
+        /// <summary>A projectile that spawns something of its own on hit (the game's handover would replace it).</summary>
+        private static bool SpawnsOwn(GameObject projectile)
+        {
+            var component = projectile == null ? null : projectile.GetComponent<Projectile>();
+            return component != null && component.m_spawnOnHit != null;
+        }
+
+        private struct HitFacts
+        {
+            public bool RapidFire;
+            public bool ShotSpawnsOwn;
+            public bool OwnBleeding;
+        }
+
+        private static readonly Dictionary<ItemData.SharedData, HitFacts> s_hitFacts = new Dictionary<ItemData.SharedData, HitFacts>();
+
+        /// <summary>
+        /// A weapon's attacks, as the on-hit switches see them: rapid fire (several projectiles at once or repeated), a shot
+        /// whose own projectile spawns its effect, the Bleeding weapons' own damage per missing health. Unused attacks (no
+        /// animation) don't count. Cached per SharedData. Never throws.
+        /// </summary>
+        private static HitFacts Facts(ItemData.SharedData shared)
+        {
+            if (shared == null) return default;
+            if (s_hitFacts.TryGetValue(shared, out var known)) return known;
+            var facts = new HitFacts();
+            try
+            {
+                foreach (var attack in new[] { shared.m_attack, shared.m_secondaryAttack })
+                {
+                    if (attack == null || string.IsNullOrEmpty(attack.m_attackAnimation)) continue;
+                    facts.RapidFire |= BundleStatCatalog.IsRapidFire(attack.m_attackType, attack.m_projectiles, attack.m_projectileBursts,
+                        attack.m_loopingAttack);
+                    var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
+                    facts.ShotSpawnsOwn |= shot && SpawnsOwn(attack.m_attackProjectile);
+                    facts.OwnBleeding |= attack.m_damageMultiplierPerMissingHP > 0f;
+                }
+            }
+            catch (Exception) { }
+            s_hitFacts[shared] = facts;
+            return facts;
+        }
+
+        /// <summary>The chain lightning prefab (looked up once per ZNetScene), or null (logged once) if the game lacks it.</summary>
+        private static GameObject ChainLightning()
+        {
+            if (s_chainLightning != null) return s_chainLightning;
+            s_chainLightning = ZNetScene.instance == null ? null : ZNetScene.instance.GetPrefab(ChainLightningPrefab);
+            if (s_chainLightning == null && !s_chainMissingLogged)
+            {
+                s_chainMissingLogged = true;
+                Plugin.Log.LogWarning($"Thundering does nothing: the game has no {ChainLightningPrefab} (game update?).");
+            }
+            return s_chainLightning;
+        }
+
+        /// <summary>The root effect's hash (looked up once per ObjectDB), or 0 (logged once) if the game lacks it.</summary>
+        private static int RootHash()
+        {
+            var db = ObjectDB.instance;
+            if (db == null) return 0;
+            if (ReferenceEquals(db, s_rootHashDb)) return s_rootHash;
+            var effect = db.GetStatusEffect(RootEffect.GetStableHashCode());
+            s_rootHash = effect == null ? 0 : effect.NameHash();
+            s_rootHashDb = db;
+            if (s_rootHash == 0 && !s_rootMissingLogged)
+            {
+                s_rootMissingLogged = true;
+                Plugin.Log.LogWarning($"Primal does nothing: the game has no {RootEffect} effect (game update?).");
+            }
+            return s_rootHash;
         }
 
         /// <summary>

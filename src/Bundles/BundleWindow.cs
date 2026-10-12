@@ -434,7 +434,7 @@ namespace LoadoutBuffs
                 var defs = BundleStatCatalog.Scalars.Where(d => d.Group == group && d.Allows(s_selectedSlot)).ToList();
                 if (defs.Count == 0) continue;
                 var used = defs.Count(d => stats.Scalars.ContainsKey(d.Key));
-                if (!GroupHeader(group, used, true)) continue;
+                if (!GroupHeader(group, used)) continue;
                 foreach (var def in defs)
                 {
                     var d = def;
@@ -449,7 +449,7 @@ namespace LoadoutBuffs
             }
 
             var classes = BundleStatCatalog.Toggles.Count(d => stats.Scalars.ContainsKey(d.Key));
-            if (BundleStatCatalog.Toggles.All(d => d.Allows(s_selectedSlot)) && GroupHeader(BundleStatCatalog.Class, classes, true))
+            if (BundleStatCatalog.Toggles.All(d => d.Allows(s_selectedSlot)) && GroupHeader(BundleStatCatalog.Class, classes))
             {
                 var hits = s_selectedSlot == BundleSlot.Ranged ? "Your shots (arrows, bolts, staff spells)" : "Your melee hits";
                 Row(s_statsList, $"<size=13><color=#bbbbbb>{hits}: Woodcutter fells any tree, Miner breaks any rock or ore.</color></size>",
@@ -462,7 +462,23 @@ namespace LoadoutBuffs
                 }
             }
 
-            if (BundleStatCatalog.IsArmorSlot(s_selectedSlot) && GroupHeader(BundleStatCatalog.Resistances, stats.Resist.Count, false))
+            // The game's weapon-variant effects on this weapon slot's hits; a line names the equipped weapon when they skip it.
+            var onHit = BundleStatCatalog.OnHitEffects.Count(d => stats.Scalars.ContainsKey(d.Key));
+            if (BundleStatCatalog.IsWeaponSlot(s_selectedSlot) && GroupHeader(BundleStatCatalog.OnHit, onHit))
+            {
+                Row(s_statsList, $"<size=13><color=#bbbbbb>{BundleWindowRules.OnHitInfo(s_selectedSlot == BundleSlot.Ranged)}</color></size>",
+                    40, () => { }, false);
+                var note = BundleEffects.OnHitNote(BundleEffects.Worn(Player.m_localPlayer, s_selectedSlot));
+                if (note != null) Row(s_statsList, $"<size=13><color=#ffcf70>{Escape(note)}</color></size>", 28, () => { }, false);
+                foreach (var def in BundleStatCatalog.OnHitEffects)
+                {
+                    var key = def.Key;
+                    var on = stats.Scalars.ContainsKey(key);
+                    StatRow(def.Label, on ? "On" : "Off", on, true, () => SetToggle(key, false), () => SetToggle(key, true), "Off", "On", 40f);
+                }
+            }
+
+            if (BundleStatCatalog.IsArmorSlot(s_selectedSlot) && GroupHeader(BundleStatCatalog.Resistances, stats.Resist.Count))
                 foreach (var type in BundleStatCatalog.DamageTypes)
                 {
                     var t = type;
@@ -491,7 +507,7 @@ namespace LoadoutBuffs
 
             // Damage stats only on weapon slots: on armor they'd change whatever weapon you hold.
             var weaponSlot = BundleStatCatalog.IsWeaponSlot(s_selectedSlot);
-            if (weaponSlot && GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count, false))
+            if (weaponSlot && GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count))
             {
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Damage types of your {weaponName}; others appear once added below.</color></size>", 28, () => { }, false);
@@ -505,7 +521,7 @@ namespace LoadoutBuffs
                 }
             }
 
-            if (weaponSlot && GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count, false))
+            if (weaponSlot && GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count))
             {
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Added on top of your {weaponName}{(weaponName == "fists" ? "'" : "'s")} own damage.</color></size>", 28, () => { }, false);
@@ -521,7 +537,7 @@ namespace LoadoutBuffs
                 }
             }
 
-            if (GroupHeader(BundleStatCatalog.Skills, stats.Skills.Count, false))
+            if (GroupHeader(BundleStatCatalog.Skills, stats.Skills.Count))
                 foreach (var skill in BundleStatCatalog.WindowSkills.Concat(stats.Skills.Keys.Where(k => !BundleStatCatalog.WindowSkills.Contains(k))))
                 {
                     var name = skill;
@@ -535,10 +551,13 @@ namespace LoadoutBuffs
                 Row(s_statsList, $"<color=#bbbbbb>Also set in the file: {Escape(string.Join(", ", stats.Fields.Select(f => f.Key)))}</color>", 28, () => { }, false);
         }
 
-        /// <summary>A clickable group title; returns whether the group is open. Groups holding a value open by default.</summary>
-        private static bool GroupHeader(string group, int used, bool openByDefault)
+        /// <summary>
+        /// A clickable group title; returns whether the group is open. Every group starts closed, also with values set (the
+        /// title counts them): some lists are long (user, 2026-10-12). A click opens it until the game closes.
+        /// </summary>
+        private static bool GroupHeader(string group, int used)
         {
-            var open = s_groupOpen.TryGetValue(group, out var o) ? o : openByDefault || used > 0;
+            var open = s_groupOpen.TryGetValue(group, out var o) && o;
             var text = $"<color=orange>{(open ? "[-]" : "[+]")} {group}</color>" + (used > 0 ? $"  <size=13>({used} set)</size>" : "");
             Row(s_statsList, text, 28, () =>
             {

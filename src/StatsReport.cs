@@ -109,6 +109,9 @@ namespace LoadoutBuffs
             lines.Add($"    block armor {F(blocker.GetBlockPowerTooltip(blocker.m_quality))} (with your Blocking skill), " +
                       $"block force {F(blocker.GetDeflectionForce())}, parry {parryText}");
 
+            var onHit = BundleEffects.OnHitNoteInUse(weapon);
+            if (onHit != null) lines.Add("    on hit: " + onHit);
+
             var parry = shared.m_perfectBlockStatusEffect;
             if (parry != null)
                 lines.Add($"    effect on parry: {EffectText.DisplayName(parry.m_name)}");

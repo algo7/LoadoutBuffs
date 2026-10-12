@@ -147,7 +147,7 @@ namespace LoadoutBuffs
         /// they do nothing instead of the stat silently not working.
         /// </summary>
         public static List<string> MissingHookWarnings(IEnumerable<StatBlock> stats, bool parryHook, bool blockHook, bool damageHook,
-            bool eitrHook)
+            bool eitrHook, bool hitHook)
         {
             var list = stats.Where(b => b != null).ToList();
             var warnings = new List<string>();
@@ -159,6 +159,8 @@ namespace LoadoutBuffs
                 warnings.Add("The buff's added damage can't work (the added damage hook isn't installed, see LogOutput.log).");
             if (!eitrHook && list.Any(b => b.EitrCost != 0f))
                 warnings.Add("The buff's eitr cost can't work (the eitr hook isn't installed, see LogOutput.log).");
+            if (!hitHook && list.Any(b => b.Scalars.ContainsKey(BundleStatCatalog.ThunderingKey)))
+                warnings.Add("The buff's Thundering can't work (the attack hook isn't installed, see LogOutput.log).");
             return warnings;
         }
 
@@ -267,6 +269,22 @@ namespace LoadoutBuffs
                     return (dealt.TryGetValue(key, out var d) && d > 0f) || (set != null && set.ContainsKey(key));
                 })
                 .ToList();
+        }
+
+        /// <summary>The On hit group's info line: what the three switches do for the slot's hits.</summary>
+        public static string OnHitInfo(bool ranged) =>
+            (ranged ? "Your shots" : "Your melee hits") + ": Bleeding +0.2% damage per missing health, Thundering " +
+            (ranged ? "20–25%" : "25%") + " chain lightning, Primal 20% root (10 s).";
+
+        /// <summary>
+        /// The On hit group's line for a weapon the switches skip (null: none): rapid fire loses Thundering and Primal, a
+        /// shot that spawns its own effect only the chain lightning.
+        /// </summary>
+        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn)
+        {
+            if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
+            if (shotSpawnsOwn) return $"{weaponName}: no chain lightning (its shot spawns its own effect).";
+            return null;
         }
 
         /// <summary>"has 90": the note on an added-damage row, what the weapon in hand already deals of that type (null: none).</summary>

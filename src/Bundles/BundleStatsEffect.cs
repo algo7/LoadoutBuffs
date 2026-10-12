@@ -28,6 +28,9 @@ namespace LoadoutBuffs
         /// <summary>"Woodcutter, Miner" (for the tooltip); the chop/mine hook reads BundleEffects' flags.</summary>
         internal string m_classes;
 
+        /// <summary>"Bleeding, Thundering" (for the tooltip); the hooks read BundleEffects' flags.</summary>
+        internal string m_onHit;
+
         /// <summary>"Wisplight, Megingjord": the buff's effects on the slots you fill now (for the tooltip).</summary>
         internal string m_effectNames;
 
@@ -101,6 +104,16 @@ namespace LoadoutBuffs
             }
         }
 
+        /// <summary>
+        /// The game calls this on each hit of your attacks (Attack, after the weapon's own effect roll): SE_Stats applies
+        /// its damage modifiers (Damage %), then the buff's Bleeding and Primal (BundleEffects.OnModifyAttack).
+        /// </summary>
+        public override void ModifyAttack(Skills.SkillType skill, ref HitData hitData)
+        {
+            base.ModifyAttack(skill, ref hitData);
+            BundleEffects.OnModifyAttack(m_character, skill, hitData);
+        }
+
         public override string GetIconText() =>
             m_statCount > 0 ? $"{m_statCount} stat{(m_statCount == 1 ? "" : "s")}" : "";
 
@@ -128,6 +141,8 @@ namespace LoadoutBuffs
                 sb.AppendFormat("Parry bonus: <color=orange>{0}</color> (added to what you parry with)\n", StatBlock.Number(m_parryBonus));
             if (!string.IsNullOrEmpty(m_classes))
                 sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
+            if (!string.IsNullOrEmpty(m_onHit))
+                sb.AppendFormat("On hit: <color=orange>{0}</color> (your weapon's hits)\n", m_onHit);
             return sb.ToString();
         }
 
@@ -145,6 +160,7 @@ namespace LoadoutBuffs
             m_parryBonus = total.ParryBonus;
             m_addDamage = new Dictionary<string, float>(total.AddDamage);
             m_classes = string.Join(", ", BundleStatCatalog.Toggles.Where(d => total.Scalars.ContainsKey(d.Key)).Select(d => d.Label));
+            m_onHit = string.Join(", ", BundleStatCatalog.OnHitEffects.Where(d => total.Scalars.ContainsKey(d.Key)).Select(d => d.Label));
             foreach (var def in BundleStatCatalog.Scalars)
             {
                 if (def.Field == null) continue; // on-parry amounts and block armor: read by hooks, not SE_Stats fields

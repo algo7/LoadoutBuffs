@@ -159,6 +159,22 @@ namespace LoadoutBuffs
         private static void Have(Player __instance, ref float amount) => amount = BundleEffects.WithEitrCost(__instance, amount);
     }
 
+    /// <summary>
+    /// Thundering: a postfix on Humanoid.StartAttack (virtual, never inlined), which clones the weapon's attack for each
+    /// swing; the clone gets the chain lightning (see BundleEffects.OnAttackStart). Bleeding and Primal need no hook (the
+    /// buff's ModifyAttack).
+    /// </summary>
+    [HarmonyPatch]
+    internal static class BundleHitPatches
+    {
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.StartAttack), typeof(Character), typeof(bool))]
+        [HarmonyPostfix]
+        private static void AttackStarted(Humanoid __instance, bool secondaryAttack, bool __result)
+        {
+            if (__result) BundleEffects.OnAttackStart(__instance, secondaryAttack);
+        }
+    }
+
     /// <summary>Item classes (Woodcutter / Miner): prefixes on the attacker-side Damage(HitData) of trees, logs, rocks and destructibles.</summary>
     [HarmonyPatch]
     internal static class BundleClassPatches

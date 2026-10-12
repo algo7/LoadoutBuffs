@@ -22,7 +22,7 @@ namespace LoadoutBuffs
         /// <summary>An on-parry amount (no SE_Stats field): read by the parry hook, see <see cref="StatBlock.ToParryAssist"/>.</summary>
         Parry,
 
-        /// <summary>On or off (<c>true</c> in the file, stored as 1): an item class, read by the chop/mine hook.</summary>
+        /// <summary>On or off (<c>true</c> in the file, stored as 1): an item class or an on-hit effect, read by their hooks.</summary>
         Toggle,
 
         /// <summary>A flat amount for whatever you block with (no SE_Stats field): added by the block hook, see <see cref="BundleStatCatalog.WithBlockArmor"/>.</summary>
@@ -86,6 +86,10 @@ namespace LoadoutBuffs
         public const string Class = "Class";
         public const string WoodcutterKey = "woodcutter";
         public const string MinerKey = "miner";
+        public const string OnHit = "On hit";
+        public const string BleedingKey = "bleeding";
+        public const string ThunderingKey = "thundering";
+        public const string PrimalKey = "primal";
         public const string Resistances = "Resistances";
         public const string Damage = "Damage %";
         public const string Skills = "Skills";
@@ -252,6 +256,63 @@ namespace LoadoutBuffs
             },
         };
 
+        /// <summary>
+        /// On-hit effects of the game's Ashlands / Deep North weapon variants, for the hits of the weapon whose slot holds
+        /// one, with the game's numbers (no extra damage types: Added damage does those). Weapon slots only, like classes.
+        /// </summary>
+        public static readonly StatDef[] OnHitEffects =
+        {
+            OnHitToggle(BleedingKey, "Bleeding"),
+            OnHitToggle(ThunderingKey, "Thundering"),
+            OnHitToggle(PrimalKey, "Primal"),
+        };
+
+        private static StatDef OnHitToggle(string key, string label) => new StatDef
+        {
+            Key = key, Label = label, Group = OnHit, Kind = StatKind.Toggle, Step = 1, Min = 0, Max = 1, TakesLargest = true,
+            OnlyOn = WeaponSlots,
+        };
+
+        /// <summary>The Bleeding weapons' <c>m_damageMultiplierPerMissingHP</c>: +0.2 % damage per missing health point.</summary>
+        public const float BleedingPerMissingHealth = 0.002f;
+
+        /// <summary>
+        /// Bleeding: the hit's damage multiplier at this health (Attack.ModifyDamage's formula). 1 when off, at full health
+        /// or when the weapon already has its own (a Bleeding / Thunderblood weapon: no doubling).
+        /// </summary>
+        public static float BleedingFactor(bool on, bool weaponHasOwn, float maxHealth, float health) =>
+            !on || weaponHasOwn ? 1f : 1f + Math.Max(0f, maxHealth - health) * BleedingPerMissingHealth;
+
+        /// <summary>
+        /// Thundering: the chain lightning chance the game's Thundering weapons use (primary 25 %, secondary 20 %, bows 20 %),
+        /// or 0: switch off, the attack already spawns something (a Thundering / Thunderblood weapon keeps its own), the shot
+        /// spawns its own effect (Lightning Strike, Echo Spike, Staff of Fracturing, Staff of the Wild: the game would replace
+        /// it), or rapid fire.
+        /// </summary>
+        public static float ChainChance(bool on, bool secondary, bool bow, bool attackSpawnsOwn, bool shotSpawnsOwn, bool rapidFire)
+        {
+            if (!on || attackSpawnsOwn || shotSpawnsOwn || rapidFire) return 0f;
+            return secondary || bow ? 0.20f : 0.25f;
+        }
+
+        /// <summary>The Primal weapons' chance to root (ImmobilizedAshlands, 10 s).</summary>
+        public const float RootChance = 0.2f;
+
+        /// <summary>
+        /// Primal: whether this hit roots, for a <paramref name="roll"/> in [0, 1). Never when the hit already carries a
+        /// status effect (fire arrows' burning), the weapon has its own (it rolls that), or the weapon fires rapidly.
+        /// </summary>
+        public static bool ShouldRoot(bool on, int hitEffectHash, bool weaponHasOwnEffect, bool rapidFire, float roll) =>
+            on && hitEffectHash == 0 && !weaponHasOwnEffect && !rapidFire && roll < RootChance;
+
+        /// <summary>
+        /// A shot that fires several projectiles at once (Dundr, 12) or repeatedly (Staff of Frost, looping bursts): every
+        /// projectile would roll, so Thundering and Primal skip such weapons. Melee attacks never are.
+        /// </summary>
+        public static bool IsRapidFire(Attack.AttackType type, int projectiles, int bursts, bool looping) =>
+            (type == Attack.AttackType.Projectile || type == Attack.AttackType.TriggerProjectile) &&
+            (projectiles > 1 || bursts > 1 || looping);
+
         public const float DamageStep = 5, DamageMin = -50, DamageMax = 200;
 
         public const string AddedDamage = "Added damage";
@@ -292,7 +353,7 @@ namespace LoadoutBuffs
         public static readonly string[] WindowSkills = SkillNames.Where(n => n != nameof(global::Skills.SkillType.All)).ToArray();
 
         public static StatDef Find(string key) =>
-            Scalars.Concat(Toggles).FirstOrDefault(d => string.Equals(d.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase));
+            Scalars.Concat(Toggles).Concat(OnHitEffects).FirstOrDefault(d => string.Equals(d.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase));
 
         public static string ModifierLabel(string modifier)
         {
@@ -451,7 +512,7 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// One compact line for people, grouped: "+15% movement speed, +15 armor; stamina cost: run -10%; on parry:
-        /// heal allies +40, reach 15 m; class: Woodcutter; resist: Fire Resistant; damage: slash +10%; skills: Bows +15".
+        /// heal allies +40, reach 15 m; class: Woodcutter; on hit: Thundering; resist: Fire Resistant; damage: slash +10%; skills: Bows +15".
         /// </summary>
         public string Summary()
         {
@@ -474,6 +535,7 @@ namespace LoadoutBuffs
             Group("on parry", scalars.Where(d => d.Group == BundleStatCatalog.OnParry)
                 .Select(d => $"{d.Label.ToLowerInvariant()} {Value(d, Scalars[d.Key])}"));
             Group("class", BundleStatCatalog.Toggles.Where(d => Scalars.ContainsKey(d.Key)).Select(d => d.Label));
+            Group("on hit", BundleStatCatalog.OnHitEffects.Where(d => Scalars.ContainsKey(d.Key)).Select(d => d.Label));
             Group("resist", BundleStatCatalog.DamageTypes.Where(Resist.ContainsKey).Select(t => $"{t} {BundleStatCatalog.ModifierLabel(Resist[t])}"));
             Group("damage", BundleStatCatalog.DamageTypes.Select(t => t.ToLowerInvariant()).Where(Damage.ContainsKey).Select(t => $"{t} {Number(Damage[t])}%"));
             Group("added", AddedTypes().Select(t => $"{t} {Number(AddDamage[t])}"));
@@ -488,7 +550,7 @@ namespace LoadoutBuffs
             var parts = new List<string>();
             foreach (var def in BundleStatCatalog.Scalars)
                 if (Scalars.TryGetValue(def.Key, out var v)) parts.Add($"{def.Key}: {Plain(v)}");
-            foreach (var def in BundleStatCatalog.Toggles)
+            foreach (var def in BundleStatCatalog.Toggles.Concat(BundleStatCatalog.OnHitEffects))
                 if (Scalars.ContainsKey(def.Key)) parts.Add($"{def.Key}: true");
             if (Resist.Count > 0)
                 parts.Add($"{BundleStatCatalog.ResistKey}: {{ " +
@@ -610,7 +672,7 @@ namespace LoadoutBuffs
                         break;
                     default:
                         warnings.Add($"{label}.{key}: unknown stat, skipped (line {line}). Stats: " +
-                                     string.Join(", ", BundleStatCatalog.Scalars.Concat(BundleStatCatalog.Toggles).Select(d => d.Key)) +
+                                     string.Join(", ", BundleStatCatalog.Scalars.Concat(BundleStatCatalog.Toggles).Concat(BundleStatCatalog.OnHitEffects).Select(d => d.Key)) +
                                      $", {BundleStatCatalog.ResistKey}, {BundleStatCatalog.DamageKey}, {BundleStatCatalog.AddDamageKey}, {BundleStatCatalog.SkillsKey}, {BundleStatCatalog.FieldsKey}.");
                         break;
                 }

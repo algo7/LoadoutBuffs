@@ -854,18 +854,25 @@ internal static partial class Tests
         damage.AddDamage["spirit"] = 30;
         var eitr = new StatBlock();
         eitr.Scalars["eitrCost"] = -20;
-        var all = new[] { parry, block, damage, eitr };
-        Eq(0, BundleRules.MissingHookWarnings(all, true, true, true, true).Count, "all hooks installed");
-        var w = BundleRules.MissingHookWarnings(all, false, false, false, false);
-        Eq(4, w.Count, "warnings: " + string.Join(" | ", w));
+        var thunder = new StatBlock();
+        thunder.Scalars["thundering"] = 1;
+        var all = new[] { parry, block, damage, eitr, thunder };
+        Eq(0, BundleRules.MissingHookWarnings(all, true, true, true, true, true).Count, "all hooks installed");
+        var w = BundleRules.MissingHookWarnings(all, false, false, false, false, false);
+        Eq(5, w.Count, "warnings: " + string.Join(" | ", w));
         True(w[0].StartsWith("The buff's on-parry stats can't work"), w[0]);
         True(w[1].StartsWith("The buff's block armor / force can't work"), w[1]);
         True(w[2].StartsWith("The buff's added damage can't work"), w[2]);
         True(w[3].StartsWith("The buff's eitr cost can't work"), w[3]);
-        Eq(0, BundleRules.MissingHookWarnings(new[] { new StatBlock() }, false, false, false, false).Count, "no stats that need a hook");
+        True(w[4].StartsWith("The buff's Thundering can't work"), w[4]);
+        Eq(0, BundleRules.MissingHookWarnings(new[] { new StatBlock() }, false, false, false, false, false).Count, "no stats that need a hook");
+        var others = new StatBlock();
+        others.Scalars["bleeding"] = 1;
+        others.Scalars["primal"] = 1;
+        Eq(0, BundleRules.MissingHookWarnings(new[] { others }, true, true, true, true, false).Count, "Bleeding and Primal need no hook");
         var force = new StatBlock();
         force.Scalars["blockForce"] = 20;
-        var forceOnly = BundleRules.MissingHookWarnings(new[] { force }, true, false, true, true);
+        var forceOnly = BundleRules.MissingHookWarnings(new[] { force }, true, false, true, true, true);
         True(forceOnly.Count == 1 && forceOnly[0].StartsWith("The buff's block armor / force can't work"), string.Join(" | ", forceOnly));
     }
 }

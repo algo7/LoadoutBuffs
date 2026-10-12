@@ -109,6 +109,25 @@ internal static partial class Tests
             "a shot that explodes (Staff of Embers) would root everything in its blast with one roll: none");
     }
 
+    private static void Test_OnHit_RootStays()
+    {
+        // (the target is a friend, a ranged hit, inside a shot's impact, the target is the one the shot hit directly)
+        True(BundleStatCatalog.RootStays(false, false, false, false), "melee hit on an enemy");
+        True(BundleStatCatalog.RootStays(false, true, true, true), "the enemy a shot hits directly");
+        False(BundleStatCatalog.RootStays(false, true, true, false), "another enemy in the blast");
+        False(BundleStatCatalog.RootStays(false, true, false, false), "a ranged hit outside an impact (mid-flight blast)");
+        False(BundleStatCatalog.RootStays(true, true, true, true), "a friend hit directly (Lightning Strike with PvP on)");
+        False(BundleStatCatalog.RootStays(true, false, false, false), "a friend hit in melee (PvP on)");
+
+        Eq(ShotPrimal.Rolls, BundleStatCatalog.PrimalOnShots(false, false, true), "a plain shot rolls");
+        Eq(ShotPrimal.DirectHitOnly, BundleStatCatalog.PrimalOnShots(true, false, true), "a blast with the hooks: direct hit only");
+        Eq(ShotPrimal.DirectHitOnly, BundleStatCatalog.PrimalOnShots(true, true, true), "friends are handled by the hooks too");
+        Eq(ShotPrimal.Rolls, BundleStatCatalog.PrimalOnShots(false, true, true), "sparing friends alone needs no note with the hooks");
+        Eq(ShotPrimal.NoneBlast, BundleStatCatalog.PrimalOnShots(true, false, false), "a blast without the hooks: none");
+        Eq(ShotPrimal.NoneFriends, BundleStatCatalog.PrimalOnShots(true, true, false), "friends first without the hooks");
+        Eq(ShotPrimal.NoneFriends, BundleStatCatalog.PrimalOnShots(false, true, false), "sparing friends without the hooks");
+    }
+
     private static void Test_OnHit_RapidFire()
     {
         True(BundleStatCatalog.IsRapidFire(Attack.AttackType.Projectile, 12, 1, false), "Dundr: 12 projectiles a cast");
@@ -125,23 +144,24 @@ internal static partial class Tests
             BundleWindowRules.OnHitInfo(ranged: false), "melee info line (secondary attacks and throws: 20 %)");
         Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).",
             BundleWindowRules.OnHitInfo(ranged: true), "ranged info line");
-        // (name, rapid fire, the shot spawns its own effect, the shot spares friends, the shot explodes, it only summons)
-        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, false, false, false, false), "rapid fire");
-        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, true, true, true, false),
-            "rapid fire says it all");
-        Eq("Staff of Embers: no Primal (one roll would root everything it reaches).",
-            BundleWindowRules.OnHitException("Staff of Embers", false, false, false, true, false), "explodes");
-        Eq("Staff of the Wild: no Thundering (its shot spawns its own effect) or Primal (one roll would root everything it reaches).",
-            BundleWindowRules.OnHitException("Staff of the Wild", false, true, false, true, false), "own spawn, explodes");
-        Eq("Lightning Strike: no Thundering (its shot spawns its own effect) or Primal (it would root friends).",
-            BundleWindowRules.OnHitException("Lightning Strike", false, true, true, true, false), "own spawn, spares friends, explodes");
+        // (name, rapid fire, the shot spawns its own effect, Primal on its shots, it only summons)
+        Eq("Dundr: no Thundering or Primal (rapid fire).",
+            BundleWindowRules.OnHitException("Dundr", true, false, ShotPrimal.Rolls, false), "rapid fire");
+        Eq("Dundr: no Thundering or Primal (rapid fire).",
+            BundleWindowRules.OnHitException("Dundr", true, true, ShotPrimal.DirectHitOnly, false), "rapid fire says it all");
+        Eq("Staff of Embers: Primal roots only the enemy it hits directly.",
+            BundleWindowRules.OnHitException("Staff of Embers", false, false, ShotPrimal.DirectHitOnly, false), "a blast: direct hit");
+        Eq("Staff of the Wild: no Thundering (its shot spawns its own effect); Primal roots only the enemy it hits directly.",
+            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.DirectHitOnly, false), "own spawn + blast");
+        Eq("Staff of the Wild: no Thundering (its shot spawns its own effect); no Primal (one roll would root everything it reaches).",
+            BundleWindowRules.OnHitException("Staff of the Wild", false, true, ShotPrimal.NoneBlast, false), "without the hooks");
+        Eq("Lightning Strike: no Thundering (its shot spawns its own effect); no Primal (it would root friends).",
+            BundleWindowRules.OnHitException("Lightning Strike", false, true, ShotPrimal.NoneFriends, false), "spares friends, no hooks");
         Eq("Modded Staff: no Thundering (its shot spawns its own effect).",
-            BundleWindowRules.OnHitException("Modded Staff", false, true, false, false, false), "own spawn only");
-        Eq("Modded Staff: no Primal (it would root friends).",
-            BundleWindowRules.OnHitException("Modded Staff", false, false, true, false, false), "spares friends only");
+            BundleWindowRules.OnHitException("Modded Staff", false, true, ShotPrimal.Rolls, false), "own spawn only");
         Eq("Dead Raiser: On hit does nothing (it summons instead of hitting).",
-            BundleWindowRules.OnHitException("Dead Raiser", false, false, false, false, true), "summons");
-        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, false, false, false), "no exception");
+            BundleWindowRules.OnHitException("Dead Raiser", false, false, ShotPrimal.Rolls, true), "summons");
+        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, ShotPrimal.Rolls, false), "no exception");
     }
 
     private static void Near(float expected, float actual, string what)

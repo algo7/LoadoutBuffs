@@ -175,6 +175,33 @@ namespace LoadoutBuffs
         }
     }
 
+    /// <summary>
+    /// Primal on direct hits only: Projectile.OnHit (public) marks a root-carrying shot's impact and what it hit directly,
+    /// Projectile.Setup strips the root from projectiles spawned during it (splinters), Character.Damage (attacker side,
+    /// called through IDestructible, so never inlined) drops the root from everything but the direct target and from
+    /// friends (see BundleEffects.OnCharacterHit).
+    /// </summary>
+    [HarmonyPatch]
+    internal static class BundleRootPatches
+    {
+        [HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]
+        [HarmonyPrefix]
+        private static void ImpactStart(Projectile __instance, UnityEngine.Collider collider, out object __state) =>
+            __state = BundleEffects.BeginImpact(__instance, collider);
+
+        [HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]
+        [HarmonyFinalizer]
+        private static void ImpactEnd(object __state) => BundleEffects.EndImpact(__state);
+
+        [HarmonyPatch(typeof(Projectile), nameof(Projectile.Setup))]
+        [HarmonyPostfix]
+        private static void Spawned(Projectile __instance) => BundleEffects.OnProjectileSetup(__instance);
+
+        [HarmonyPatch(typeof(Character), nameof(Character.Damage))]
+        [HarmonyPrefix]
+        private static void Hit(Character __instance, HitData hit) => BundleEffects.OnCharacterHit(__instance, hit);
+    }
+
     /// <summary>Item classes (Woodcutter / Miner): prefixes on the attacker-side Damage(HitData) of trees, logs, rocks and destructibles.</summary>
     [HarmonyPatch]
     internal static class BundleClassPatches

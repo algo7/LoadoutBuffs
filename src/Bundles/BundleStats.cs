@@ -35,6 +35,22 @@ namespace LoadoutBuffs
         ParryBonus,
     }
 
+    /// <summary>What Primal does on a weapon's shots (the window says it): roll, direct hit only, or none, and why.</summary>
+    internal enum ShotPrimal
+    {
+        /// <summary>A plain shot (arrows, bolts, thrown spears): each hit rolls.</summary>
+        Rolls,
+
+        /// <summary>The shot explodes or splinters: only the enemy it hits directly can be rooted (the direct-hit hooks).</summary>
+        DirectHitOnly,
+
+        /// <summary>Without the direct-hit hooks: a shot that explodes or splinters would root everything it reaches.</summary>
+        NoneBlast,
+
+        /// <summary>Without the direct-hit hooks: a shot that zeroes friends' damage would still root them (PvP on).</summary>
+        NoneFriends,
+    }
+
     /// <summary>A scalar stat of the curated set: file key, window label and step, and the SE_Stats field it sets.</summary>
     internal sealed class StatDef
     {
@@ -308,6 +324,26 @@ namespace LoadoutBuffs
         public static bool ShouldRoot(bool on, int hitEffectHash, bool weaponHasOwnEffect, bool rapidFire, bool shotSparesFriends,
             bool shotExplodes, float roll) =>
             on && hitEffectHash == 0 && !weaponHasOwnEffect && !rapidFire && !shotSparesFriends && !shotExplodes && roll < RootChance;
+
+        /// <summary>
+        /// Primal on a weapon's shots. With the direct-hit hooks a blast or splinters root only the enemy the shot hits
+        /// directly, and no hit roots a friend; without them such shots get no Primal at all (user, 2026-10-12: "they would
+        /// still work but on direct hit only. i think barring all AoE staff would be a bit too strict").
+        /// </summary>
+        public static ShotPrimal PrimalOnShots(bool shotExplodes, bool shotSparesFriends, bool directHitHooks)
+        {
+            if (directHitHooks) return shotExplodes ? ShotPrimal.DirectHitOnly : ShotPrimal.Rolls;
+            if (shotSparesFriends) return ShotPrimal.NoneFriends;
+            return shotExplodes ? ShotPrimal.NoneBlast : ShotPrimal.Rolls;
+        }
+
+        /// <summary>
+        /// Whether the buff's root stays on a hit as it reaches a character (the direct-hit hooks): never on a friend (a
+        /// player or tamed animal, PvP or not); a ranged hit only on the character its shot hit directly (not the rest of a
+        /// blast, nor a blast outside the shot's impact); melee as rolled.
+        /// </summary>
+        public static bool RootStays(bool targetIsFriend, bool ranged, bool inImpact, bool directTarget) =>
+            !targetIsFriend && (!ranged || (inImpact && directTarget));
 
         /// <summary>
         /// A shot that fires several projectiles at once (Dundr, 12) or repeatedly (Staff of Frost, looping bursts): every

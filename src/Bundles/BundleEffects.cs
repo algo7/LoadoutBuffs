@@ -32,6 +32,13 @@ namespace LoadoutBuffs
         /// <summary>Set by Plugin when the attack-start postfix (Humanoid.StartAttack) was patched in: Thundering needs it.</summary>
         public static bool HitHookInstalled;
 
+        /// <summary>
+        /// Set by Plugin when the direct-hit hooks (Projectile.OnHit / Setup, Character.Damage) were patched in: Primal on
+        /// shots that explode or splinter then roots only the enemy hit directly, and never a friend; without them those
+        /// shots get no Primal.
+        /// </summary>
+        public static bool RootHookInstalled;
+
         public static BundleFile File { get; private set; } = new BundleFile();
         public static BundleState State { get; private set; } = new BundleState();
         public static GameEffectCatalog Catalog { get; private set; }
@@ -64,6 +71,15 @@ namespace LoadoutBuffs
         private static GameObject s_chainLightning;
         private static int s_rootHash;
         private static ObjectDB s_rootHashDb;
+        private static bool s_rootHookErrorLogged;
+
+        /// <summary>The shot whose impact the game is handling (Projectile.OnHit): the local player's, and what it hit directly.</summary>
+        private sealed class Impact
+        {
+            public GameObject Direct;
+        }
+
+        private static Impact s_impact;
 
         /// <summary>The game's Thundering weapons' chain lightning (Aoe: 75 lightning, jumps to more enemies, never allies).</summary>
         private const string ChainLightningPrefab = "ChainLightning";
@@ -84,6 +100,8 @@ namespace LoadoutBuffs
         private static readonly FieldInfo s_right = AccessTools.Field(typeof(Humanoid), "m_rightItem");
         private static readonly FieldInfo s_left = AccessTools.Field(typeof(Humanoid), "m_leftItem");
         private static readonly FieldInfo s_currentAttack = AccessTools.Field(typeof(Humanoid), "m_currentAttack");
+        private static readonly FieldInfo s_projectileOwner = AccessTools.Field(typeof(Projectile), "m_owner");
+        private static readonly FieldInfo s_projectileEffect = AccessTools.Field(typeof(Projectile), "m_statusEffectHash");
 
         /// <summary>A bundle pass: read the bundles file and resolve it against this ObjectDB. Doesn't touch the player; see Refresh.</summary>
         public static BundleState Apply(ObjectDB db)
@@ -327,8 +345,9 @@ namespace LoadoutBuffs
                 var facts = ShotFacts(player, weapon);
                 var factor = BundleStatCatalog.BleedingFactor(s_bleeding, facts.OwnBleeding, player.GetMaxHealth(), player.GetHealth());
                 if (factor != 1f) hit.m_damage.Modify(factor);
+                var onShots = BundleStatCatalog.PrimalOnShots(facts.ShotExplodes, facts.ShotSparesFriends, RootHookInstalled);
                 if (s_primal && BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
-                        facts.RapidFire, facts.ShotSparesFriends, facts.ShotExplodes, UnityEngine.Random.value))
+                        facts.RapidFire, onShots == ShotPrimal.NoneFriends, onShots == ShotPrimal.NoneBlast, UnityEngine.Random.value))
                 {
                     var hash = RootHash();
                     if (hash != 0) hit.m_statusEffectHash = hash;
@@ -352,14 +371,97 @@ namespace LoadoutBuffs
             {
                 if (item == null) return null;
                 var facts = ShotFacts(humanoid, item);
+                var onShots = primal ? BundleStatCatalog.PrimalOnShots(facts.ShotExplodes, facts.ShotSparesFriends, RootHookInstalled)
+                    : ShotPrimal.Rolls;
                 return BundleWindowRules.OnHitException(EffectText.DisplayName(item.m_shared.m_name),
-                    facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering, facts.ShotSparesFriends && primal,
-                    facts.ShotExplodes && primal, facts.Summons && (bleeding || thundering || primal));
+                    facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering, onShots,
+                    facts.Summons && (bleeding || thundering || primal));
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Prefix of Projectile.OnHit: a shot of the local player's that carries the buff's root lands; remember what it
+        /// hit directly until the impact is handled (see <see cref="OnCharacterHit"/>, <see cref="OnProjectileSetup"/>).
+        /// Returns the impact this one interrupts, for <see cref="EndImpact"/>. Must never throw.
+        /// </summary>
+        public static object BeginImpact(Projectile shot, Collider collider)
+        {
+            var previous = s_impact;
+            try
+            {
+                var root = s_rootHash;
+                if (root == 0 || shot == null || s_projectileEffect == null || !(s_projectileEffect.GetValue(shot) is int hash) || hash != root ||
+                    !ReferenceEquals(s_projectileOwner?.GetValue(shot), Player.m_localPlayer))
+                    s_impact = null;
+                else
+                    s_impact = new Impact { Direct = collider != null ? Projectile.FindHitObject(collider) : null };
+            }
+            catch (Exception e)
+            {
+                s_impact = null;
+                LogRootHookError(e);
+            }
+            return previous;
+        }
+
+        /// <summary>Finalizer of Projectile.OnHit: the impact is handled (even if the game threw).</summary>
+        public static void EndImpact(object previous) => s_impact = previous as Impact;
+
+        /// <summary>
+        /// Postfix of Projectile.Setup: a projectile spawned during the buff's root-carrying impact (Staff of Fracturing's
+        /// splinters, Echo Spike's return; they inherit the shot's hit) doesn't carry the root on. Must never throw.
+        /// </summary>
+        public static void OnProjectileSetup(Projectile spawned)
+        {
+            try
+            {
+                if (s_impact == null || spawned == null || s_projectileEffect == null) return;
+                if (s_projectileEffect.GetValue(spawned) is int hash && hash == s_rootHash) s_projectileEffect.SetValue(spawned, 0);
+            }
+            catch (Exception e)
+            {
+                LogRootHookError(e);
+            }
+        }
+
+        /// <summary>
+        /// Prefix of Character.Damage, on the attacker's side before the hit is sent: the buff's root stays only where
+        /// <see cref="BundleStatCatalog.RootStays"/> says (not on friends; a shot's only on what it hit directly). The game's
+        /// own Primal weapons are left alone (the weapon in hand has its own effect). Must never throw.
+        /// </summary>
+        public static void OnCharacterHit(Character target, HitData hit)
+        {
+            try
+            {
+                var root = s_rootHash;
+                if (root == 0 || hit == null || hit.m_statusEffectHash != root || target == null) return;
+                var player = Player.m_localPlayer;
+                if (player == null || !ReferenceEquals(hit.GetAttacker(), player)) return;
+                if (player.GetCurrentWeapon()?.m_shared.m_attackStatusEffect != null) return; // a Primal weapon's own root
+                var ai = target.GetBaseAI();
+                var friend = !BaseAI.IsEnemy(player, target) && !(ai != null && ai.IsAggravatable());
+                var impact = s_impact;
+                var direct = impact != null && impact.Direct != null && ReferenceEquals(impact.Direct, target.gameObject);
+                if (!BundleStatCatalog.RootStays(friend, hit.m_ranged, impact != null, direct)) hit.m_statusEffectHash = 0;
+            }
+            catch (Exception e)
+            {
+                LogRootHookError(e);
+            }
+        }
+
+        /// <summary>Whether the fields the direct-hit hooks read were found (Plugin counts them as part of the hooks).</summary>
+        public static bool RootFieldsFound => s_projectileOwner != null && s_projectileEffect != null;
+
+        private static void LogRootHookError(Exception e)
+        {
+            if (s_rootHookErrorLogged) return;
+            s_rootHookErrorLogged = true;
+            Plugin.Log.LogError($"Buff Primal direct-hit hooks failed (logged once): {e}");
         }
 
         /// <summary>lb_stats: the note for the weapon in hand and the on-hit switches in use now (null: none).</summary>

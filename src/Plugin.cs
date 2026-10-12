@@ -39,6 +39,12 @@ namespace LoadoutBuffs
             BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
             BundleEffects.EitrHookInstalled = TryPatch(harmony, typeof(BundleEitrPatches), "buff eitr cost hooks");
             BundleEffects.HitHookInstalled = TryPatch(harmony, typeof(BundleHitPatches), "buff attack hook (Thundering)");
+            BundleEffects.RootHookInstalled = TryPatch(harmony, typeof(BundleRootPatches), "buff Primal direct-hit hooks");
+            if (BundleEffects.RootHookInstalled && !BundleEffects.RootFieldsFound)
+            {
+                BundleEffects.RootHookInstalled = false;
+                Log.LogError("Buff Primal on exploding shots disabled: Projectile fields not found (game update?). Everything else is not affected.");
+            }
             if (!BundleEffects.AttackFieldFound)
             {
                 BundleEffects.HitHookInstalled = false;

@@ -277,20 +277,23 @@ namespace LoadoutBuffs
             ": Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).";
 
         /// <summary>
-        /// The On hit group's line for a weapon the switches skip (null: none): a staff that only summons gets nothing,
-        /// rapid fire loses Thundering and Primal, a shot that spawns its own effect Thundering, a shot that spares friends
-        /// or explodes Primal.
+        /// The On hit group's line for a weapon the switches treat differently (null: none): a staff that only summons gets
+        /// nothing, rapid fire loses Thundering and Primal, a shot that spawns its own effect Thundering, and Primal on a
+        /// shot that explodes roots only the enemy hit directly (or none, see <see cref="ShotPrimal"/>).
         /// </summary>
-        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, bool shotSparesFriends,
-            bool shotExplodes, bool summons)
+        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, ShotPrimal primal, bool summons)
         {
             if (summons) return $"{weaponName}: On hit does nothing (it summons instead of hitting).";
             if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
-            var primal = shotSparesFriends ? "it would root friends" : shotExplodes ? "one roll would root everything it reaches" : null;
-            if (shotSpawnsOwn && primal != null) return $"{weaponName}: no Thundering (its shot spawns its own effect) or Primal ({primal}).";
-            if (shotSpawnsOwn) return $"{weaponName}: no Thundering (its shot spawns its own effect).";
-            if (primal != null) return $"{weaponName}: no Primal ({primal}).";
-            return null;
+            var parts = new List<string>();
+            if (shotSpawnsOwn) parts.Add("no Thundering (its shot spawns its own effect)");
+            switch (primal)
+            {
+                case ShotPrimal.DirectHitOnly: parts.Add("Primal roots only the enemy it hits directly"); break;
+                case ShotPrimal.NoneBlast: parts.Add("no Primal (one roll would root everything it reaches)"); break;
+                case ShotPrimal.NoneFriends: parts.Add("no Primal (it would root friends)"); break;
+            }
+            return parts.Count == 0 ? null : $"{weaponName}: {string.Join("; ", parts)}.";
         }
 
         /// <summary>"has 90": the note on an added-damage row, what the weapon in hand already deals of that type (null: none).</summary>

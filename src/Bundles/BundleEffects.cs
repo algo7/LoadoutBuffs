@@ -76,6 +76,7 @@ namespace LoadoutBuffs
         /// <summary>The shot whose impact the game is handling (Projectile.OnHit): the local player's, and what it hit directly.</summary>
         private sealed class Impact
         {
+            public Projectile Shot;
             public GameObject Direct;
         }
 
@@ -102,6 +103,7 @@ namespace LoadoutBuffs
         private static readonly FieldInfo s_currentAttack = AccessTools.Field(typeof(Humanoid), "m_currentAttack");
         private static readonly FieldInfo s_projectileOwner = AccessTools.Field(typeof(Projectile), "m_owner");
         private static readonly FieldInfo s_projectileEffect = AccessTools.Field(typeof(Projectile), "m_statusEffectHash");
+        private static readonly FieldInfo s_projectileHitData = AccessTools.Field(typeof(Projectile), "m_originalHitData");
 
         /// <summary>A bundle pass: read the bundles file and resolve it against this ObjectDB. Doesn't touch the player; see Refresh.</summary>
         public static BundleState Apply(ObjectDB db)
@@ -394,11 +396,11 @@ namespace LoadoutBuffs
             try
             {
                 var root = s_rootHash;
-                if (root == 0 || shot == null || s_projectileEffect == null || !(s_projectileEffect.GetValue(shot) is int hash) || hash != root ||
-                    !ReferenceEquals(s_projectileOwner?.GetValue(shot), Player.m_localPlayer))
+                if (!RootHookInstalled || root == 0 || shot == null || !(s_projectileEffect.GetValue(shot) is int hash) || hash != root ||
+                    !ReferenceEquals(s_projectileOwner.GetValue(shot), Player.m_localPlayer))
                     s_impact = null;
                 else
-                    s_impact = new Impact { Direct = collider != null ? Projectile.FindHitObject(collider) : null };
+                    s_impact = new Impact { Shot = shot, Direct = collider != null ? Projectile.FindHitObject(collider) : null };
             }
             catch (Exception e)
             {
@@ -412,15 +414,30 @@ namespace LoadoutBuffs
         public static void EndImpact(object previous) => s_impact = previous as Impact;
 
         /// <summary>
-        /// Postfix of Projectile.Setup: a projectile spawned during the buff's root-carrying impact (Staff of Fracturing's
-        /// splinters, Echo Spike's return; they inherit the shot's hit) doesn't carry the root on. Must never throw.
+        /// Postfix of Projectile.Setup: the root never passes on to projectiles a shot spawns. A projectile spawned during
+        /// the buff's root-carrying impact drops it; a root-carrying shot that hands its hit to what it spawns (Staff of
+        /// Fracturing's splinters, also when it bursts at the end of its flight, outside any impact) hands on a copy without
+        /// it. Must never throw.
         /// </summary>
         public static void OnProjectileSetup(Projectile spawned)
         {
             try
             {
-                if (s_impact == null || spawned == null || s_projectileEffect == null) return;
-                if (s_projectileEffect.GetValue(spawned) is int hash && hash == s_rootHash) s_projectileEffect.SetValue(spawned, 0);
+                var root = s_rootHash;
+                if (!RootHookInstalled || root == 0 || spawned == null || !(s_projectileEffect.GetValue(spawned) is int hash) || hash != root)
+                    return;
+                if (s_impact != null)
+                {
+                    s_projectileEffect.SetValue(spawned, 0);
+                    return;
+                }
+                if (spawned.m_spawnOnHit != null && spawned.m_projectilesInheritHitData &&
+                    s_projectileHitData.GetValue(spawned) is HitData inherited)
+                {
+                    var copy = inherited.Clone();
+                    copy.m_statusEffectHash = 0;
+                    s_projectileHitData.SetValue(spawned, copy);
+                }
             }
             catch (Exception e)
             {
@@ -438,15 +455,20 @@ namespace LoadoutBuffs
             try
             {
                 var root = s_rootHash;
-                if (root == 0 || hit == null || hit.m_statusEffectHash != root || target == null) return;
+                if (!RootHookInstalled || root == 0 || hit == null || hit.m_statusEffectHash != root || target == null) return;
                 var player = Player.m_localPlayer;
                 if (player == null || !ReferenceEquals(hit.GetAttacker(), player)) return;
-                if (player.GetCurrentWeapon()?.m_shared.m_attackStatusEffect != null) return; // a Primal weapon's own root
+                // A Primal weapon's own swing: left alone. Shots are judged by what they carry, not by what's in hand when
+                // they land (a fireball, then Staff of Protection).
+                if (!hit.m_ranged && player.GetCurrentWeapon()?.m_shared.m_attackStatusEffect != null) return;
                 var ai = target.GetBaseAI();
                 var friend = !BaseAI.IsEnemy(player, target) && !(ai != null && ai.IsAggravatable());
                 var impact = s_impact;
                 var direct = impact != null && impact.Direct != null && ReferenceEquals(impact.Direct, target.gameObject);
-                if (!BundleStatCatalog.RootStays(friend, hit.m_ranged, impact != null, direct)) hit.m_statusEffectHash = 0;
+                if (!BundleStatCatalog.RootStays(friend, hit.m_ranged, impact != null, direct))
+                    hit.m_statusEffectHash = 0;
+                else if (hit.m_ranged && impact?.Shot != null)
+                    s_projectileEffect.SetValue(impact.Shot, 0); // one root per shot (Echo Spike passes through a line of enemies)
             }
             catch (Exception e)
             {
@@ -455,7 +477,7 @@ namespace LoadoutBuffs
         }
 
         /// <summary>Whether the fields the direct-hit hooks read were found (Plugin counts them as part of the hooks).</summary>
-        public static bool RootFieldsFound => s_projectileOwner != null && s_projectileEffect != null;
+        public static bool RootFieldsFound => s_projectileOwner != null && s_projectileEffect != null && s_projectileHitData != null;
 
         private static void LogRootHookError(Exception e)
         {

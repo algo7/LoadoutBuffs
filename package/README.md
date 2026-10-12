@@ -86,9 +86,10 @@ shows them for what you wear now.
   animals or objects; like the game's weapons, it angers neutral Dvergr it reaches. A weapon that already has an effect keeps its own: a Thundering sword stays at 25 %, a Primal
   one rolls its own roots, and Primal skips hits that already carry an effect (fire arrows keep burning). The
   variants' glow and sounds aren't copied.
-- **Primal roots one enemy per hit.** A staff shot that explodes or splinters (Staff of Embers, Staff of the Wild,
-  Staff of Fracturing, Lightning Strike, Echo Spike) can only root the enemy it hits directly, not the rest of its
-  blast, and nothing when it lands on the ground. Primal never roots other players or tamed animals, PvP or not.
+- **A staff shot roots one enemy at most.** A shot that explodes, splinters or passes through enemies (Staff of
+  Embers, Staff of the Wild, Staff of Fracturing, Lightning Strike, Echo Spike) can only root the enemy it hits
+  directly, not the rest of its blast, and nothing when it lands on the ground. Primal never roots other players or
+  tamed animals, PvP or not.
 - **On hit skips some staffs.** Dundr and the Staff of Frost fire many projectiles, each would roll: no Thundering or
   Primal. Lightning Strike, Echo Spike, Staff of Fracturing and Staff of the Wild spawn their own effect where the shot
   lands, which chain lightning would replace: no Thundering. Bleeding works on all of these. Dead Raiser, Spirit

@@ -53,6 +53,7 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
+![On hit: Bleeding, Thundering and Primal switches on the melee slot](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-hit.png)
 
 ![The buff in use on the HUD (Warrior), next to its effects](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/hud-buff.png)
 

@@ -279,16 +279,17 @@ namespace LoadoutBuffs
         /// <summary>
         /// The On hit group's line for a weapon the switches skip (null: none): a staff that only summons gets nothing,
         /// rapid fire loses Thundering and Primal, a shot that spawns its own effect Thundering, a shot that spares friends
-        /// Primal.
+        /// or explodes Primal.
         /// </summary>
-        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, bool shotSparesFriends, bool summons)
+        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, bool shotSparesFriends,
+            bool shotExplodes, bool summons)
         {
             if (summons) return $"{weaponName}: On hit does nothing (it summons instead of hitting).";
             if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
-            if (shotSpawnsOwn && shotSparesFriends)
-                return $"{weaponName}: no Thundering (its shot spawns its own effect) or Primal (it would root friends).";
+            var primal = shotSparesFriends ? "it would root friends" : shotExplodes ? "one roll would root everything it reaches" : null;
+            if (shotSpawnsOwn && primal != null) return $"{weaponName}: no Thundering (its shot spawns its own effect) or Primal ({primal}).";
             if (shotSpawnsOwn) return $"{weaponName}: no Thundering (its shot spawns its own effect).";
-            if (shotSparesFriends) return $"{weaponName}: no Primal (it would root friends).";
+            if (primal != null) return $"{weaponName}: no Primal ({primal}).";
             return null;
         }
 

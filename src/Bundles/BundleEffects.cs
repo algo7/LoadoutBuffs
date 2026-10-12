@@ -328,7 +328,7 @@ namespace LoadoutBuffs
                 var factor = BundleStatCatalog.BleedingFactor(s_bleeding, facts.OwnBleeding, player.GetMaxHealth(), player.GetHealth());
                 if (factor != 1f) hit.m_damage.Modify(factor);
                 if (s_primal && BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
-                        facts.RapidFire, facts.ShotSparesFriends, UnityEngine.Random.value))
+                        facts.RapidFire, facts.ShotSparesFriends, facts.ShotExplodes, UnityEngine.Random.value))
                 {
                     var hash = RootHash();
                     if (hash != 0) hit.m_statusEffectHash = hash;
@@ -354,7 +354,7 @@ namespace LoadoutBuffs
                 var facts = ShotFacts(humanoid, item);
                 return BundleWindowRules.OnHitException(EffectText.DisplayName(item.m_shared.m_name),
                     facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering, facts.ShotSparesFriends && primal,
-                    facts.Summons && (bleeding || thundering || primal));
+                    facts.ShotExplodes && primal, facts.Summons && (bleeding || thundering || primal));
             }
             catch (Exception)
             {
@@ -407,6 +407,18 @@ namespace LoadoutBuffs
             return component != null && component.m_noDamageFriendly;
         }
 
+        /// <summary>
+        /// A projectile that spreads its hit, effect included, to several targets, so one Primal roll would root them all:
+        /// it explodes (<c>m_aoe</c>, Projectile.DoAOE: Staff of Embers, Staff of the Wild, Lightning Strike) or splits into
+        /// projectiles that inherit its hit (<c>m_projectilesInheritHitData</c>: Staff of Fracturing's 12 splinters).
+        /// </summary>
+        private static bool Explodes(GameObject projectile)
+        {
+            var component = projectile == null ? null : projectile.GetComponent<Projectile>();
+            return component != null &&
+                   (component.m_aoe > 0f || (component.m_spawnOnHit != null && component.m_projectilesInheritHitData));
+        }
+
         /// <summary>A shot that is neither a projectile nor a blast (Dead Raiser, Spirit Caller, Trollstav): it only summons.</summary>
         private static bool OnlySummons(GameObject projectile) =>
             projectile != null && projectile.GetComponent<Projectile>() == null && projectile.GetComponent<Aoe>() == null;
@@ -419,6 +431,7 @@ namespace LoadoutBuffs
             if (ammo == null) return facts;
             facts.ShotSpawnsOwn |= SpawnsOwn(ammo);
             facts.ShotSparesFriends |= SparesFriends(ammo);
+            facts.ShotExplodes |= Explodes(ammo);
             return facts;
         }
 
@@ -427,6 +440,7 @@ namespace LoadoutBuffs
             public bool RapidFire;
             public bool ShotSpawnsOwn;
             public bool ShotSparesFriends;
+            public bool ShotExplodes;
             public bool Summons;
             public bool OwnBleeding;
         }
@@ -435,7 +449,7 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// A weapon's attacks, as the on-hit switches see them: rapid fire (several projectiles at once or repeated), a shot
-        /// whose own projectile spawns its effect or spares friends, only summoning (every used attack), the Bleeding
+        /// whose own projectile spawns its effect, spares friends or explodes, only summoning (every used attack), the Bleeding
         /// weapons' own damage per missing health. Unused attacks (no animation) don't count. Cached per SharedData.
         /// Never throws.
         /// </summary>
@@ -457,6 +471,7 @@ namespace LoadoutBuffs
                     var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
                     facts.ShotSpawnsOwn |= shot && SpawnsOwn(attack.m_attackProjectile);
                     facts.ShotSparesFriends |= shot && SparesFriends(attack.m_attackProjectile);
+                    facts.ShotExplodes |= shot && Explodes(attack.m_attackProjectile);
                     if (shot && OnlySummons(attack.m_attackProjectile)) summoning++;
                     facts.OwnBleeding |= attack.m_damageMultiplierPerMissingHP > 0f;
                 }

@@ -292,8 +292,8 @@ namespace LoadoutBuffs
             if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
             var parts = new List<string>();
             if (ownChainLightning || ownRoots)
-                parts.Add("its own " + (ownChainLightning && ownRoots ? "chain lightning and roots" : ownChainLightning ? "chain lightning" : "roots") +
-                          ", raised to 35%");
+                parts.Add(ownChainLightning && ownRoots ? "chain lightning and root effect chances raised to 35%"
+                    : ownChainLightning ? "chain lightning chance raised to 35%" : "root effect chance raised to 35%");
             if (shotSpawnsOwn) parts.Add("no Thundering (its shot spawns its own effect)");
             switch (primal)
             {

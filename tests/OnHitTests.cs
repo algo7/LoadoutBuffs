@@ -184,11 +184,11 @@ internal static partial class Tests
         Eq("Dead Raiser: On hit does nothing (it summons instead of hitting).",
             BundleWindowRules.OnHitException("Dead Raiser", false, false, ShotPrimal.Rolls, true, false, false), "summons");
         Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, ShotPrimal.Rolls, false, false, false), "no exception");
-        Eq("Nidhögg the Thundering: its own chain lightning, raised to 35%.",
+        Eq("Nidhögg the Thundering: chain lightning chance raised to 35%.",
             BundleWindowRules.OnHitException("Nidhögg the Thundering", false, false, ShotPrimal.Rolls, false, true, false), "own chain");
-        Eq("Root Fang: its own roots, raised to 35%.",
+        Eq("Root Fang: root effect chance raised to 35%.",
             BundleWindowRules.OnHitException("Root Fang", false, false, ShotPrimal.Rolls, false, false, true), "own roots");
-        Eq("Modded: its own chain lightning and roots, raised to 35%.",
+        Eq("Modded: chain lightning and root effect chances raised to 35%.",
             BundleWindowRules.OnHitException("Modded", false, false, ShotPrimal.Rolls, false, true, true), "both");
     }
 

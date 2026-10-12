@@ -39,6 +39,11 @@ namespace LoadoutBuffs
             BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
             BundleEffects.EitrHookInstalled = TryPatch(harmony, typeof(BundleEitrPatches), "buff eitr cost hooks");
             BundleEffects.HitHookInstalled = TryPatch(harmony, typeof(BundleHitPatches), "buff attack hook (Thundering)");
+            if (!BundleEffects.AttackFieldFound)
+            {
+                BundleEffects.HitHookInstalled = false;
+                Log.LogError("Buff Thundering disabled: Humanoid.m_currentAttack not found (game update?). Everything else is not affected.");
+            }
             TryPatch(harmony, typeof(BundleTooltipPatches), "buff parry bonus tooltip hook");
             TryPatch(harmony, typeof(BundleUiPatches), "buff window");
 

@@ -468,7 +468,7 @@ namespace LoadoutBuffs
             {
                 Row(s_statsList, $"<size=13><color=#bbbbbb>{BundleWindowRules.OnHitInfo(s_selectedSlot == BundleSlot.Ranged)}</color></size>",
                     40, () => { }, false);
-                var note = BundleEffects.OnHitNote(BundleEffects.Worn(Player.m_localPlayer, s_selectedSlot));
+                var note = BundleEffects.OnHitNote(BundleEffects.Worn(Player.m_localPlayer, s_selectedSlot), Player.m_localPlayer);
                 if (note != null) Row(s_statsList, $"<size=13><color=#ffcf70>{Escape(note)}</color></size>", 28, () => { }, false);
                 foreach (var def in BundleStatCatalog.OnHitEffects)
                 {

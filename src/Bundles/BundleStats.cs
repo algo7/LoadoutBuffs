@@ -300,10 +300,13 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Primal: whether this hit roots, for a <paramref name="roll"/> in [0, 1). Never when the hit already carries a
-        /// status effect (fire arrows' burning), the weapon has its own (it rolls that), or the weapon fires rapidly.
+        /// status effect (fire arrows' burning), the weapon has its own (it rolls that), the weapon fires rapidly, or its
+        /// shot spares friends by zeroing their damage (Lightning Strike, Echo Spike: the effect would still reach them,
+        /// e.g. your tamed animals with PvP on).
         /// </summary>
-        public static bool ShouldRoot(bool on, int hitEffectHash, bool weaponHasOwnEffect, bool rapidFire, float roll) =>
-            on && hitEffectHash == 0 && !weaponHasOwnEffect && !rapidFire && roll < RootChance;
+        public static bool ShouldRoot(bool on, int hitEffectHash, bool weaponHasOwnEffect, bool rapidFire, bool shotSparesFriends,
+            float roll) =>
+            on && hitEffectHash == 0 && !weaponHasOwnEffect && !rapidFire && !shotSparesFriends && roll < RootChance;
 
         /// <summary>
         /// A shot that fires several projectiles at once (Dundr, 12) or repeatedly (Staff of Frost, looping bursts): every

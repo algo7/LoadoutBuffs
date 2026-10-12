@@ -96,13 +96,15 @@ internal static partial class Tests
     private static void Test_OnHit_Root()
     {
         Eq(0.2f, BundleStatCatalog.RootChance, "the game's Primal weapons: 20 %");
-        // (on, the hit's status effect hash, the weapon has its own, rapid fire, roll)
-        True(BundleStatCatalog.ShouldRoot(true, 0, false, false, 0.1f), "roll under 20 %");
-        False(BundleStatCatalog.ShouldRoot(true, 0, false, false, 0.2f), "roll of 20 % misses");
-        False(BundleStatCatalog.ShouldRoot(false, 0, false, false, 0f), "switch off");
-        False(BundleStatCatalog.ShouldRoot(true, 1234, false, false, 0f), "the hit already carries an effect (fire arrows)");
-        False(BundleStatCatalog.ShouldRoot(true, 0, true, false, 0f), "the weapon has its own effect: it rolls its own");
-        False(BundleStatCatalog.ShouldRoot(true, 0, false, true, 0f), "rapid fire: none");
+        // (on, the hit's status effect hash, the weapon has its own, rapid fire, the shot spares friends, roll)
+        True(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, 0.1f), "roll under 20 %");
+        False(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, 0.2f), "roll of 20 % misses");
+        False(BundleStatCatalog.ShouldRoot(false, 0, false, false, false, 0f), "switch off");
+        False(BundleStatCatalog.ShouldRoot(true, 1234, false, false, false, 0f), "the hit already carries an effect (fire arrows)");
+        False(BundleStatCatalog.ShouldRoot(true, 0, true, false, false, 0f), "the weapon has its own effect: it rolls its own");
+        False(BundleStatCatalog.ShouldRoot(true, 0, false, true, false, 0f), "rapid fire: none");
+        False(BundleStatCatalog.ShouldRoot(true, 0, false, false, true, 0f),
+            "a shot that zeroes friends' damage (Lightning Strike, Echo Spike) would still root them with PvP on: none");
     }
 
     private static void Test_OnHit_RapidFire()
@@ -117,15 +119,23 @@ internal static partial class Tests
 
     private static void Test_OnHit_WindowText()
     {
-        Eq("Your melee hits: Bleeding +0.2% damage per missing health, Thundering 25% chain lightning, Primal 20% root (10 s).",
-            BundleWindowRules.OnHitInfo(ranged: false), "melee info line");
+        Eq("Your melee hits: Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).",
+            BundleWindowRules.OnHitInfo(ranged: false), "melee info line (secondary attacks and throws: 20 %)");
         Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).",
             BundleWindowRules.OnHitInfo(ranged: true), "ranged info line");
-        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, false), "rapid fire");
-        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, true), "rapid fire says it all");
-        Eq("Lightning Strike: no chain lightning (its shot spawns its own effect).",
-            BundleWindowRules.OnHitException("Lightning Strike", false, true), "own spawn");
-        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false), "no exception");
+        // (name, rapid fire, the shot spawns its own effect, the shot spares friends, it only summons)
+        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, false, false, false), "rapid fire");
+        Eq("Dundr: no Thundering or Primal (rapid fire).", BundleWindowRules.OnHitException("Dundr", true, true, true, false),
+            "rapid fire says it all");
+        Eq("Staff of the Wild: no Thundering (its shot spawns its own effect).",
+            BundleWindowRules.OnHitException("Staff of the Wild", false, true, false, false), "own spawn");
+        Eq("Lightning Strike: no Thundering (its shot spawns its own effect) or Primal (it would root friends).",
+            BundleWindowRules.OnHitException("Lightning Strike", false, true, true, false), "own spawn, spares friends");
+        Eq("Modded Staff: no Primal (it would root friends).",
+            BundleWindowRules.OnHitException("Modded Staff", false, false, true, false), "spares friends only");
+        Eq("Dead Raiser: On hit does nothing (it summons instead of hitting).",
+            BundleWindowRules.OnHitException("Dead Raiser", false, false, false, true), "summons");
+        Eq(null, BundleWindowRules.OnHitException("Nidhögg", false, false, false, false), "no exception");
     }
 
     private static void Near(float expected, float actual, string what)

@@ -294,7 +294,7 @@ namespace LoadoutBuffs
                 var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
                 var chance = BundleStatCatalog.ChainChance(true, secondary, weapon.m_shared.m_skillType == Skills.SkillType.Bows,
                     attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f,
-                    shot && SpawnsOwn(ShotProjectile(humanoid, attack, weapon)), Facts(weapon.m_shared).RapidFire);
+                    shot && SpawnsOwn(AmmoProjectile(humanoid, weapon) ?? attack.m_attackProjectile), Facts(weapon.m_shared).RapidFire);
                 if (chance <= 0f) return;
                 var prefab = ChainLightning();
                 if (prefab == null) return;
@@ -324,11 +324,11 @@ namespace LoadoutBuffs
                 if (player == null || !ReferenceEquals(character, player)) return;
                 var weapon = player.GetCurrentWeapon();
                 if (!FillsWeaponSlot(weapon)) return;
-                var facts = Facts(weapon.m_shared);
+                var facts = ShotFacts(player, weapon);
                 var factor = BundleStatCatalog.BleedingFactor(s_bleeding, facts.OwnBleeding, player.GetMaxHealth(), player.GetHealth());
                 if (factor != 1f) hit.m_damage.Modify(factor);
                 if (s_primal && BundleStatCatalog.ShouldRoot(true, hit.m_statusEffectHash, weapon.m_shared.m_attackStatusEffect != null,
-                        facts.RapidFire, UnityEngine.Random.value))
+                        facts.RapidFire, facts.ShotSparesFriends, UnityEngine.Random.value))
                 {
                     var hash = RootHash();
                     if (hash != 0) hit.m_statusEffectHash = hash;
@@ -343,17 +343,18 @@ namespace LoadoutBuffs
         }
 
         /// <summary>
-        /// "Dundr: no Thundering or Primal (rapid fire).": why the on-hit switches skip this weapon, or null. Only for the
-        /// switches given (the window passes all). Never throws.
+        /// "Dundr: no Thundering or Primal (rapid fire).": why the on-hit switches skip this weapon, or null; with the ammo
+        /// <paramref name="humanoid"/> would shoot. Only for the switches given (the window passes all). Never throws.
         /// </summary>
-        public static string OnHitNote(ItemData item, bool thundering = true, bool primal = true)
+        public static string OnHitNote(ItemData item, Humanoid humanoid, bool bleeding = true, bool thundering = true, bool primal = true)
         {
             try
             {
                 if (item == null) return null;
-                var facts = Facts(item.m_shared);
+                var facts = ShotFacts(humanoid, item);
                 return BundleWindowRules.OnHitException(EffectText.DisplayName(item.m_shared.m_name),
-                    facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering);
+                    facts.RapidFire && (thundering || primal), facts.ShotSpawnsOwn && thundering, facts.ShotSparesFriends && primal,
+                    facts.Summons && (bleeding || thundering || primal));
             }
             catch (Exception)
             {
@@ -362,8 +363,11 @@ namespace LoadoutBuffs
         }
 
         /// <summary>lb_stats: the note for the weapon in hand and the on-hit switches in use now (null: none).</summary>
-        public static string OnHitNoteInUse(ItemData weapon) =>
-            s_thundering || s_primal ? OnHitNote(weapon, s_thundering, s_primal) : null;
+        public static string OnHitNoteInUse(Player player, ItemData weapon) =>
+            s_bleeding || s_thundering || s_primal ? OnHitNote(weapon, player, s_bleeding, s_thundering, s_primal) : null;
+
+        /// <summary>Whether Humanoid.m_currentAttack was found (Thundering needs it); Plugin counts it as part of the hook.</summary>
+        public static bool AttackFieldFound => s_currentAttack != null;
 
         private static bool FillsWeaponSlot(ItemData weapon)
         {
@@ -371,19 +375,19 @@ namespace LoadoutBuffs
             return slot.HasValue && BundleStatCatalog.IsWeaponSlot(slot.Value);
         }
 
-        /// <summary>The projectile a shot fires: the ammo's for bows and crossbows (picked like Attack.FindAmmo), else the attack's.</summary>
-        private static GameObject ShotProjectile(Humanoid humanoid, Attack attack, ItemData weapon)
+        /// <summary>
+        /// The projectile of the ammo a bow or crossbow would shoot (picked like Attack.FindAmmo), which replaces the
+        /// attack's own; null for weapons without ammo, without a humanoid or without ammo left.
+        /// </summary>
+        private static GameObject AmmoProjectile(Humanoid humanoid, ItemData weapon)
         {
             var type = weapon.m_shared.m_ammoType;
-            if (!string.IsNullOrEmpty(type))
-            {
-                var ammo = humanoid.GetAmmoItem();
-                if (ammo == null || ammo.m_shared.m_ammoType != type || !humanoid.GetInventory().ContainsItem(ammo))
-                    ammo = humanoid.GetInventory().GetAmmoItem(type);
-                var fromAmmo = ammo?.m_shared.m_attack?.m_attackProjectile;
-                if (fromAmmo != null) return fromAmmo;
-            }
-            return attack.m_attackProjectile;
+            if (humanoid == null || string.IsNullOrEmpty(type)) return null;
+            var ammo = humanoid.GetAmmoItem();
+            if (ammo == null || ammo.m_shared.m_ammoType != type || !humanoid.GetInventory().ContainsItem(ammo))
+                ammo = humanoid.GetInventory().GetAmmoItem(type);
+            var projectile = ammo?.m_shared.m_attack?.m_attackProjectile;
+            return projectile != null ? projectile : null;
         }
 
         /// <summary>A projectile that spawns something of its own on hit (the game's handover would replace it).</summary>
@@ -393,10 +397,37 @@ namespace LoadoutBuffs
             return component != null && component.m_spawnOnHit != null;
         }
 
+        /// <summary>
+        /// A projectile that zeroes friends' damage instead of missing them (Lightning Strike, Echo Spike): their hit still
+        /// carries the status effect, so with PvP on a root would reach your tamed animals.
+        /// </summary>
+        private static bool SparesFriends(GameObject projectile)
+        {
+            var component = projectile == null ? null : projectile.GetComponent<Projectile>();
+            return component != null && component.m_noDamageFriendly;
+        }
+
+        /// <summary>A shot that is neither a projectile nor a blast (Dead Raiser, Spirit Caller, Trollstav): it only summons.</summary>
+        private static bool OnlySummons(GameObject projectile) =>
+            projectile != null && projectile.GetComponent<Projectile>() == null && projectile.GetComponent<Aoe>() == null;
+
+        /// <summary>The weapon's facts with the ammo <paramref name="humanoid"/> would shoot (modded arrows may spawn their own effect).</summary>
+        private static HitFacts ShotFacts(Humanoid humanoid, ItemData weapon)
+        {
+            var facts = Facts(weapon.m_shared);
+            var ammo = AmmoProjectile(humanoid, weapon);
+            if (ammo == null) return facts;
+            facts.ShotSpawnsOwn |= SpawnsOwn(ammo);
+            facts.ShotSparesFriends |= SparesFriends(ammo);
+            return facts;
+        }
+
         private struct HitFacts
         {
             public bool RapidFire;
             public bool ShotSpawnsOwn;
+            public bool ShotSparesFriends;
+            public bool Summons;
             public bool OwnBleeding;
         }
 
@@ -404,8 +435,9 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// A weapon's attacks, as the on-hit switches see them: rapid fire (several projectiles at once or repeated), a shot
-        /// whose own projectile spawns its effect, the Bleeding weapons' own damage per missing health. Unused attacks (no
-        /// animation) don't count. Cached per SharedData. Never throws.
+        /// whose own projectile spawns its effect or spares friends, only summoning (every used attack), the Bleeding
+        /// weapons' own damage per missing health. Unused attacks (no animation) don't count. Cached per SharedData.
+        /// Never throws.
         /// </summary>
         private static HitFacts Facts(ItemData.SharedData shared)
         {
@@ -414,15 +446,21 @@ namespace LoadoutBuffs
             var facts = new HitFacts();
             try
             {
+                var used = 0;
+                var summoning = 0;
                 foreach (var attack in new[] { shared.m_attack, shared.m_secondaryAttack })
                 {
                     if (attack == null || string.IsNullOrEmpty(attack.m_attackAnimation)) continue;
+                    used++;
                     facts.RapidFire |= BundleStatCatalog.IsRapidFire(attack.m_attackType, attack.m_projectiles, attack.m_projectileBursts,
                         attack.m_loopingAttack);
                     var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
                     facts.ShotSpawnsOwn |= shot && SpawnsOwn(attack.m_attackProjectile);
+                    facts.ShotSparesFriends |= shot && SparesFriends(attack.m_attackProjectile);
+                    if (shot && OnlySummons(attack.m_attackProjectile)) summoning++;
                     facts.OwnBleeding |= attack.m_damageMultiplierPerMissingHP > 0f;
                 }
+                facts.Summons = used > 0 && summoning == used;
             }
             catch (Exception) { }
             s_hitFacts[shared] = facts;

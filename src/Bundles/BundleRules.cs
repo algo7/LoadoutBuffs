@@ -273,17 +273,22 @@ namespace LoadoutBuffs
 
         /// <summary>The On hit group's info line: what the three switches do for the slot's hits.</summary>
         public static string OnHitInfo(bool ranged) =>
-            (ranged ? "Your shots" : "Your melee hits") + ": Bleeding +0.2% damage per missing health, Thundering " +
-            (ranged ? "20–25%" : "25%") + " chain lightning, Primal 20% root (10 s).";
+            (ranged ? "Your shots" : "Your melee hits") +
+            ": Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).";
 
         /// <summary>
-        /// The On hit group's line for a weapon the switches skip (null: none): rapid fire loses Thundering and Primal, a
-        /// shot that spawns its own effect only the chain lightning.
+        /// The On hit group's line for a weapon the switches skip (null: none): a staff that only summons gets nothing,
+        /// rapid fire loses Thundering and Primal, a shot that spawns its own effect Thundering, a shot that spares friends
+        /// Primal.
         /// </summary>
-        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn)
+        public static string OnHitException(string weaponName, bool rapidFire, bool shotSpawnsOwn, bool shotSparesFriends, bool summons)
         {
+            if (summons) return $"{weaponName}: On hit does nothing (it summons instead of hitting).";
             if (rapidFire) return $"{weaponName}: no Thundering or Primal (rapid fire).";
-            if (shotSpawnsOwn) return $"{weaponName}: no chain lightning (its shot spawns its own effect).";
+            if (shotSpawnsOwn && shotSparesFriends)
+                return $"{weaponName}: no Thundering (its shot spawns its own effect) or Primal (it would root friends).";
+            if (shotSpawnsOwn) return $"{weaponName}: no Thundering (its shot spawns its own effect).";
+            if (shotSparesFriends) return $"{weaponName}: no Primal (it would root friends).";
             return null;
         }
 

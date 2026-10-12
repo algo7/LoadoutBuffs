@@ -298,13 +298,12 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Postfix of Humanoid.StartAttack (the attack started): with Thundering on the slot of the weapon in hand, the
-        /// swing's own copy of the attack (cloned per swing, never the item's data) gets the game's chain lightning at the
-        /// game's chance. The game then spawns it on melee hits (Attack.SpawnOnHit) and hands it to each projectile it
+        /// swing's own copy of the attack (cloned per swing, never the item's data) gets the game's chain lightning (35 %). The game then spawns it on melee hits (Attack.SpawnOnHit) and hands it to each projectile it
         /// fires (arrows, bolts, thrown spears, single-shot staffs). Skipped when the attack spawns something already (a
         /// Thundering weapon), the shot's projectile spawns its own effect (the game would replace it: Lightning Strike,
         /// Echo Spike, Staff of Fracturing, Staff of the Wild) or the weapon fires rapidly. Must never throw.
         /// </summary>
-        public static void OnAttackStart(Humanoid humanoid, bool secondary)
+        public static void OnAttackStart(Humanoid humanoid)
         {
             try
             {
@@ -312,8 +311,7 @@ namespace LoadoutBuffs
                 var weapon = humanoid.GetCurrentWeapon();
                 if (!FillsWeaponSlot(weapon) || !(s_currentAttack?.GetValue(humanoid) is Attack attack)) return;
                 var shot = attack.m_attackType == Attack.AttackType.Projectile || attack.m_attackType == Attack.AttackType.TriggerProjectile;
-                var chance = BundleStatCatalog.ChainChance(true, secondary, weapon.m_shared.m_skillType == Skills.SkillType.Bows,
-                    attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f,
+                var chance = BundleStatCatalog.ChainChance(true, attack.m_spawnOnHit != null && attack.m_spawnOnHitChance > 0f,
                     shot && SpawnsOwn(AmmoProjectile(humanoid, weapon) ?? attack.m_attackProjectile), Facts(weapon.m_shared).RapidFire);
                 if (chance <= 0f) return;
                 var prefab = ChainLightning();

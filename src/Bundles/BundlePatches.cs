@@ -169,9 +169,9 @@ namespace LoadoutBuffs
     {
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.StartAttack), typeof(Character), typeof(bool))]
         [HarmonyPostfix]
-        private static void AttackStarted(Humanoid __instance, bool secondaryAttack, bool __result)
+        private static void AttackStarted(Humanoid __instance, bool __result)
         {
-            if (__result) BundleEffects.OnAttackStart(__instance, secondaryAttack);
+            if (__result) BundleEffects.OnAttackStart(__instance);
         }
     }
 

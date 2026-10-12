@@ -44,13 +44,12 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   arrows, bolts and staff spells. The hit gets the highest tool tier, and chop / pickaxe damage equal to all its
   damage, whatever the type, so even a club, a bow or a frost staff works. Digging the ground stays a pickaxe
   thing.
-- **On hit** (melee and ranged slots): the effects of the Ashlands and Deep North weapon variants, with the game's
-  numbers, on that weapon's hits. *Bleeding*: +0.2 % damage per missing health point (100 missing = +20 %).
-  *Thundering*: 25 % chance per hit (20 % on secondary attacks and with bows) of the Thundering weapons' chain
-  lightning, 75 lightning damage that jumps to more enemies. *Primal*: 20 % chance per hit to root the target for
-  10 s. A Thunderblood weapon is close to Bleeding + Thundering (its red
-  lightning jumps a little more often); the variants' extra damage (and Frostfire's fire and frost) is what Added
-  damage does.
+- **On hit** (melee and ranged slots): the effects of the Ashlands and Deep North weapon variants, on that weapon's
+  hits. *Bleeding*: +0.2 % damage per missing health point (100 missing = +20 %). *Thundering*: 35 % chance per hit
+  of the Thundering weapons' chain lightning, 75 lightning damage that jumps to more enemies. *Primal*: 35 % chance
+  per hit to root the target for 10 s. The game's own weapons have 20–25 %. A Thunderblood weapon is close to
+  Bleeding + Thundering (its red lightning jumps a little more often); the variants' extra damage (and Frostfire's
+  fire and frost) is what Added damage does.
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -83,9 +82,9 @@ shows them for what you wear now.
   can only be set on Melee or Ranged, and count only while that weapon is in your hands. A staff blast with Miner
   breaks every chunk of a deposit it reaches.
 - **On hit works like the game's weapons.** Chain lightning only hits enemies, never other players (PvP or not), tamed
-  animals or objects; like the game's weapons, it angers neutral Dvergr it reaches. A weapon that already has an effect keeps its own: a Thundering sword stays at 25 %, a Primal
-  one rolls its own roots, and Primal skips hits that already carry an effect (fire arrows keep burning). The
-  variants' glow and sounds aren't copied.
+  animals or objects; like the game's weapons, it angers neutral Dvergr it reaches. A weapon that already has an
+  effect keeps its own chance: a Thundering sword stays at 25 %, a Primal one at 20 %. Primal skips hits that already
+  carry an effect (fire arrows keep burning). The variants' glow and sounds aren't copied.
 - **A staff shot roots one enemy at most.** A shot that explodes, splinters or passes through enemies (Staff of
   Embers, Staff of the Wild, Staff of Fracturing, Lightning Strike, Echo Spike) can only root the enemy it hits
   directly, not the rest of its blast, and nothing when it lands on the ground. Primal never roots other players or

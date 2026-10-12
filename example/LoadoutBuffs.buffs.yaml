@@ -28,11 +28,11 @@
 # Melee or ranged slot only: damage (%), addDamage (flat, e.g. { spirit: 30 }), and the classes
 # woodcutter: true (that weapon's hits fell any tree) and miner: true (they break any rock or ore).
 # Melee or ranged slot only, on that weapon's hits (like the Ashlands weapon variants):
-# bleeding: true (+0.2 % damage per missing health), thundering: true (25 % chance of chain
-# lightning, 20 % on secondary attacks and bows) and primal: true (20 % chance to root the target
-# for 10 s). Not on rapid-fire staffs (Dundr, Staff of Frost: no thundering or primal); no chain
-# lightning from staffs whose shot spawns its own effect; a staff's blast roots only the enemy it
-# hits directly, and primal never roots players or tamed animals.
+# bleeding: true (+0.2 % damage per missing health), thundering: true (35 % chance of chain
+# lightning) and primal: true (35 % chance to root the target for 10 s). Not on rapid-fire
+# staffs (Dundr, Staff of Frost: no thundering or primal); no chain lightning from staffs whose
+# shot spawns its own effect; a staff's blast roots only the enemy it hits directly, and primal
+# never roots players or tamed animals.
 # The stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD
 # as one buff named after it.
 

@@ -82,23 +82,21 @@ internal static partial class Tests
 
     private static void Test_OnHit_ChainChance()
     {
-        // (on, secondary, bow, attack spawns its own, the shot spawns its own, rapid fire)
-        Eq(0.25f, BundleStatCatalog.ChainChance(true, false, false, false, false, false), "primary attack: 25 % like the game's swords");
-        Eq(0.20f, BundleStatCatalog.ChainChance(true, true, false, false, false, false), "secondary attack: 20 %");
-        Eq(0.20f, BundleStatCatalog.ChainChance(true, false, true, false, false, false), "bows: 20 % (Storm Fang)");
-        Eq(0.20f, BundleStatCatalog.ChainChance(true, true, true, false, false, false), "bow secondary: 20 %");
-        Eq(0f, BundleStatCatalog.ChainChance(false, false, false, false, false, false), "switch off");
-        Eq(0f, BundleStatCatalog.ChainChance(true, false, false, true, false, false), "a Thundering weapon keeps its own");
-        Eq(0f, BundleStatCatalog.ChainChance(true, false, false, false, true, false), "Lightning Strike & co keep their own effect");
-        Eq(0f, BundleStatCatalog.ChainChance(true, false, false, false, false, true), "rapid fire: none");
+        // (on, the attack spawns its own, the shot spawns its own, rapid fire); user: 35 %, every attack
+        Eq(0.35f, BundleStatCatalog.ChainLightningChance, "35 % (the game's weapons: 25 / 20 %)");
+        Eq(0.35f, BundleStatCatalog.ChainChance(true, false, false, false), "every hit: 35 %");
+        Eq(0f, BundleStatCatalog.ChainChance(false, false, false, false), "switch off");
+        Eq(0f, BundleStatCatalog.ChainChance(true, true, false, false), "a Thundering weapon keeps its own");
+        Eq(0f, BundleStatCatalog.ChainChance(true, false, true, false), "Lightning Strike & co keep their own effect");
+        Eq(0f, BundleStatCatalog.ChainChance(true, false, false, true), "rapid fire: none");
     }
 
     private static void Test_OnHit_Root()
     {
-        Eq(0.2f, BundleStatCatalog.RootChance, "the game's Primal weapons: 20 %");
+        Eq(0.35f, BundleStatCatalog.RootChance, "35 % (the game's Primal weapons: 20 %)");
         // (on, the hit's status effect hash, the weapon has its own, rapid fire, the shot spares friends, the shot explodes, roll)
-        True(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, false, 0.1f), "roll under 20 %");
-        False(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, false, 0.2f), "roll of 20 % misses");
+        True(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, false, 0.34f), "roll under 35 %");
+        False(BundleStatCatalog.ShouldRoot(true, 0, false, false, false, false, 0.35f), "roll of 35 % misses");
         False(BundleStatCatalog.ShouldRoot(false, 0, false, false, false, false, 0f), "switch off");
         False(BundleStatCatalog.ShouldRoot(true, 1234, false, false, false, false, 0f), "the hit already carries an effect (fire arrows)");
         False(BundleStatCatalog.ShouldRoot(true, 0, true, false, false, false, 0f), "the weapon has its own effect: it rolls its own");
@@ -140,10 +138,11 @@ internal static partial class Tests
 
     private static void Test_OnHit_WindowText()
     {
-        Eq("Your melee hits: Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).",
-            BundleWindowRules.OnHitInfo(ranged: false), "melee info line (secondary attacks and throws: 20 %)");
-        Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).",
+        Eq("Your melee hits: Bleeding +0.2% damage per missing health, Thundering 35% chain lightning, Primal 35% root (10 s).",
+            BundleWindowRules.OnHitInfo(ranged: false), "melee info line");
+        Eq("Your shots: Bleeding +0.2% damage per missing health, Thundering 35% chain lightning, Primal 35% root (10 s).",
             BundleWindowRules.OnHitInfo(ranged: true), "ranged info line");
+        Eq("Shift + click on − / +: ten steps at a time.", BundleWindowRules.ShiftHint, "the number groups' hint");
         // (name, rapid fire, the shot spawns its own effect, Primal on its shots, it only summons)
         Eq("Dundr: no Thundering or Primal (rapid fire).",
             BundleWindowRules.OnHitException("Dundr", true, false, ShotPrimal.Rolls, false), "rapid fire");

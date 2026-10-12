@@ -274,7 +274,10 @@ namespace LoadoutBuffs
         /// <summary>The On hit group's info line: what the three switches do for the slot's hits.</summary>
         public static string OnHitInfo(bool ranged) =>
             (ranged ? "Your shots" : "Your melee hits") +
-            ": Bleeding +0.2% damage per missing health, Thundering 20–25% chain lightning, Primal 20% root (10 s).";
+            ": Bleeding +0.2% damage per missing health, Thundering 35% chain lightning, Primal 35% root (10 s).";
+
+        /// <summary>The hint at the top of every group with − / + buttons (see <see cref="ClickStep"/>).</summary>
+        public const string ShiftHint = "Shift + click on − / +: ten steps at a time.";
 
         /// <summary>
         /// The On hit group's line for a weapon the switches treat differently (null: none): a staff that only summons gets

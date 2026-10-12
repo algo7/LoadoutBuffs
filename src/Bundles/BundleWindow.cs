@@ -435,6 +435,7 @@ namespace LoadoutBuffs
                 if (defs.Count == 0) continue;
                 var used = defs.Count(d => stats.Scalars.ContainsKey(d.Key));
                 if (!GroupHeader(group, used)) continue;
+                ShiftHint();
                 foreach (var def in defs)
                 {
                     var d = def;
@@ -509,6 +510,7 @@ namespace LoadoutBuffs
             var weaponSlot = BundleStatCatalog.IsWeaponSlot(s_selectedSlot);
             if (weaponSlot && GroupHeader(BundleStatCatalog.Damage, stats.Damage.Count))
             {
+                ShiftHint();
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Damage types of your {weaponName}; others appear once added below.</color></size>", 28, () => { }, false);
                 foreach (var type in BundleWindowRules.DamagePercentRows(dealt, stats.Damage))
@@ -523,6 +525,7 @@ namespace LoadoutBuffs
 
             if (weaponSlot && GroupHeader(BundleStatCatalog.AddedDamage, stats.AddDamage.Count))
             {
+                ShiftHint();
                 if (weaponName != null)
                     Row(s_statsList, $"<size=13><color=#bbbbbb>Added on top of your {weaponName}{(weaponName == "fists" ? "'" : "'s")} own damage.</color></size>", 28, () => { }, false);
                 foreach (var type in BundleStatCatalog.AddDamageTypes)
@@ -538,6 +541,8 @@ namespace LoadoutBuffs
             }
 
             if (GroupHeader(BundleStatCatalog.Skills, stats.Skills.Count))
+            {
+                ShiftHint();
                 foreach (var skill in BundleStatCatalog.WindowSkills.Concat(stats.Skills.Keys.Where(k => !BundleStatCatalog.WindowSkills.Contains(k))))
                 {
                     var name = skill;
@@ -546,10 +551,15 @@ namespace LoadoutBuffs
                         () => ChangeNumber(b => b.Skills, name, -BundleStatCatalog.SkillStep, BundleStatCatalog.SkillMin, BundleStatCatalog.SkillMax),
                         () => ChangeNumber(b => b.Skills, name, BundleStatCatalog.SkillStep, BundleStatCatalog.SkillMin, BundleStatCatalog.SkillMax));
                 }
+            }
 
             if (stats.Fields.Count > 0)
                 Row(s_statsList, $"<color=#bbbbbb>Also set in the file: {Escape(string.Join(", ", stats.Fields.Select(f => f.Key)))}</color>", 28, () => { }, false);
         }
+
+        /// <summary>The grey hint line at the top of a group with − / + buttons: Shift + click moves ten steps.</summary>
+        private static void ShiftHint() =>
+            Row(s_statsList, $"<size=13><color=#bbbbbb>{BundleWindowRules.ShiftHint}</color></size>", 28, () => { }, false);
 
         /// <summary>
         /// A clickable group title; returns whether the group is open. Every group starts closed, also with values set (the

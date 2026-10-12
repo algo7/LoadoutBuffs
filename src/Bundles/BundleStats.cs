@@ -300,19 +300,21 @@ namespace LoadoutBuffs
             !on || weaponHasOwn ? 1f : 1f + Math.Max(0f, maxHealth - health) * BleedingPerMissingHealth;
 
         /// <summary>
-        /// Thundering: the chain lightning chance the game's Thundering weapons use (primary 25 %, secondary 20 %, bows 20 %),
-        /// or 0: switch off, the attack already spawns something (a Thundering / Thunderblood weapon keeps its own), the shot
-        /// spawns its own effect (Lightning Strike, Echo Spike, Staff of Fracturing, Staff of the Wild: the game would replace
-        /// it), or rapid fire.
+        /// Thundering's chance per hit, every attack (user, 2026-10-12: "bump the chance to 35 percent for thundering and
+        /// root effect"; the game's Thundering weapons: 25 % primary, 20 % secondary and bows).
         /// </summary>
-        public static float ChainChance(bool on, bool secondary, bool bow, bool attackSpawnsOwn, bool shotSpawnsOwn, bool rapidFire)
-        {
-            if (!on || attackSpawnsOwn || shotSpawnsOwn || rapidFire) return 0f;
-            return secondary || bow ? 0.20f : 0.25f;
-        }
+        public const float ChainLightningChance = 0.35f;
 
-        /// <summary>The Primal weapons' chance to root (ImmobilizedAshlands, 10 s).</summary>
-        public const float RootChance = 0.2f;
+        /// <summary>
+        /// Thundering: <see cref="ChainLightningChance"/>, or 0: switch off, the attack already spawns something (a
+        /// Thundering / Thunderblood weapon keeps its own), the shot spawns its own effect (Lightning Strike, Echo Spike,
+        /// Staff of Fracturing, Staff of the Wild: the game would replace it), or rapid fire.
+        /// </summary>
+        public static float ChainChance(bool on, bool attackSpawnsOwn, bool shotSpawnsOwn, bool rapidFire) =>
+            !on || attackSpawnsOwn || shotSpawnsOwn || rapidFire ? 0f : ChainLightningChance;
+
+        /// <summary>Primal's chance to root per hit (ImmobilizedAshlands, 10 s); user: 35 % (the game's Primal weapons: 20 %).</summary>
+        public const float RootChance = 0.35f;
 
         /// <summary>
         /// Primal: whether this hit roots, for a <paramref name="roll"/> in [0, 1). Never when the hit already carries a

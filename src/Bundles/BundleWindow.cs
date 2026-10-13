@@ -46,6 +46,7 @@ namespace LoadoutBuffs
         private static Button s_rename;
         private static Button s_delete;
         private static Button s_use;
+        private static Button s_spare;
 
         private static string s_selectedBundle;
         private static BundleSlot s_selectedSlot = BundleSlot.Chest;
@@ -141,6 +142,10 @@ namespace LoadoutBuffs
                 s_slotButtons.Add(button);
                 y += 58;
             }
+            // Under the slots: the selected buff's Spare buildings switch (it belongs to the buff, not to a slot).
+            s_spare = MakeButton(p, "", 270, y + 8, 330, 34, ToggleSpareBuildings);
+            s_spare.GetComponentInChildren<Text>().supportRichText = true;
+            Label(p, BundleWindowRules.SpareBuildingsHint, 13, new Color(0.8f, 0.8f, 0.8f), 270, y + 46, 330, 54, TextAnchor.UpperLeft);
 
             // Right: the selected slot's effect (picker + description) or its stats, by tab.
             s_effectsHeader = Label(p, "", 20, gm.ValheimOrange, 620, 104, 350, 26, TextAnchor.MiddleLeft);
@@ -296,6 +301,8 @@ namespace LoadoutBuffs
             if (file.Bundles.Count == 0) Row(s_bundleList, "<color=#bbbbbb>No buffs yet: press New</color>", 34, () => { }, false);
 
             s_slotsHeader.text = bundle == null ? "Slots" : "Slots of " + Escape(bundle.Name);
+            s_spare.GetComponentInChildren<Text>().text = BundleWindowRules.SpareBuildingsButton(bundle != null && bundle.SpareBuildings);
+            s_spare.interactable = bundle != null;
             var player = Player.m_localPlayer;
             for (var i = 0; i < BundleSlots.All.Length; i++)
             {
@@ -681,6 +688,14 @@ namespace LoadoutBuffs
             var bundle = BundleEffects.File.Find(s_selectedBundle);
             if (bundle == null) return;
             bundle.Set(s_selectedSlot, string.IsNullOrEmpty(code) ? null : code);
+            Save();
+        }
+
+        private static void ToggleSpareBuildings()
+        {
+            var bundle = BundleEffects.File.Find(s_selectedBundle);
+            if (bundle == null) return;
+            bundle.SpareBuildings = !bundle.SpareBuildings;
             Save();
         }
 

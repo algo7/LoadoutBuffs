@@ -75,6 +75,7 @@ internal static partial class Tests
         var state = Evaluate(example);
         Eq(0, state.Warnings.Count, "the README's example follows the slot rules: " + string.Join(" | ", state.Warnings));
         Eq(2f, state.Stats[BundleSlot.Melee].Scalars["parryBonus"], "it shows the Parry bonus");
+        True(state.Active?.SpareBuildings == true, "it shows Spare buildings");
     }
 
     private static void Test_Bundles_HeaderHasNoYamlOrDump()

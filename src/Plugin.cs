@@ -39,6 +39,7 @@ namespace LoadoutBuffs
             BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
             BundleEffects.EitrHookInstalled = TryPatch(harmony, typeof(BundleEitrPatches), "buff eitr cost hooks");
             BundleEffects.HitHookInstalled = TryPatch(harmony, typeof(BundleHitPatches), "buff attack hook (Thundering)");
+            BundleEffects.BuildingHookInstalled = TryPatch(harmony, typeof(BundleBuildingPatches), "buff building hook (Spare buildings)");
             // Without these hooks (or the fields they read) the hook bodies stay idle and exploding shots get no Primal.
             if (BundleEffects.RootFieldsFound)
                 BundleEffects.RootHookInstalled = TryPatch(harmony, typeof(BundleRootPatches), "buff Primal direct-hit hooks");

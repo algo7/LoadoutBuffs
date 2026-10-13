@@ -202,6 +202,15 @@ namespace LoadoutBuffs
         private static void Hit(Character __instance, HitData hit) => BundleEffects.OnCharacterHit(__instance, hit);
     }
 
+    /// <summary>Spare buildings: prefix on the attacker-side WearNTear.Damage(HitData); returning false drops the hit.</summary>
+    [HarmonyPatch]
+    internal static class BundleBuildingPatches
+    {
+        [HarmonyPatch(typeof(WearNTear), nameof(WearNTear.Damage))]
+        [HarmonyPrefix]
+        private static bool Damage(WearNTear __instance, HitData hit) => !BundleEffects.OnBuildingHit(__instance, hit);
+    }
+
     /// <summary>Item classes (Woodcutter / Miner): prefixes on the attacker-side Damage(HitData) of trees, logs, rocks and destructibles.</summary>
     [HarmonyPatch]
     internal static class BundleClassPatches

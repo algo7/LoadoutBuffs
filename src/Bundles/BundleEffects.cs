@@ -39,6 +39,9 @@ namespace LoadoutBuffs
         /// </summary>
         public static bool RootHookInstalled;
 
+        /// <summary>Set by Plugin when the building hook (WearNTear.Damage) was patched in: Spare buildings needs it.</summary>
+        public static bool BuildingHookInstalled;
+
         public static BundleFile File { get; private set; } = new BundleFile();
         public static BundleState State { get; private set; } = new BundleState();
         public static GameEffectCatalog Catalog { get; private set; }
@@ -72,6 +75,8 @@ namespace LoadoutBuffs
         private static int s_rootHash;
         private static ObjectDB s_rootHashDb;
         private static bool s_rootHookErrorLogged;
+        private static bool s_spareBuildings;
+        private static bool s_buildingErrorLogged;
 
         /// <summary>The shot whose impact the game is handling (Projectile.OnHit): the local player's, and what it hit directly.</summary>
         private sealed class Impact
@@ -130,10 +135,11 @@ namespace LoadoutBuffs
             s_blockArmor = s_blockForce = s_eitrCost = s_parryBonus = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
+            s_spareBuildings = State.Enabled && State.Active != null && State.Active.SpareBuildings;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
                 State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
-                    EitrHookInstalled, HitHookInstalled));
+                    EitrHookInstalled, HitHookInstalled, State.Active?.SpareBuildings == true, BuildingHookInstalled));
             if (State.Enabled)
             {
                 foreach (var pair in State.Effects)
@@ -226,9 +232,9 @@ namespace LoadoutBuffs
                     .OrderBy(p => p.Key)
                     .Select(p => EffectText.DisplayName(p.Value.m_name)));
                 var template = BundleStatsEffect.Template;
-                template.SetTotals(total, s_statsName ?? "Buff", effectNames);
+                template.SetTotals(total, s_statsName ?? "Buff", effectNames, s_spareBuildings);
                 if (humanoid.GetSEMan().GetStatusEffect(template.NameHash()) is BundleStatsEffect active && active != template)
-                    active.SetTotals(total, s_statsName ?? "Buff", effectNames);
+                    active.SetTotals(total, s_statsName ?? "Buff", effectNames, s_spareBuildings);
                 set.Add(template);
             }
             catch (Exception e)
@@ -293,6 +299,36 @@ namespace LoadoutBuffs
                 if (s_classErrorLogged) return;
                 s_classErrorLogged = true;
                 Plugin.Log.LogError($"Buff classes failed (logged once): {e}");
+            }
+        }
+
+        /// <summary>
+        /// Prefix of WearNTear.Damage(HitData) (walls, doors, chests, portals, ships, carts...), on the attacker's side
+        /// before the hit is sent to the piece's owner: with Spare buildings on the buff in use, true (drop the hit) when the
+        /// local player made it and a player placed the piece. Swings, shots, thrown weapons, blasts and bomb clouds all
+        /// name their owner as the attacker, whatever is in hand; spreading fire and falling trees name nobody, so they still
+        /// land. Must never throw (on an error the hit lands).
+        /// </summary>
+        public static bool OnBuildingHit(WearNTear target, HitData hit)
+        {
+            try
+            {
+                if (!s_spareBuildings || hit == null || target == null) return false;
+                var player = Player.m_localPlayer;
+                if (player == null) return false;
+                // GetZDOID is None without a valid network object, which is also what hits without an attacker carry.
+                var you = player.GetZDOID();
+                var piece = target.GetComponent<Piece>();
+                return BundleRules.SparesBuilding(true, !you.IsNone() && hit.m_attacker == you, piece != null ? piece.GetCreator() : 0L);
+            }
+            catch (Exception e)
+            {
+                if (!s_buildingErrorLogged)
+                {
+                    s_buildingErrorLogged = true;
+                    Plugin.Log.LogError($"Buff Spare buildings failed (logged once): {e}");
+                }
+                return false;
             }
         }
 

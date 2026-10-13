@@ -31,6 +31,9 @@ namespace LoadoutBuffs
         /// <summary>"Bleeding, Thundering" (for the tooltip); the hooks read BundleEffects' flags.</summary>
         internal string m_onHit;
 
+        /// <summary>The buff in use has Spare buildings (for the tooltip); the building hook reads BundleEffects' flag.</summary>
+        internal bool m_spareBuildings;
+
         /// <summary>"Wisplight, Megingjord": the buff's effects on the slots you fill now (for the tooltip).</summary>
         internal string m_effectNames;
 
@@ -143,14 +146,17 @@ namespace LoadoutBuffs
                 sb.AppendFormat("Class: <color=orange>{0}</color> (your weapon's hits)\n", m_classes);
             if (!string.IsNullOrEmpty(m_onHit))
                 sb.AppendFormat("On hit: <color=orange>{0}</color> (your weapon's hits)\n", m_onHit);
+            if (m_spareBuildings)
+                sb.Append("Spare buildings: <color=orange>on</color> (your hits don't damage anything players built)\n");
             return sb.ToString();
         }
 
         /// <summary>Writes summed stats into this effect; every field not in <paramref name="total"/> goes back to its default.</summary>
-        internal void SetTotals(StatBlock total, string bundleName, string effectNames)
+        internal void SetTotals(StatBlock total, string bundleName, string effectNames, bool spareBuildings)
         {
             m_name = bundleName;
             m_effectNames = effectNames;
+            m_spareBuildings = spareBuildings;
             m_statCount = total.Count;
 
             m_parry = total.ToParryAssist();

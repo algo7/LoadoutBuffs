@@ -133,13 +133,19 @@ namespace LoadoutBuffs
             if (Active == null) return "No buff active";
             var stats = StatCount;
             return $"Buff '{Active.Name}' active: {Effects.Count} effect{(Effects.Count == 1 ? "" : "s")}" +
-                   (stats > 0 ? $", {stats} stat{(stats == 1 ? "" : "s")}" : "");
+                   (stats > 0 ? $", {stats} stat{(stats == 1 ? "" : "s")}" : "") + (Active.SpareBuildings ? ", spares buildings" : "");
         }
     }
 
     internal static class BundleRules
     {
         /// <summary>The HUD shows the buff in use (icon + name; "N stats" only with custom stats) whenever one is in use.</summary>
+        /// <summary>
+        /// Spare buildings: drop a hit when the switch is on, the local player made it and the piece was placed by a player
+        /// (creator = the placing character's ID; forts, ruins and other location pieces have 0).
+        /// </summary>
+        public static bool SparesBuilding(bool on, bool attackerIsYou, long creator) => on && attackerIsYou && creator != 0;
+
         public static bool ShowsHudBuff(BundleState state) => state != null && state.Enabled && state.Active != null;
 
         /// <summary>
@@ -147,7 +153,7 @@ namespace LoadoutBuffs
         /// they do nothing instead of the stat silently not working.
         /// </summary>
         public static List<string> MissingHookWarnings(IEnumerable<StatBlock> stats, bool parryHook, bool blockHook, bool damageHook,
-            bool eitrHook, bool hitHook)
+            bool eitrHook, bool hitHook, bool spareBuildings = false, bool buildingHook = true)
         {
             var list = stats.Where(b => b != null).ToList();
             var warnings = new List<string>();
@@ -161,6 +167,8 @@ namespace LoadoutBuffs
                 warnings.Add("The buff's eitr cost can't work (the eitr hook isn't installed, see LogOutput.log).");
             if (!hitHook && list.Any(b => b.Scalars.ContainsKey(BundleStatCatalog.ThunderingKey)))
                 warnings.Add("The buff's Thundering can't work (the attack hook isn't installed, see LogOutput.log).");
+            if (!buildingHook && spareBuildings)
+                warnings.Add("The buff's Spare buildings can't work (the building hook isn't installed, see LogOutput.log).");
             return warnings;
         }
 
@@ -253,6 +261,11 @@ namespace LoadoutBuffs
     {
         /// <summary>A − / + click moves one step; with Shift held, ten (up to the window's limit).</summary>
         public static float ClickStep(float step, bool shift) => shift ? step * 10f : step;
+
+        /// <summary>The Spare buildings switch under the slots: it belongs to the selected buff.</summary>
+        public static string SpareBuildingsButton(bool on) => "Spare buildings: " + (on ? "<color=orange>On</color>" : "Off");
+
+        public const string SpareBuildingsHint = "While this buff is in use, your hits don't damage anything players built.";
 
         /// <summary>
         /// Damage % rows for the weapon in hand: the types it deals (its own damage plus what bundles add) and any type

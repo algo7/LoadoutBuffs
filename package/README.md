@@ -50,6 +50,9 @@ A buff gives each slot (helmet, chest, legs, cape, melee, ranged, shield) an ext
   per hit to root the target for 10 s. The game's own weapons have 20–25 %. A Thunderblood weapon is close to
   Bleeding + Thundering (its red lightning jumps a little more often); the variants' extra damage (and Frostfire's
   fire and frost) is what Added damage does.
+- **Spare buildings** (a switch per buff, under its slots in the window): while that buff is in use, your hits don't
+  damage anything players built (walls, doors, chests, portals, ships, carts), yours and other players'. Forts, ruins
+  and other buildings that came with the world still break.
 
 ![Custom stats of an armor slot: General, Regen, Costs](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-general.png)
 ![On parry: parry bonus, heal, stamina, bubble health and time, reach](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/stats-on-parry.png)
@@ -96,6 +99,10 @@ shows them for what you wear now.
   lands, which chain lightning would replace: no Thundering. Bleeding works on all of these. Dead Raiser, Spirit
   Caller and Trollstav only summon, so On hit does nothing with them. The window's On hit group names your weapon
   when it's one of these.
+- **Spare buildings stops your hits only.** Swings, arrows, bolts, thrown spears, staff blasts, bombs, pickaxes and
+  tools all count, whatever is in your hands. It doesn't stop fire spreading in the Ashlands (also when your fire
+  arrows or Staff of Embers started it) or a tree you fell landing on a building, and it doesn't cover planted crops.
+  It also spares other players' buildings: turn it off to raid a base in PvP.
 - **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
   damage* and its % row appears.
 
@@ -129,6 +136,7 @@ are never kept.
 active: Warrior
 buffs:
   Warrior:
+    spareBuildings: true
     chest: SetEffect_DeepNorthMediumArmor   # Vanguard
     cape: Feather fall
     legs:
@@ -158,6 +166,7 @@ buffs:
 | `woodcutter`, `miner` | `true` (melee or ranged slot only) |
 | `bleeding`, `thundering`, `primal` | `true` (melee or ranged slot only) |
 | `fields` | any other `SE_Stats` field by its code name, raw game value |
+| `spareBuildings` | `true`, next to a buff's slots, not in one (as in the example) |
 
 Within a buff, the stats of all filled slots add up (the parry bonus up to +20); reach and bubble time take the largest,
 resistances the most protective. A bad entry is skipped with a warning in the window and in `BepInEx/LogOutput.log`; the rest still applies.
@@ -184,6 +193,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **My Melee / Ranged stats don't count with the Staff of Protection, Northern Vengeance or the Abyssal Harpoon.**
   On purpose: they count as tools (see Items That Count as Tools), because Added damage on them would hurt or kill
   your friends and tamed animals.
+- **A building still got damaged with Spare buildings on.** Is that buff in use? Spreading fire and falling trees
+  aren't your hits, so they still damage buildings.
 - **A stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and Added damage go on Melee
   or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only; since 1.3.0 armor, fall damage, regen
   and resistances go on the helmet, chest, legs or cape only, block armor and block force on Melee, Ranged or Shield

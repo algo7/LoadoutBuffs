@@ -35,6 +35,9 @@
 # never roots players or tamed animals.
 # The stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD
 # as one buff named after it.
+# spareBuildings: true, next to a buff's slots: while that buff is in use, your hits don't damage
+# anything players built (walls, doors, chests, portals, ships, carts); forts and ruins still break.
+# Spreading fire and falling trees still damage them.
 
 active: none
 

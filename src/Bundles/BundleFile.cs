@@ -27,6 +27,9 @@ namespace LoadoutBuffs
         public string Name;
         public long Line;
 
+        /// <summary>While this buff is in use, the local player's hits don't damage pieces players built (written next to the slots).</summary>
+        public bool SpareBuildings;
+
         /// <summary>In file order, one per slot.</summary>
         public readonly List<BundleEntry> Entries = new List<BundleEntry>();
 
@@ -61,6 +64,9 @@ namespace LoadoutBuffs
     internal sealed class BundleFile
     {
         public const string FileName = "LoadoutBuffs.buffs.yaml";
+
+        /// <summary>A buff's Spare buildings switch: a key next to its slots, not a slot.</summary>
+        public const string SpareBuildingsKey = "spareBuildings";
 
         /// <summary>Name of the active bundle as written; null for none.</summary>
         public string Active;
@@ -180,9 +186,36 @@ namespace LoadoutBuffs
                     continue;
                 }
                 var seen = new HashSet<BundleSlot>();
+                var spareSeen = false;
                 foreach (var slotPair in slots.Children)
-                    ParseSlot(bundle, slotPair.Key, slotPair.Value, seen);
+                {
+                    if (string.Equals(Scalar(slotPair.Key)?.Trim(), SpareBuildingsKey, StringComparison.OrdinalIgnoreCase))
+                        ParseSpareBuildings(bundle, slotPair.Key, slotPair.Value, ref spareSeen);
+                    else
+                        ParseSlot(bundle, slotPair.Key, slotPair.Value, seen);
+                }
             }
+        }
+
+        /// <summary>The buff's Spare buildings switch: true or false (also yes / no, on / off); like slots, the first one counts.</summary>
+        private void ParseSpareBuildings(BundleDef bundle, YamlNode keyNode, YamlNode valueNode, ref bool seen)
+        {
+            var label = $"{bundle.Name}.{SpareBuildingsKey}";
+            var line = keyNode.Start.Line;
+            if (seen)
+            {
+                Warnings.Add($"{label}: appears twice (keys ignore upper/lower case); the second one is skipped (line {line}).");
+                return;
+            }
+            seen = true;
+            if (IsNull(valueNode)) return;
+            if (!(valueNode is YamlScalarNode scalar))
+            {
+                Warnings.Add($"{label}: expected true or false; skipped (line {line}).");
+                return;
+            }
+            if (Values.TryParse(scalar.Value, typeof(bool), out var value, out var error)) bundle.SpareBuildings = (bool)value;
+            else Warnings.Add($"{label}: {error}; skipped (line {line}).");
         }
 
         private void ParseSlot(BundleDef bundle, YamlNode keyNode, YamlNode valueNode, HashSet<BundleSlot> seen)
@@ -266,12 +299,13 @@ namespace LoadoutBuffs
             sb.Append("buffs:\n");
             foreach (var bundle in Bundles)
             {
-                if (bundle.Entries.Count == 0)
+                if (bundle.Entries.Count == 0 && !bundle.SpareBuildings)
                 {
                     sb.Append("  ").Append(Values.Quote(bundle.Name)).Append(": {}\n");
                     continue;
                 }
                 sb.Append("  ").Append(Values.Quote(bundle.Name)).Append(":\n");
+                if (bundle.SpareBuildings) sb.Append("    ").Append(SpareBuildingsKey).Append(": true\n");
                 foreach (var slot in BundleSlots.All)
                 {
                     var effect = bundle.Get(slot);
@@ -334,6 +368,9 @@ namespace LoadoutBuffs
             "# never roots players or tamed animals.",
             "# The stats of all filled slots add up (reach and bubble time take the largest) and show on your HUD",
             "# as one buff named after it.",
+            "# spareBuildings: true, next to a buff's slots: while that buff is in use, your hits don't damage",
+            "# anything players built (walls, doors, chests, portals, ships, carts); forts and ruins still break.",
+            "# Spreading fire and falling trees still damage them.",
         };
 
         private static string Scalar(YamlNode node) => (node as YamlScalarNode)?.Value;

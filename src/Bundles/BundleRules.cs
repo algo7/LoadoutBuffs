@@ -139,13 +139,13 @@ namespace LoadoutBuffs
 
     internal static class BundleRules
     {
-        /// <summary>The HUD shows the buff in use (icon + name; "N stats" only with custom stats) whenever one is in use.</summary>
         /// <summary>
         /// Spare buildings: drop a hit when the switch is on, the local player made it and the piece was placed by a player
         /// (creator = the placing character's ID; forts, ruins and other location pieces have 0).
         /// </summary>
         public static bool SparesBuilding(bool on, bool attackerIsYou, long creator) => on && attackerIsYou && creator != 0;
 
+        /// <summary>The HUD shows the buff in use (icon + name; "N stats" only with custom stats) whenever one is in use.</summary>
         public static bool ShowsHudBuff(BundleState state) => state != null && state.Enabled && state.Active != null;
 
         /// <summary>

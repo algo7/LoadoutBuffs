@@ -135,7 +135,8 @@ namespace LoadoutBuffs
             s_blockArmor = s_blockForce = s_eitrCost = s_parryBonus = 0f;
             s_addDamage.Clear();
             s_statsName = State.Active?.Name;
-            s_spareBuildings = State.Enabled && State.Active != null && State.Active.SpareBuildings;
+            // Without the hook the switch does nothing: the tooltip and status line don't claim it (the warning says why).
+            s_spareBuildings = State.Enabled && State.Active != null && State.Active.SpareBuildings && BuildingHookInstalled;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
                 State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
@@ -306,8 +307,9 @@ namespace LoadoutBuffs
         /// Prefix of WearNTear.Damage(HitData) (walls, doors, chests, portals, ships, carts...), on the attacker's side
         /// before the hit is sent to the piece's owner: with Spare buildings on the buff in use, true (drop the hit) when the
         /// local player made it and a player placed the piece. Swings, shots, thrown weapons, blasts and bomb clouds all
-        /// name their owner as the attacker, whatever is in hand; spreading fire and falling trees name nobody, so they still
-        /// land. Must never throw (on an error the hit lands).
+        /// name their owner as the attacker, whatever is in hand; spreading fire, falling trees and siege machines (the
+        /// catapult's shots and the battering ram's Aoe have no owner) name nobody, so they still land. Must never throw
+        /// (on an error the hit lands).
         /// </summary>
         public static bool OnBuildingHit(WearNTear target, HitData hit)
         {
@@ -318,8 +320,9 @@ namespace LoadoutBuffs
                 if (player == null) return false;
                 // GetZDOID is None without a valid network object, which is also what hits without an attacker carry.
                 var you = player.GetZDOID();
+                if (you.IsNone() || hit.m_attacker != you) return false;
                 var piece = target.GetComponent<Piece>();
-                return BundleRules.SparesBuilding(true, !you.IsNone() && hit.m_attacker == you, piece != null ? piece.GetCreator() : 0L);
+                return BundleRules.SparesBuilding(true, true, piece != null ? piece.GetCreator() : 0L);
             }
             catch (Exception e)
             {

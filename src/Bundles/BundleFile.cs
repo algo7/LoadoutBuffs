@@ -370,7 +370,7 @@ namespace LoadoutBuffs
             "# as one buff named after it.",
             "# spareBuildings: true, next to a buff's slots: while that buff is in use, your hits don't damage",
             "# anything players built (walls, doors, chests, portals, ships, carts); forts and ruins still break.",
-            "# Spreading fire and falling trees still damage them.",
+            "# Spreading fire, falling trees and siege machines still damage them.",
         };
 
         private static string Scalar(YamlNode node) => (node as YamlScalarNode)?.Value;

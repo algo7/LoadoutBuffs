@@ -39,6 +39,10 @@ internal static partial class Tests
         Eq("SlowFall", bad.Find("T").Get(BundleSlot.Cape), "the slots still load");
         False(bad.OnlyMisplaced, "a bad value blocks the cleanup (its save would drop the line)");
 
+        var empty = BundleFile.Parse("buffs:\n  T:\n    spareBuildings:\n");
+        Eq(0, empty.Warnings.Count, "an empty value: " + string.Join(" | ", empty.Warnings));
+        False(empty.Find("T").SpareBuildings, "an empty value is off");
+
         var twice = BundleFile.Parse("buffs:\n  T:\n    spareBuildings: true\n    SPAREBUILDINGS: false\n");
         Eq(1, twice.Warnings.Count, "warnings: " + string.Join(" | ", twice.Warnings));
         Eq("T.spareBuildings: appears twice (keys ignore upper/lower case); the second one is skipped (line 4).", twice.Warnings[0], "twice");
@@ -88,6 +92,7 @@ internal static partial class Tests
     {
         var header = string.Join("\n", BundleFile.Header);
         True(header.Contains("spareBuildings: true"), "the buffs file header explains the switch");
+        True(header.Contains("siege machines"), "the header names what it doesn't stop");
         True(StarterBundles().StartsWith(header + "\n\n"), "the starter file has the same header");
         Eq("Spare buildings: Off", BundleWindowRules.SpareBuildingsButton(false), "button off");
         Eq("Spare buildings: <color=orange>On</color>", BundleWindowRules.SpareBuildingsButton(true), "button on");

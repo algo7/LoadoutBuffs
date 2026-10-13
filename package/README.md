@@ -100,8 +100,9 @@ shows them for what you wear now.
   Caller and Trollstav only summon, so On hit does nothing with them. The window's On hit group names your weapon
   when it's one of these.
 - **Spare buildings stops your hits only.** Swings, arrows, bolts, thrown spears, staff blasts, bombs, pickaxes and
-  tools all count, whatever is in your hands. It doesn't stop fire spreading in the Ashlands (also when your fire
-  arrows or Staff of Embers started it) or a tree you fell landing on a building, and it doesn't cover planted crops.
+  tools all count, whatever is in your hands. The game doesn't count these as your hits, so they still do damage: fire
+  spreading in the Ashlands (also when your fire arrows or Staff of Embers started it), a tree you fell landing on a
+  building, and the battering ram and catapult. Planted crops and saplings aren't buildings, so they aren't covered.
   It also spares other players' buildings: turn it off to raid a base in PvP.
 - **Damage % follows your weapon:** it lists the types the weapon in your hand deals. Add a new type under *Added
   damage* and its % row appears.
@@ -193,8 +194,8 @@ In the F5 console. Not cheats, so no `devcommands` needed.
 - **My Melee / Ranged stats don't count with the Staff of Protection, Northern Vengeance or the Abyssal Harpoon.**
   On purpose: they count as tools (see Items That Count as Tools), because Added damage on them would hurt or kill
   your friends and tamed animals.
-- **A building still got damaged with Spare buildings on.** Is that buff in use? Spreading fire and falling trees
-  aren't your hits, so they still damage buildings.
+- **A building still got damaged with Spare buildings on.** Is that buff in use? Spreading fire, falling trees
+  and siege machines aren't your hits, so they still damage buildings.
 - **A stat is gone from a slot after updating.** Since 1.1.0 Woodcutter, Miner, Damage % and Added damage go on Melee
   or Ranged only; since 1.2.0 on-parry stats go on Melee, Ranged or Shield only; since 1.3.0 armor, fall damage, regen
   and resistances go on the helmet, chest, legs or cape only, block armor and block force on Melee, Ranged or Shield

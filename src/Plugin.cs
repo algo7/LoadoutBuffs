@@ -34,7 +34,7 @@ namespace LoadoutBuffs
             // Each hook is patched on its own: if the game changed under one, the others still load.
             TryPatch(harmony, typeof(BundlePatches), "buff hook");
             TryPatch(harmony, typeof(BundleParryPatches), "buff parry hook");
-            TryPatch(harmony, typeof(BundleClassPatches), "buff class hooks");
+            BundleEffects.ClassHookInstalled = TryPatch(harmony, typeof(BundleClassPatches), "buff class hooks (Woodcutter / Miner)");
             BundleEffects.BlockHookInstalled = TryPatch(harmony, typeof(BundleBlockPatches), "buff block armor / force hooks");
             BundleEffects.DamageHookInstalled = TryPatch(harmony, typeof(BundleDamagePatches), "buff added damage hook");
             BundleEffects.EitrHookInstalled = TryPatch(harmony, typeof(BundleEitrPatches), "buff eitr cost hooks");
@@ -50,7 +50,7 @@ namespace LoadoutBuffs
                 BundleEffects.HitHookInstalled = false;
                 Log.LogError("Buff Thundering disabled: Humanoid.m_currentAttack not found (game update?). Everything else is not affected.");
             }
-            TryPatch(harmony, typeof(BundleTooltipPatches), "buff parry bonus tooltip hook");
+            BundleEffects.TooltipHookInstalled = TryPatch(harmony, typeof(BundleTooltipPatches), "buff parry bonus tooltip hook");
             TryPatch(harmony, typeof(BundleUiPatches), "buff window");
 
             Commands.Register();

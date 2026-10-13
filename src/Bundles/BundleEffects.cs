@@ -42,6 +42,12 @@ namespace LoadoutBuffs
         /// <summary>Set by Plugin when the building hook (WearNTear.Damage) was patched in: Spare buildings needs it.</summary>
         public static bool BuildingHookInstalled;
 
+        /// <summary>Set by Plugin when all five Woodcutter / Miner prefixes (Damage on trees, logs, rocks, destructibles) were patched in.</summary>
+        public static bool ClassHookInstalled;
+
+        /// <summary>Set by Plugin when the parry tooltip hook (ItemData.AddBlockTooltip) was patched in; the parry itself doesn't need it.</summary>
+        public static bool TooltipHookInstalled;
+
         public static BundleFile File { get; private set; } = new BundleFile();
         public static BundleState State { get; private set; } = new BundleState();
         public static GameEffectCatalog Catalog { get; private set; }
@@ -139,8 +145,9 @@ namespace LoadoutBuffs
             s_spareBuildings = State.Enabled && State.Active != null && State.Active.SpareBuildings && BuildingHookInstalled;
             s_showHudBuff = BundleRules.ShowsHudBuff(State);
             if (State.Enabled)
-                State.Warnings.AddRange(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
-                    EitrHookInstalled, HitHookInstalled, State.Active?.SpareBuildings == true, BuildingHookInstalled));
+                State.AddHookWarnings(BundleRules.MissingHookWarnings(State.Stats.Values, ParryHookInstalled, BlockHookInstalled, DamageHookInstalled,
+                    EitrHookInstalled, HitHookInstalled, State.Active?.SpareBuildings == true, BuildingHookInstalled, ClassHookInstalled,
+                    TooltipHookInstalled));
             if (State.Enabled)
             {
                 foreach (var pair in State.Effects)

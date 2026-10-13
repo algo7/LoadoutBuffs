@@ -407,7 +407,7 @@ namespace LoadoutBuffs
             else text = $"In use: <color=orange>{Escape(state.Active.Name)}</color> ({state.Effects.Count} effect{(state.Effects.Count == 1 ? "" : "s")})";
             if (s_error != null) text += $"\n<color=#ff8a70>{Escape(s_error)}</color>";
             else if (state.Warnings.Count > 0)
-                text += $"\n<size=13><color=#ffcf70>{state.Warnings.Count} problem{(state.Warnings.Count == 1 ? "" : "s")} in the buffs file: {Escape(state.Warnings[0])}</color></size>";
+                text += $"\n<size=13><color=#ffcf70>{BundleWindowRules.ProblemsLine(state.Warnings.Count, state.FileWarnings, Escape(state.Warnings[0]))}</color></size>";
             return text;
         }
 

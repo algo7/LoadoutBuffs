@@ -127,6 +127,22 @@ namespace LoadoutBuffs
 
         public readonly List<string> Warnings = new List<string>();
 
+        /// <summary>How many of <see cref="Warnings"/> (the last ones) are about game hooks rather than the file.</summary>
+        public int HookWarningCount { get; private set; }
+
+        /// <summary>The file's own problems: the warnings before the hook ones.</summary>
+        public int FileWarnings => Warnings.Count - HookWarningCount;
+
+        /// <summary>Missing-hook warnings go after the file's, in the same list (log, lb_buffs), counted apart for the window.</summary>
+        public void AddHookWarnings(IEnumerable<string> warnings)
+        {
+            foreach (var warning in warnings)
+            {
+                Warnings.Add(warning);
+                HookWarningCount++;
+            }
+        }
+
         public string StatusLine()
         {
             if (!Enabled) return "Buffs off: " + OffReason;
@@ -150,10 +166,10 @@ namespace LoadoutBuffs
 
         /// <summary>
         /// Warnings for stats whose game hook isn't installed (game update, another mod): the window and the log say why
-        /// they do nothing instead of the stat silently not working.
+        /// they do nothing (or, for the Parry bonus tooltip line, show the item's own number) instead of failing silently.
         /// </summary>
         public static List<string> MissingHookWarnings(IEnumerable<StatBlock> stats, bool parryHook, bool blockHook, bool damageHook,
-            bool eitrHook, bool hitHook, bool spareBuildings = false, bool buildingHook = true)
+            bool eitrHook, bool hitHook, bool spareBuildings = false, bool buildingHook = true, bool classHook = true, bool tooltipHook = true)
         {
             var list = stats.Where(b => b != null).ToList();
             var warnings = new List<string>();
@@ -169,6 +185,13 @@ namespace LoadoutBuffs
                 warnings.Add("The buff's Thundering can't work (the attack hook isn't installed, see LogOutput.log).");
             if (!buildingHook && spareBuildings)
                 warnings.Add("The buff's Spare buildings can't work (the building hook isn't installed, see LogOutput.log).");
+            // One class, five targets (trees, logs, two rock kinds, other destructibles): a failure can leave some patched.
+            if (!classHook && list.Any(b => b.Scalars.ContainsKey(BundleStatCatalog.WoodcutterKey) || b.Scalars.ContainsKey(BundleStatCatalog.MinerKey)))
+                warnings.Add("The buff's Woodcutter / Miner may not work (the class hooks aren't all installed, see LogOutput.log).");
+            // Only the tooltip's text: the parry itself gets the bonus from the buff's own status effect, without a hook.
+            if (!tooltipHook && list.Any(b => b.ParryBonus > 0f))
+                warnings.Add("The item tooltip's Parry bonus doesn't include the buff's (the tooltip hook isn't installed, see " +
+                             "LogOutput.log); your parries still get it.");
             return warnings;
         }
 
@@ -266,6 +289,18 @@ namespace LoadoutBuffs
         public static string SpareBuildingsButton(bool on) => "Spare buildings: " + (on ? "<color=orange>On</color>" : "Off");
 
         public const string SpareBuildingsHint = "While this buff is in use, your hits don't damage anything players built.";
+
+        /// <summary>
+        /// The window's problem line: the count, then the first warning. "in the buffs file" only names the file when the
+        /// problems are in it (a missing game hook isn't the file's fault).
+        /// </summary>
+        public static string ProblemsLine(int count, int fileCount, string first)
+        {
+            var problems = $"{count} problem{(count == 1 ? "" : "s")}";
+            if (fileCount == count) problems += " in the buffs file";
+            else if (fileCount > 0) problems += $" ({fileCount} in the buffs file)";
+            return $"{problems}: {first}";
+        }
 
         /// <summary>
         /// Damage % rows for the weapon in hand: the types it deals (its own damage plus what bundles add) and any type

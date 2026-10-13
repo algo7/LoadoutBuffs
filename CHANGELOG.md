@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0
+
+- New Spare buildings switch per buff: while that buff is in use, your hits don't damage anything players built
+  (forts and ruins still break).
+
 ## 1.4.0
 
 - New On hit switches for melee and ranged weapons: Bleeding, Thundering and Primal, the Ashlands and Deep North

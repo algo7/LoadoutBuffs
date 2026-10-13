@@ -4,7 +4,7 @@ Give each equipment slot extra **effects and stats**, picked in an in-game windo
 chest, +30 spirit damage on your melee weapon, a protection bubble for you and your friends when you parry. Client-side:
 servers and friends don't need the mod. No items are created or changed, and your saves are never touched.
 
-![The Buffs window, opened from the BUFFS tab next to CRAFT](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/buffs-window.png)
+![The Buffs window: your buffs, the selected buff's slots with its Spare buildings switch, and a slot's effect](https://raw.githubusercontent.com/algo7/LoadoutBuffs/main/images/buffs-window.png)
 
 ## Quick Start
 

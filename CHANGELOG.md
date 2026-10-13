@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+- The Buffs window and the log now warn when a game update breaks Woodcutter / Miner or the Parry bonus tooltip line.
+
 ## 1.5.0
 
 - New Spare buildings switch per buff: while that buff is in use, your hits don't damage anything players built
